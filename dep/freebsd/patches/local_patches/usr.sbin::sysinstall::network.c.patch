@@ -1,0 +1,39 @@
+--- usr.sbin/sysinstall/network.c.orig	2012-05-21 09:52:29.000000000 -0700
++++ usr.sbin/sysinstall/network.c	2012-05-21 09:53:59.000000000 -0700
+@@ -79,7 +79,7 @@ mediaInitNetwork(Device *dev)
+ 	 */
+ 	if (strstr(cp, "DHCP") == NULL) {
+ 	    msgDebug("Not a DHCP interface.\n");
+-	    i = vsystem("ifconfig %s %s", dev->name, cp);
++	    i = vsystem("%sifconfig %s %s", xarchInstall() ? "/stand/" : "", dev->name, cp);
+ 	    if (i) {
+ 		msgConfirm("Unable to configure the %s interface!\n"
+ 			   "This installation method cannot be used.",
+@@ -97,9 +97,9 @@ mediaInitNetwork(Device *dev)
+ 		 * state. We don't need to check this exit code because if
+ 		 * anything fails it will show up in the route add below.
+ 		 */
+-		system("route -n flush");
++		vsystem("%sroute -n flush", xarchInstall() ? "/stand/" : "");
+ 		msgDebug("Adding default route to %s.\n", rp);
+-		if (vsystem("route -n add default %s", rp) != 0) {
++		if (vsystem("%sroute -n add default %s", xarchInstall() ? "/stand/" : "", rp) != 0) {
+ 		    msgConfirm("Failed to add a default route; please check "
+ 			       "your network configuration");
+ 		    return FALSE;
+@@ -137,13 +137,13 @@ mediaShutdownNetwork(Device *dev)
+ 	if (!cp)
+ 	    return;
+ 	msgDebug("ifconfig %s down\n", dev->name);
+-	i = vsystem("ifconfig %s down", dev->name);
++	i = vsystem("%sifconfig %s down", xarchInstall() ? "/stand/" : "", dev->name);
+ 	if (i)
+ 	    msgConfirm("Warning: Unable to down the %s interface properly", dev->name);
+ 	cp = variable_get(VAR_GATEWAY);
+ 	if (cp) {
+ 	    msgDebug("Deleting default route.\n");
+-	    vsystem("route -n delete default");
++	    vsystem("%sroute -n delete default", xarchInstall() ? "/stand/" : "");
+ 	}
+ }
+ 

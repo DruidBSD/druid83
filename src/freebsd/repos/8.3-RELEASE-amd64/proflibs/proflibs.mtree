@@ -1,0 +1,286 @@
+#	   user: kensmith
+#	machine: mason.cse.buffalo.edu
+#	   tree: /R/stage/trees/proflibs
+#	   date: Mon Apr  9 21:28:18 2012
+
+# .
+/set type=file uname=root gname=wheel mode=0755 nlink=1
+.               type=dir nlink=3 size=512
+
+# ./usr
+    usr             type=dir nlink=3 size=512
+
+# ./usr/lib
+/set type=file uname=root gname=wheel mode=0444 nlink=1
+        lib             type=dir mode=0755 nlink=2 size=3072
+            libalias_cuseeme_p.a \
+                            size=3902 \
+                            md5digest=72db2cee6d3c1bde31b71fd9763ac07c
+            libalias_dummy_p.a \
+                            size=3016 \
+                            md5digest=8558aea7252ce96a47926400bd50554d
+            libalias_ftp_p.a \
+                            size=10960 \
+                            md5digest=694ecd66b37d5c8ecdac33ae69359ba9
+            libalias_irc_p.a \
+                            size=6262 \
+                            md5digest=2944ff31aed5622bf4ec581378ad6c83
+            libalias_nbt_p.a \
+                            size=7360 \
+                            md5digest=288c9dc4ecf59154e40039a91a19fc20
+            libalias_p.a    size=64578 \
+                            md5digest=f0e1bb82f0b2c822284580de2d7180d8
+            libalias_pptp_p.a \
+                            size=6400 \
+                            md5digest=9678fb43aae7ce049068f2772626aa06
+            libalias_skinny_p.a \
+                            size=3848 \
+                            md5digest=69cb66c2cdeca2fc6ea4d7a7ed9fae38
+            libalias_smedia_p.a \
+                            size=7512 \
+                            md5digest=1b815bf7fbe403ecbf9817903a4b3559
+            libarchive_p.a  size=543848 \
+                            md5digest=a8d754c9d42f43f8b7d79180eaf97ad3
+            libasn1_p.a     size=1397824 \
+                            md5digest=186f1cf3daddb4ea4c9731baa2db5cb8
+            libauditd_p.a   size=18854 \
+                            md5digest=8f6ef0e618376b64bec2522e052e8bd2
+            libavl_p.a      size=6922 \
+                            md5digest=d45bf3ea995c7e6b2064eb108c81793b
+            libbegemot_p.a  size=17180 \
+                            md5digest=dac0f0d192e89abea17d439ab0608db5
+            libbluetooth_p.a \
+                            size=24380 \
+                            md5digest=b9a9cf3292b3bfc9a6d74a34587c5e3a
+            libbsdxml_p.a   size=264844 \
+                            md5digest=647656d565b1819da26f47fbef2f602a
+            libbsm_p.a      size=197498 \
+                            md5digest=cabf97b949ce4ad4056e2a9f8a434e8e
+            libbsnmp_p.a    size=93540 \
+                            md5digest=c09d1d6b07d4a107edd7c0fd8d0689df
+            libbz2_p.a      size=79790 \
+                            md5digest=1bc830bc77dcf93ac5508787f9bd8c2a
+            libc_p.a        size=3648454 \
+                            md5digest=821f8b0bbd243fc5b5b3b479a74a15d9
+            libcalendar_p.a size=7286 \
+                            md5digest=308b48d3324108ad7106b0539036c88c
+            libcam_p.a      size=160280 \
+                            md5digest=a06901df2576b45252a3a1bb6695067d
+            libcom_err_p.a  size=7096 \
+                            md5digest=1e4fd34a58a55b4c407a51910b26764e
+            libcompat_p.a   size=49200 \
+                            md5digest=008e20f8e7b9536110a08ec27d200b49
+            libcrypt_p.a    size=93628 \
+                            md5digest=57a869cde7de3dccf62064b5250efe78
+            libcrypto_p.a   size=3396164 \
+                            md5digest=ef6eaa0145450fd0a80fea9a047823fc
+            libctf_p.a      size=89266 \
+                            md5digest=b48c50e576ef1793abf0540355cb39c6
+            libcurses_p.a   type=link mode=0755 size=14 link=libncurses_p.a
+            libcursesw_p.a  type=link mode=0755 size=15 \
+                            link=libncursesw_p.a
+            libdevinfo_p.a  size=8894 \
+                            md5digest=9ada41afda7fe313d10e5a293252a86f
+            libdevstat_p.a  size=22586 \
+                            md5digest=9dc86f8e883d3d7f41f1d6607e7c4bca
+            libdialog_p.a   size=203414 \
+                            md5digest=9ff18a1e86d29dae69155f4ad2824b17
+            libdtrace_p.a   size=915404 \
+                            md5digest=ebaa89e29da1d23ea3443df61d465033
+            libdwarf_p.a    size=76432 \
+                            md5digest=b58fcde1336e2b066e67d702a751f532
+            libedit_p.a     size=221470 \
+                            md5digest=be790b5ad4a2e8cbd563f5111a45a0df
+            libelf_p.a      size=220584 \
+                            md5digest=49bf852d3315ab939b47bb2a8d80cc32
+            libfetch_p.a    size=95974 \
+                            md5digest=ced8d690d359467e5d4c0a6e6b415b54
+            libfl_p.a       nlink=3 size=2804 \
+                            md5digest=53f3e46a4ccf95b01600e5699ab3dc65
+            libform_p.a     size=132182 \
+                            md5digest=7a658a60da205f2c31216ceeeab33a96
+            libformw_p.a    size=138628 \
+                            md5digest=a2a3dc5a83d9351a8dfdfddc1d0d236e
+            libftpio_p.a    size=25832 \
+                            md5digest=46354895d6f3c2b8cf70988a150d96b9
+            libgcc_eh_p.a   size=50680 \
+                            md5digest=c48167e2179e2c81c42bf45f1196696c
+            libgcc_p.a      size=124698 \
+                            md5digest=7a32cff29867942c28665bcab553cf5d
+            libgeom_p.a     size=29000 \
+                            md5digest=fc231ec1ed74c189531de2c620493b5b
+            libgnuregex_p.a size=94320 \
+                            md5digest=a941dad370a1575d7a531b0e8608361a
+            libgomp_p.a     size=76664 \
+                            md5digest=c853801b617498f4cc19d3b895b7069e
+            libgpib_p.a     size=11304 \
+                            md5digest=b364d53b0f71a5c35775f7ee0869abc3
+            libgssapi_krb5_p.a \
+                            size=223756 \
+                            md5digest=52119f5b47bb5203c66a065cf6a87a5b
+            libgssapi_ntlm_p.a \
+                            size=68284 \
+                            md5digest=d0e7b03a50081e0e6beef6101732f7f0
+            libgssapi_p.a   size=119418 \
+                            md5digest=ea46947ae191cae078eb0d8399c93132
+            libgssapi_spnego_p.a \
+                            size=92866 \
+                            md5digest=f565168057bd1933a67b57bb80137084
+            libhdb_p.a      size=173322 \
+                            md5digest=27bd1bfcc513c706ee6fe6cce1a37b96
+            libheimntlm_p.a size=21536 \
+                            md5digest=87ec7274111bbbada8d718967655bd07
+            libhistory_p.a  size=56890 \
+                            md5digest=bb0914a19bf30dfa48bbd5c9d3689db4
+            libhx509_p.a    size=470766 \
+                            md5digest=2161909668339abf846c0c14eb4eb2de
+            libipsec_p.a    size=45024 \
+                            md5digest=9389dcaba4314f2445bbf5afac59b8a2
+            libipx_p.a      size=9578 \
+                            md5digest=2b8ca0168945e40167d3dc462628a3fe
+            libjail_p.a     size=26284 \
+                            md5digest=d77862d052f64d01e4a5fd14e0685418
+            libkadm5clnt_p.a \
+                            size=76124 \
+                            md5digest=3c224aa23797a71d68d9f4eb4f2a1330
+            libkadm5srv_p.a size=112964 \
+                            md5digest=7e6c3bcabad6be9eea5783f4fd02c19d
+            libkafs5_p.a    size=27804 \
+                            md5digest=4e45e5b6fbdd9d2af7b443a8767c1165
+            libkiconv_p.a   size=7372 \
+                            md5digest=02b5e37faada36077ed4bd65d7947593
+            libkrb5_p.a     size=857994 \
+                            md5digest=f0fc29e5560d0d88102cc18f311ab4f0
+            libkvm_p.a      size=65032 \
+                            md5digest=53256715b5918e4dbd45b92cad12e34b
+            libl_p.a        nlink=3 size=2804 \
+                            md5digest=53f3e46a4ccf95b01600e5699ab3dc65
+            libln_p.a       nlink=3 size=2804 \
+                            md5digest=53f3e46a4ccf95b01600e5699ab3dc65
+            liblwres_p.a    size=146752 \
+                            md5digest=0f42081033575edc1ab621e725a7589c
+            liblzma_p.a     size=276048 \
+                            md5digest=56b55b4d0f7677ceb66e621828fd93e4
+            libm_p.a        size=526900 \
+                            md5digest=db4458cac8b6e17927d9a46e6ab78400
+            libmagic_p.a    size=185656 \
+                            md5digest=7d950845674876a3722f5e6c1b1afe03
+            libmd_p.a       size=95858 \
+                            md5digest=d290adce4f3f27c0c59f01509e5a19b2
+            libmemstat_p.a  size=24312 \
+                            md5digest=8e2bf554f9d45776ef99ce6e500048f6
+            libmenu_p.a     size=70390 \
+                            md5digest=1339d7c3497ec69a13960feb079a26dc
+            libmenuw_p.a    size=71478 \
+                            md5digest=2ffd120130182f7b303c854e0dfc27b3
+            libmilter_p.a   size=91872 \
+                            md5digest=982f3743673d92fedea075b4a2f698a7
+            libmp_p.a       size=13960 \
+                            md5digest=244c2a4b6ee518ab7a844ceb9136d73a
+            libncp_p.a      size=107830 \
+                            md5digest=b932254b0305efcb9fb7c8cff62ac92e
+            libncurses_p.a  size=664510 \
+                            md5digest=ad7ea10f29e36b3ab50f1c4a56c7a5d9
+            libncursesw_p.a size=772074 \
+                            md5digest=b2d5fa77256e468aa5aa84630ba7a5e4
+            libnetgraph_p.a size=24662 \
+                            md5digest=1ac931e9f20148a740f6f66a5bef0f23
+            libngatm_p.a    size=683476 \
+                            md5digest=70b61e2a94947cbda82a21441b30d751
+            libnvpair_p.a   size=88098 \
+                            md5digest=bf9540d8531c59bfdb07bc057b2a3e42
+            libobjc_p.a     size=215666 \
+                            md5digest=9599d2fd271ce51112268f7c5b92f746
+            libopie_p.a     size=86654 \
+                            md5digest=64791a065adcd8624463559c7daeb9af
+            libpanel_p.a    size=29420 \
+                            md5digest=fd592fbb3b408b3620bcf4d16f4a6af6
+            libpanelw_p.a   size=29420 \
+                            md5digest=58950af10734489f8771f239bdb47bbb
+            libpcap_p.a     size=357320 \
+                            md5digest=7fdb1014245762c4de4a051937e6d45a
+            libpmc_p.a      size=174704 \
+                            md5digest=e28e1ea123470afd04de1771254dcbae
+            libproc_p.a     size=26242 \
+                            md5digest=c9593b174f40c25cd3bf47bea9c608f4
+            libpthread_p.a  type=link mode=0755 size=10 link=libthr_p.a
+            libradius_p.a   size=26868 \
+                            md5digest=c14859a2f447b5af4a17f4f16fc3dba5
+            libreadline_p.a size=495146 \
+                            md5digest=817648176bf9854e381964d1f39cefae
+            libroken_p.a    size=172618 \
+                            md5digest=e92076fe622066d686a851b0edcde5b2
+            librpcsvc_p.a   size=75064 \
+                            md5digest=d19d8eacbc1f17aef32fda701028b0e9
+            librt_p.a       size=88126 \
+                            md5digest=3e0f4991405534263b5b53e4b90708a2
+            librtld_db_p.a  size=8384 \
+                            md5digest=00e90e53a8609cdef29bd79c61d73ba1
+            libsbuf_p.a     size=7316 \
+                            md5digest=0ff40a627f1d5ba02abda13e60936da7
+            libsdp_p.a      size=28648 \
+                            md5digest=3cb5f2f07ca3650b4c2f2d4f161d79f8
+            libsmb_p.a      size=93138 \
+                            md5digest=fa7e3fad5ebc0c97a685aaf32d8ac5ca
+            libssh_p.a      size=616024 \
+                            md5digest=5d50b6cffc2767d14f75f0f0f35e1caa
+            libssl_p.a      size=594188 \
+                            md5digest=45f574abfc745a59a1780fce5beca225
+            libssp_p.a      size=24988 \
+                            md5digest=aa35665891ede3ef7d6e7300bcdb6b0e
+            libstand_p.a    size=238360 \
+                            md5digest=0090d02a2c4913d32c17fcf42426bb60
+            libstdc++_p.a   size=2652666 \
+                            md5digest=65ca41d9c7c19e204dc3f9833d1b7558
+            libsupc++_p.a   size=209100 \
+                            md5digest=bc460d7cd5b24a4dd023f96573c72b85
+            libtacplus_p.a  size=21950 \
+                            md5digest=67ad6c5dee79f1982259d5fcfdab82c5
+            libtermcap_p.a  type=link mode=0755 size=14 link=libncurses_p.a
+            libtermcapw_p.a type=link mode=0755 size=15 \
+                            link=libncursesw_p.a
+            libtermlib_p.a  type=link mode=0755 size=14 link=libncurses_p.a
+            libtermlibw_p.a type=link mode=0755 size=15 \
+                            link=libncursesw_p.a
+            libthr_p.a      size=228130 \
+                            md5digest=4a25e2079c51353a447a8a09d2f761c2
+            libthread_db_p.a \
+                            size=47472 \
+                            md5digest=7b1c494bddf61b675fb455328495e2d9
+            libtinfo_p.a    type=link mode=0755 size=14 link=libncurses_p.a
+            libtinfow_p.a   type=link mode=0755 size=15 \
+                            link=libncursesw_p.a
+            libufs_p.a      size=15632 \
+                            md5digest=d14b492faad5d27eb75e6c3d40b73882
+            libugidfw_p.a   size=25128 \
+                            md5digest=15edf5c8d977b1679fd01d0937efff1f
+            libumem_p.a     size=4424 \
+                            md5digest=d31e208674bf70048ba4d4a5dca0d12e
+            libusb_p.a      size=125096 \
+                            md5digest=fc4e4f361291b339c8b6d50c33fe71c3
+            libusbhid_p.a   size=20150 \
+                            md5digest=826dac7d27bcf393fa475a17f51289b1
+            libutil_p.a     size=127354 \
+                            md5digest=be67f20cbfe959177a84181e00f9c45d
+            libuutil_p.a    size=67316 \
+                            md5digest=4c4b89cec49b3215e262ebdc609db4f3
+            libvgl_p.a      size=53492 \
+                            md5digest=9ed3167a59d3a744c50548c51e644c3d
+            libwrap_p.a     size=70098 \
+                            md5digest=c3140841641f31e176177e3458239ba5
+            liby_p.a        size=3278 \
+                            md5digest=fe0bc85f3fc6a0fa2483cdc4fa48dc6e
+            libypclnt_p.a   size=38316 \
+                            md5digest=36882c616932f69f66b31f980d1de5e1
+            libz_p.a        size=114658 \
+                            md5digest=e4ad3a9bffd1602059ffc09485050fa1
+            libzfs_p.a      size=509042 \
+                            md5digest=57ed963e86683002c6763e734d6ab8b7
+        # ./usr/lib
+        ..
+
+    # ./usr
+    ..
+
+..
+

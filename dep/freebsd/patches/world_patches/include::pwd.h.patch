@@ -1,0 +1,14 @@
+--- include/pwd.h.orig	2012-03-02 22:15:13.000000000 -0800
++++ include/pwd.h	2012-05-18 15:50:20.000000000 -0700
+@@ -78,6 +78,11 @@ typedef __size_t	size_t;
+ 
+ #define	_PATH_PWD_MKDB		"/usr/sbin/pwd_mkdb"
+ 
++#ifdef DRUID
++#undef	_PATH_PWD_MKDB
++#define	_PATH_PWD_MKDB		"/stand/pwd_mkdb"
++#endif /* DRUID */
++
+ /* Historically, the keys in _PATH_MP_DB/_PATH_SMP_DB had the format
+  * `1 octet tag | key', where the tag is one of the _PW_KEY* values
+  * listed below.  These values happen to be ASCII digits.  Starting

@@ -1,0 +1,69 @@
+#!/bin/sh
+# -*- tab-width:  4 -*- ;; Emacs
+# vi: set tabstop=4     :: Vi/ViM
+
+############################################################ CONFIGURATION
+
+sha256host=ipm0.vbsd
+
+############################################################ FUNCTIONS
+
+#
+# Operating System glue
+#
+case "$( uname )" in
+Linux|CYGWIN*)
+	md5() { md5sum "$@" | awk '{print "MD5 ("$2") = "$1}'; }
+esac
+
+#
+# Platform glue
+#
+if ! type sha256 > /dev/null 2>&1; then
+	sha256()
+	{
+		if [ $# -gt 0 ]; then
+			while [ $# -gt 0 ]; do
+				printf "SHA256 (%s) = %s\n" "$1" \
+					"$( cat "$1" | sha256 )"
+				shift 1
+			done
+		else
+			ssh $sha256host sha256
+		fi
+	}
+fi
+
+############################################################ MAIN SOURCE
+
+# Get a list of dists to operate on
+dists="$( ls -1 *.aa | sed -e 's/\.aa$//' )"
+
+# Generate dist.inf for each distribution-set
+for dist in $dists; do
+
+	# How many pieces to the distribution-set?
+	numfiles="$( ls -1 $dist.?? | wc -l | awk '{print $1}' )"
+
+	#
+	# Re/Create $dist.inf checksum log
+	#
+	printf "Pieces = %3u\n" $numfiles > $dist.inf
+	for piece in `ls -1 $dist.?? | sort`; do
+		printf "cksum.%s = %s\n" ${piece#*.} \
+			"$( cksum $piece | awk '{print $1" "$2}' )" \
+		>> $dist.inf
+	done
+done
+
+#
+# Re/Create CHECKSUM.MD5 digest log
+#
+md5 `ls -1 *.?? *.inf *.mtree | sort` \
+	> CHECKSUM.MD5
+
+#
+# Re/Create CHECKSUM.SHA256 digest log (via another host)
+#
+sha256 `ls -1 *.?? *.inf *.mtree | sort` \
+	> CHECKSUM.SHA256

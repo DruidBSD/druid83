@@ -1,0 +1,110 @@
+\ Menu.rc
+\ $Header: /cvsroot/druidbsd/druidbsd/druid83/mdroot/boot/menu.rc,v 1.1 2012/10/10 23:30:08 devinteske Exp $
+
+\ The path to our boot directory on disc
+set loader_boot="boot"
+
+\ Set kernel paths (see menu_caption[2] below)
+set kernel_prefix="kernels/"
+set kernel[0]="GENERIC-i386-8.3"
+set kernel_suffix=".kgz"
+
+\ Set MFS/MD root image paths
+set root[0]="mfsroot8"
+set root[1]="rescue_mfsroot8"
+
+\ Set default boot kernel and root image
+set kernel="${kernel_prefix}${kernel[0]}${kernel_suffix}"
+set root="${root[0]}"
+
+\ Load required Forth modules
+include ${loader_boot}/include/version.4th
+include ${loader_boot}/include/brand.4th
+include ${loader_boot}/include/menu.4th
+include ${loader_boot}/include/menu-commands.4th
+include ${loader_boot}/include/shortcuts.4th
+
+\ Customizations
+set loader_version="Druid, v1.0"
+set loader_logo="orb"
+set loader_logo_x=49
+set loader_logo_y=2
+set loader_brand="dbsd"
+set loader_brand_x=1
+set loader_brand_y=1
+
+\ Screen prep
+clear		\ clear the screen (see `screen.4th')
+print_version	\ print version string (bottom-right; see `version.4th')
+draw-beastie	\ draw freebsd mascot (on right; see `beastie.4th')
+draw-brand	\ draw the FIS logo (top-left; see `brand.4th')
+menu-init	\ initialize the menu area (see `menu.4th')
+
+\ Initialize main menu constructs (see `menu.4th')
+\ NOTE: To use the `ansi' variants, add `loader_color=1' to loader.conf(5)
+
+set menu_caption[1]="Boot [Enter]"
+set menu_command[1]="boot"
+set ansi_caption[1]="[1mB[37moot [1m[Enter][37m"
+set menu_keycode[1]="98"
+
+set menu_caption[2]="[Esc]ape to loader prompt"
+set menu_command[2]="goto_prompt"
+set menu_keycode[2]="27"
+set ansi_caption[2]="[1mEsc[37mape to loader prompt"
+
+\ Enable built-in "Reboot" trailing menuitem
+\ NOTE: appears before menu_options if configured
+\ 
+set menu_reboot
+
+\ Enable "Options:" separator. When set to a numerical value (1-8), a visual
+\ separator is inserted before that menuitem number.
+\ 
+set menu_options=4
+
+set menu_caption[4][0]="[K]ernel: ${kernel[0]} (1of1)"
+set menu_caption[4]="${menu_caption[4][0]}"
+set menu_command[4]="cycle_kernel"
+set menu_keycode[4]="107"
+set ansi_caption[4][0]="[1mK[37mernel: [32m${kernel[0]}[37m (1of1)"
+set ansi_caption[4]="${ansi_caption[4][0]}"
+
+set menu_caption[5]="[A]CPI Support off"
+set toggled_text[5]="[A]CPI Support On"
+set menu_command[5]="toggle_acpi"
+set menu_keycode[5]="97"
+set menu_acpi=5
+set ansi_caption[5]="[1mA[37mCPI Support [34;1mOff[37m"
+set toggled_ansi[5]="[1mA[37mCPI Support [32;7mOn[0;37m"
+
+set menu_caption[6]="Safe [M]ode... off"
+set toggled_text[6]="Safe [M]ode... On"
+set menu_command[6]="toggle_safemode"
+set menu_keycode[6]="109"
+set ansi_caption[6]="Safe [1mM[37mode... [34;1mOff[37m"
+set toggled_ansi[6]="Safe [1mM[37mode... [32;7mOn[0;37m"
+
+set menu_caption[7]="[V]erbose..... off"
+set toggled_text[7]="[V]erbose..... On"
+set menu_command[7]="toggle_verbose"
+set menu_keycode[7]="118"
+set ansi_caption[7]="[1mV[37merbose..... [34;1mOff[37m"
+set toggled_ansi[7]="[1mV[37merbose..... [32;7mOn[0;37m"
+
+set menu_caption[8][0]="[R]oot Image.. ${root[0]} (1of2)"
+set menu_caption[8][1]="[R]oot Image.. ${root[1]} (2of2)"
+set menu_caption[8]="${menu_caption[8][0]}"
+set menu_command[8]="cycle_root"
+set menu_keycode[8]="114"
+set ansi_caption[8][0]="[1mR[37moot Image.. [34;1m${root[0]}[37m (1of2)"
+set ansi_caption[8][1]="[1mR[37moot Image.. [31m${root[1]}[37m (2of2)"
+set ansi_caption[8]="${ansi_caption[8][0]}"
+
+\ Enable automatic booting (add ``autoboot_delay=N'' to loader.conf(5) to
+\ customize the timeout; default is 10-seconds)
+\ 
+set menu_timeout_command="boot"
+
+\ Display the main menu (see `menu.4th')
+menu-display

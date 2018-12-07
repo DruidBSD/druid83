@@ -1,0 +1,25 @@
+--- usr.sbin/sysinstall/msg.c.orig	2010-11-17 05:42:06.000000000 -0800
++++ usr.sbin/sysinstall/msg.c	2010-11-18 10:41:04.000000000 -0800
+@@ -47,6 +47,22 @@ isDebug(void)
+     return (cp = variable_get(VAR_DEBUG)) && strcmp(cp, "no");
+ }
+ 
++Boolean
++xarchInstall(void)
++{
++    char *cp;
++
++    return (cp = variable_get(VAR_XARCH_INSTALL)) && strcmp(cp, "no");
++}
++
++Boolean
++noDevfs(void)
++{
++    char *cp;
++
++    return (cp = variable_get(VAR_NODEVFS)) && strcmp(cp, "no");
++}
++
+ /* Whack up an informational message on the status line, in stand-out */
+ void
+ msgYap(char *fmt, ...)

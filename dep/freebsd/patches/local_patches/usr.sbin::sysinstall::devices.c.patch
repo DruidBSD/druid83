@@ -1,0 +1,11 @@
+--- usr.sbin/sysinstall/devices.c.orig	2012-05-21 09:52:28.000000000 -0700
++++ usr.sbin/sysinstall/devices.c	2012-05-21 09:53:59.000000000 -0700
+@@ -225,7 +225,7 @@ deviceTry(struct _devname dev, char *try
+     char unit[80];
+ 
+     snprintf(unit, sizeof unit, dev.name, i);
+-    snprintf(try, FILENAME_MAX, "/dev/%s", unit);
++    snprintf(try, FILENAME_MAX, "/dev%s/%s", noDevfs() ? "fs" : "", unit);
+     if (isDebug())
+ 	msgDebug("deviceTry: attempting to open %s\n", try);
+     fd = open(try, O_RDONLY);

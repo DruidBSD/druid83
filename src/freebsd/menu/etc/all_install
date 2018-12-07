@@ -1,0 +1,314 @@
+#!/bin/sh
+# -*- tab-width:  4 -*- ;; Emacs
+# vi: set tabstop=4     :: Vi/ViM
+
+# All variables should be prefixed with `__' to reserve it to this shell
+############################################################ CONFIGURATION
+
+# MENU_ROOT is exported by the mfsroot scripts and contains the path
+# to the directory that our menu resources live in
+
+# Whether to use ANSI color or not
+ANSI_COLOR=YES
+
+# Execution root (within the memory file-system)
+CMD_ROOT=/fis
+
+# Output file (where to store derived commands for sysintall)
+CFG_FILE="$CMD_ROOT/menu-install.cfg"
+
+############################################################ FUNCTIONS
+
+# Include standard functions
+. "$MENU_ROOT/etc/sh.subr"
+
+############################################################ MAIN SOURCE
+
+#
+# Perform initialization routines
+#
+task_begin "Verifying installation environment sanity..."
+trunc_safe "$CFG_FILE"
+die_if_missing "/bin/sysctl"
+die_if_missing "/bin/sed"
+die_if_missing "/bin/sleep"
+die_if_missing "/tmp"
+die_if_missing "$MENU_ROOT/bin/swapsz"
+task_end $SUCCESS
+
+#
+# Read configuration files
+#
+__conf="${CONF:-$MENU_ROOT/etc/install.conf}"
+task_begin "Reading configuration file \`$__conf'..."
+die_if_missing "$__conf"
+. "$__conf" || die "Unable to source file \`%s'" "$__conf"
+task_end $SUCCESS
+
+#
+# Configure installation source
+#
+task_begin "Configuring local FreeBSD repository location..."
+die_if_null "$FREEBSD" \
+	"$CONFIG_ERROR \`FREEBSD' must be set in \`%s'" "$__conf"
+( echo "nullfs=$FREEBSD" >> "$CFG_FILE" ) \
+	|| die "$FILE_ERROR Unable to write to file \`%s'" "$CFG_FILE"
+task_end $SUCCESS
+
+#
+# Configure distribution directives
+#
+task_begin "Configuring binary distribution sets..."
+die_if_null "$DISTS" \
+	"$CONFIG_ERROR \`DISTS' must be set in \`%s'" "$__conf"
+( echo "dists=$DISTS" >> "$CFG_FILE" ) \
+	|| die "Unable to write to file \`%s'" "$CFG_FILE"
+task_end $SUCCESS
+
+#
+# Set optional XARCH installation setting(s)
+#
+if [ "$XARCH" ]; then
+	task_begin "Configuring Cross-Platform Installation..."
+	( echo "xarchInstall=1" >> "$CFG_FILE" ) \
+		|| die "Unable to write to file \`%s'" "$CFG_FILE"
+	task_end $SUCCESS
+fi
+
+#
+# Set optional noDevfs installation setting
+#
+if [ "$NODEVFS" ]; then
+	task_begin "Configuring Legacy-Release (pre-devfs(5)) Installation..."
+	( echo "noDevfs=1" >> "$CFG_FILE" ) \
+		|| die "Unable to write to file \`%s'" "$CFG_FILE"
+	task_end $SUCCESS
+fi
+
+#
+# Probe hard disks
+#
+task_begin "Probing for target installation disk(s)..."
+
+# Get a list of hard disk block devices
+__disks=`sysctl -n kern.disks`
+echo "# Disks probed: $__disks" >> "$CFG_FILE"
+
+#
+# Probe-out our own boot-device when we boot from USB stick
+#
+__disk_pool="${__disks}"
+__disks=
+for __disk in ${__disk_pool}; do
+	case ${__disk} in
+	da[0-9]|da[0-9][0-9])
+		#
+		# Skip da* devices that either have a hidden HPFS/NTFS boot
+		# partition (which would be considered our USB hybrid boot
+		# media) or cannot be read (fake BIOS devices).
+		#
+		__parts=$( fdisk -s "${__disk}" 2> /dev/null )
+		[ $? -eq $SUCCESS -a "${__parts}" ] || continue
+		echo "${__parts}" |
+			awk 'BEGIN { found = 0 }
+			     /[[:space:]]+0x17[[:space:]]+0x80$/ { found++ }
+			     END { exit ! found }' &&
+			continue
+		;;
+	ad[0-9]|ad[0-9][0-9]) : generic ATA/ATAPI disk ;;
+	ar[0-9]|ar[0-9][0-9]) : ATA RAID ;;
+	ada[0-9]|ada[0-9][0-9]) : ATA Direct Access device ;;
+	mlxd[0-9]|mlxd[0-9][0-9]) : Mylex RAID ;;
+	amrd[0-9]|amrd[0-9][0-9]) : MegaRAID SCSI/ATA/SATA RAID ;;
+	idad[0-9]|idad[0-9][0-9]) : Compaq Intelligent Drive Array ;;
+	twed[0-9]|twed[0-9][0-9]) : 3ware ATA/SATA series RAID ;;
+	aacd[0-9]|aacd[0-9][0-9]) : Adaptec AdvancedRAID ;;
+	ipsd[0-9]|ipsd[0-9][0-9]) : IBM/Adaptec ServeRAID ;;
+	mfid[0-9]|mfid[0-9][0-9]) : LSI SAS/SATA MegaRAID ;;
+	*) continue
+	esac
+	__disks="${__disks}${__disks:+ }${__disk}"
+done
+
+#
+# Pseudo-count the number of disks
+#
+for __disk in ${__disks}; do
+	__n="${__n}1"
+done
+
+#
+# Configure disk-partition/label directives
+#
+if [ "$diskInteractive" = "YES" ]; then
+
+	# the user has enabled "Interactive Disk Partitioning" in the menu
+	echo "diskInteractive=YES" >> "$CFG_FILE"
+
+elif [ "$__n" = "1" ]; then
+
+	# there is only one disk, set partition/label information
+
+	# Get the SWAP size based on physical memory
+	__swapsz=`$MENU_ROOT/bin/swapsz`
+
+	# Sizes below are specified in number of 512-byte sectors. For
+	# example, 1GB (or 1073741824 bytes) is represented as 2097152
+	# (mathematically N/512 where N is the number of bytes).
+
+	# On 2010-07-07 Bruce Cran submitted SVN rev 209764 to MAIN,
+	# increasing the default partition sizes for `/', `/var', and
+	# `/tmp'. The new defaults are used below (1GB on `/', 4GB on
+	# `/var', and 1GB on `/tmp').
+
+	# The argument immediately following the mount-point for the
+	# device, when non-zero, indicates that Soft-Updates should be
+	# enabled. Soft-Updates is a performance-enhancing feature
+	# required by RIDS and should be enabled for the `/var', `/tmp',
+	# and `/usr' partitions below.
+
+	# XXX BEGIN TODO
+	#
+	#     We really ought to be probing both disk and RAM sizes so
+	#     that we can set things up for more resource-starved systems
+	#     such as virtual machines which traditionally have small
+	#     disks and little RAM. Rather than always allocating the
+	#     same disk structure, we should instead follow these guide-
+	#     lines laid-down by Colin Perciva in version 1.49 of
+	#     src/usr.sbin/sysinstall/label.c commited on 2005-08-16.
+	#
+	#     On systems where harddrivesize > 3 * RAMsize + 14GB, the
+	#     default sizes should be:
+	#     swap     RAMsize * 2
+	#     /        1024 MB
+	#     /tmp     1024 MB
+	#     /var     4096 MB + RAMsize
+	#     /usr     the rest (8GB or more)
+	#
+	#     On systems where harddrivesize > RAMsize / 8 + 2 GB, the
+	#     default sizes should instead be, with space allocated pro-
+	#     portionally:
+	#     swap     RAMsize / 8 -- RAMsize * 2
+	#     /        256 MB      -- 1024 MB
+	#     /tmp     128 MB      -- 1024 MB
+	#     /var     128 MB      -- 1024 MB
+	#     /usr     1536 MB     -- 8192 MB
+	#
+	#     On systems with even less disk space, the old behaviour
+	#     should be used:
+	#     swap     128 MB
+	#     /        128 MB
+	#     /tmp     128 MB
+	#     /var     128 MB
+	#     /usr     the rest
+	#
+	#     With the above schemas, you would then have three different
+	#     partitioning schemes dependent on the size of target install-
+	#     ation disk:
+	#
+	#        Optimal Install:   Disks ~20 GB or larger
+	#        Space Constrained: Disks from ~3 GB to ~20 GB
+	#        Absolute Minimum:  Disks from ~640 MB to ~3 GB
+	#
+	#     Thus, ultimately supporting various install types such as
+	#     workstations/servers (Optimal Install), virtual machines
+	#     (Space Constrained) and jails (Absolute Minimum).
+	#
+	# XXX END TODO
+	#
+	# XXX UPDATE TO ABOVE TODO:
+	#
+	#     Probing the RAM size could prove difficult for 64-bit systems,
+	#     considering that we're booting into 32-bit kernels to install
+	#     amd64 releases.
+	#
+	#     Since I've added the code to quickly-toggle diskInteractive
+	#     mode, we may scrap the idea of dynamically allocating based on
+	#     probed information. This makes it simpler to document the
+	#     standard disk allocation, and if your disk is either too small
+	#     to accomodate the defaults or if you want to change the defaults
+	#     you can do so easily by checking the box in our custom menu
+	#     without having to drop down to advanced mode (which up until
+	#     recently -- with my commit to add pre/post_install.cfg directly
+	#     to sysinstall(8) -- used to build non-booting systems unless you
+	#     dropped into rescue mode on ttyv3 -- alt+f4 -- and ran the
+	#     post_install `run_once' scripts by-hand in a chroot(8)'d 
+	#     instance of `/stand/sh' -- with PATH="/stand").
+	#
+	#     So now, the stance is, the user can:
+	#     - invoke "Interactive Disk Partitioning" from our custom menu
+	#     - or use the sensible defaults below via this scripted install
+	#     - or use advanced mode with "Local Directory" media type
+	#       specifying one of the local directories (unfortunately, the
+	#       user must currently:
+	#          a. Press Alt+F4 to go to debug console ttyv3 where we've
+	#             launched a ``Holographic Recovery Shell''
+	#          b. Type `rescue' into the shell and hit ENTER to get a
+	#             fully-featurerd bash shell
+	#          c. Do an ls(1) on `/cdrom/freebsd/repos' and then copy
+	#             the directory path of the release shown to the prompt
+	#
+	#     NOTE: I should really add the ability to enter the path of a
+	#           directory as the value of VAR_NULLFS_PATH. If a directory
+	#           is entered a menu should be displayed containing all valid
+	#           releases within that directory (HINT: either check for
+	#           `cdrom.inf' in each directory or go by directory name
+	#           pattern matching alone (using fnmatch(3) perhaps on
+	#           "*-RELEASE", "*-STABLE", or "*-CURRENT").
+	#
+	# XXX END TODO
+
+	: ${FSTYPE:=ufs}
+
+	echo "disk=$__disk"                            >> "$CFG_FILE"
+	echo "${__disk}s1-1=$FSTYPE  2097152   /    0" >> "$CFG_FILE"
+	echo "${__disk}s1-2=swap     $__swapsz none 0" >> "$CFG_FILE"
+	echo "${__disk}s1-3=$FSTYPE  8388608   /var 1" >> "$CFG_FILE"
+	echo "${__disk}s1-4=$FSTYPE  2097152   /tmp 1" >> "$CFG_FILE"
+	echo "${__disk}s1-5=$FSTYPE  0         /usr 1" >> "$CFG_FILE"
+
+elif [ "$__n" ]; then
+
+	task_end $FAILURE
+
+	# there is more than one disk (enter interactive mode)
+	echo "diskInteractive=YES" >> "$CFG_FILE"
+
+	# there aren't any disks... issue a warning
+	printf "$WARNING Multiple disks found. "
+	printf "Press ENTER to proceed to disk setup"
+	read IGNORED
+
+else
+
+	__msg="No hard disks or missing/problematic driver\n"
+	__msg="$__msg$WARNING Using a RAID controller?"
+	__msg="$__msg You may have to initialize the array"
+	die "$DISK_ERROR $__msg"
+
+fi
+task_end $SUCCESS
+
+#
+# Append standard configuration directives
+#
+task_begin "Generating installation script..."
+( awk '!/^[[:space:]]*(#|$)/{print}' < "$MENU_ROOT/etc/common.cfg" \
+	>> "$CFG_FILE" ) || die "Unable to write to file \`%s'" "$CFG_FILE"
+task_end $SUCCESS
+
+################################################################################
+# END
+################################################################################
+#
+# $Header: /cvsroot/druidbsd/druidbsd/druid83/src/freebsd/menu/etc/all_install,v 1.1 2012/10/10 23:30:21 devinteske Exp $
+#
+# $Copyright: 2006-2012 Devin Teske. All rights reserved. $
+#
+# $Log: all_install,v $
+# Revision 1.1  2012/10/10 23:30:21  devinteske
+# Commit initial public beta release of 8.3 series (beta 57; on-par with
+# the 9.0 series released recently, also beta 57).
+#
+#
+################################################################################

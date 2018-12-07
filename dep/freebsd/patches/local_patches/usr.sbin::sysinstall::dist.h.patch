@@ -1,0 +1,24 @@
+--- usr.sbin/sysinstall/dist.h.orig	2010-10-26 05:46:58.000000000 -0700
++++ usr.sbin/sysinstall/dist.h	2010-10-29 07:21:50.000000000 -0700
+@@ -13,12 +13,11 @@
+ /* Documentation from FreeBSD docproj */
+ #define DIST_DOC		0x00040
+ #define DIST_INFO		0x00080
++#define DIST_PERL		0x00100
+ #define DIST_CATPAGES		0x00200
+ #define DIST_PORTS		0x00400
+ #define DIST_LOCAL		0x00800
+-#ifdef __amd64__
+ #define DIST_LIB32		0x01000
+-#endif
+ #define	DIST_KERNEL		0x02000
+ /* Userland documentation */
+ #define DIST_DOCUSERLAND	0x04000
+@@ -73,6 +72,7 @@
+ /* Subtypes for KERNEL distribution */
+ #define DIST_KERNEL_GENERIC	0x00001
+ #define DIST_KERNEL_SMP		0x00002
++#define DIST_KERNEL_FIS		0x00004
+ #define DIST_KERNEL_ALL		0xFFFFF
+ 
+ /* Canned distribution sets */

@@ -1,0 +1,90 @@
+#!/bin/sh
+# -*- tab-width:  4 -*- ;; Emacs
+# vi: set tabstop=4     :: Vi/ViM
+
+############################################################ CONFIGURATION
+
+# We are launched directly from init(8)... create a sane working environment:
+export TERM=cons25
+
+# Whether to use ANSI color or not
+export ANSI_COLOR=YES
+
+# Execution root (within the memory file-system)
+export CMD_ROOT=/fis
+
+# Local mount point to use when mounting the boot media
+export cd_mount_point=/cdrom
+
+# Internal ISO9660 Volume ID/Label of our boot device
+# NOTE: This is a hard-coded value in the ISO9660 compilation process.
+#
+export VOLID=druid
+
+############################################################ FUNCTIONS
+
+# Include standard functions
+. "$CMD_ROOT/sh.subr"
+
+############################################################ MAIN SOURCE
+
+#
+# Perform initialization routines
+#
+task_begin "Verifying installation environment sanity..."
+die_if_missing "/bin/sleep"
+die_if_missing "/sbin/mount"
+die_if_missing "/sbin/mount_cd9660"
+die_if_missing "/tmp"
+task_end $SUCCESS
+
+#
+# Mount the media that we booted from
+#
+task_begin "Mounting ISO9660 filesystem on \`$cd_mount_point'..."
+if [ ! -f "$cd_mount_point/version.inf" ]; then
+
+	# Attempt to mount /dev/iso9660/VOLID
+	eval_spin mount_cd9660 "/dev/iso9660/$VOLID" "$cd_mount_point"
+
+	if [ $? -eq $SUCCESS ]; then
+		# Make sure we've mounted something we built/recognize
+		[ -f "$cd_mount_point/version.inf" ] \
+			|| die "$FATAL_ERROR Invalid installation source"
+	else
+		die "$UNKNOWN_ERROR Could not mount ISO9660 filesystem"
+	fi
+fi
+task_end $SUCCESS
+
+#
+# Make sure we have a read/write filesystem
+#
+task_begin "Changing root (/) filesystem to read/write mode..."
+mount -u -rw / || die "$FATAL_ERROR Read-only root (/) file system"
+task_end $SUCCESS
+
+#
+# Start an instance of rescue shell
+#
+print_bold "Launching Interactive Disk Repair..."
+sleep 1.5
+echo
+repair="$cd_mount_point/freebsd/menu/scripts/repair"
+[ -f "$repair" ] \
+	|| repair="$cd_mount_point/menu/scripts/repair"
+die_if_missing "$repair"
+export REPAIR_ROOT="${repair%/*}"
+( cd "$REPAIR_ROOT" && "./${repair##*/}" ) || exit $FAILURE
+
+exit $SUCCESS
+
+################################################################################
+# END
+################################################################################
+#
+# $Header: /cvsroot/druidbsd/druidbsd/druid83/dep/freebsd/mfsroot/rescue/src/fis/load_repair,v 1.3 2012/10/30 22:52:43 devinteske Exp $
+#
+# $Copyright: 2006-2012 Devin Teske. All rights reserved. $
+#
+################################################################################

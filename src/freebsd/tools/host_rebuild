@@ -1,0 +1,1722 @@
+#!/bin/sh
+# -*- tab-width:  4 -*- ;; Emacs
+# vi: set tabstop=4     :: Vi/ViM
+############################################################ COPYRIGHT
+#
+# (c)2011. Devin Teske. All Rights Reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+#
+############################################################ INFORMATION
+#
+# Command Usage:
+#
+#   host_rebuild [OPTIONS] [-r RELEASE] [DESTDIR]
+#
+#   OPTIONS:
+#   	-h   Print this message to stderr and exit.
+#   	-v   Verbose. Enables verbose output during build.
+#   	-q   Quiet. Disables verbose output.
+#   	-n   Don't actually do anything but show what will be done.
+#   	-d   Don't automatically reboot upon completion (only applicable
+#   	     when rebuilding `/').
+#
+#   ARGUMENTS:
+#   	-r RELEASE   Specifies the FreeBSD release to rebuild. For example,
+#   	             "8.1-RELEASE". If not specified, the user will be prompted
+#   	             to select the release from a list of available options.
+#   	DESTDIR      Directory to unpack chosen release to (defaults is `/').
+#
+#   ENVIRONMENT:
+#   	HOST_REBUILD_VERBOSE   Verbosity. Must be zero or one (default: `0').
+#   	DIALOG_TMPDIR          Directory to store dialog(1) temporary files
+#   	                       (default: `/tmp').
+#
+#   EXAMPLES:
+#
+#   	host_rebuild
+#   		Prompts the user to select a release from a list and then
+#   		rebuilds the base host using the chosen release. Releases
+#   		are located in `../repos', relative to script-location.
+#
+#   	host_rebuild -r 8.1-RELEASE
+#   		Rebuilds the base host as FreeBSD-8.1.
+#
+#   	host_rebuild -r 8.1-RELEASE /usr/vm/kws7p
+#   		Rebuilds the jailed host (/usr/vm/kws7p) as FreeBSD-8.1.
+#
+#   	host_rebuild -n -r 8.1-RELEASE
+#   		Show the steps required to upgrade the current host to
+#   		FreeBSD-8.1 but don't actually do anything (except some
+#   		light sanity checking of the environment).
+#
+#   	host_rebuild -n -v -r 8.1-RELEASE
+#   		Show the commands required to upgrade the current host to
+#   		FreeBSD-8.1 but don't actually do anything (except some
+#   		light sanity checking of the environment). The commands
+#   		displayed are suitable for printing and executing by-hand
+#   		to perform the upgrade manually.
+#
+# Dependencies (sorted alphabetically):
+#
+#    awk(1)        cat(1)      chflags(1)   chmod(1)        chown(8)
+#    chpass(1)     chroot(8)   chsh(1)      cp(1)           date(1)
+#    dialog(1)     env(1)*     find(1)      gzip(1)         id(1)
+#    ls(1)         mkdir(1)    mtree(8)     pkg_delete(1)   pkg_info(1)
+#    printf(1)**   ps(1)       pwd(1)       pwd_mkdb(8)     realpath(1)
+#    reboot(8)     rm(1)       sed(1)       sh(1)           sleep(1)
+#    sort(1)       stat(1)     stty(1)*     tar(1)          tee(1)*
+#    uname(1)      xargs(1)
+#
+# * Optional
+# ** Is a shell-builtin on some releases
+#
+############################################################ CONFIGURATION
+
+#
+# Adjust PATH to some sane/sensible value
+#
+export PATH="/sbin:/bin:/usr/sbin:/usr/bin:/cdrom/freebsd/rescue"
+
+#
+# Default verbosity (toggles verbose output when extracting distributions)
+#
+: ${HOST_REBUILD_VERBOSE:=0}
+
+#
+# Default directory to store dialog(1) temporary files
+#
+: ${DIALOG_TMPDIR:="/tmp"}
+
+#
+# Whether to use ANSI color or not
+#
+case "$TERM" in
+	# NOTE: Can be overridden in the user's environment
+	cons25|linux|xterm|xterm-color)
+		ANSI_COLOR="${ANSI_COLOR-YES}";;
+	*)	ANSI_COLOR="${ANSI_COLOR-NO}";;
+esac
+
+#
+# Suffix to use when creating backup files
+#
+DOTBAK=".xbak-$(date +%F.%T)"
+
+############################################################ STRINGS
+
+#
+# ASCII-Art to display when the rebuild operation is complete
+#
+msg_complete="
+      ____            _                   ____      _           _ _     _
+     / ___| _   _ ___| |_ ___ _ __ ___   |  _ \ ___| |__  _   _(_) | __| |
+     \___ \| | | / __| __/ _ \ '_ \` _ \  | |_) / _ \ '_ \| | | | | |/ _\` |
+      ___) | |_| \__ \ ||  __/ | | | | | |  _ <  __/ |_) | |_| | | | (_| |
+     |____/ \__, |___/\__\___|_| |_| |_| |_| \_\___|_.__/ \__,_|_|_|\__,_|
+            |___/
+                    ____                      _      _
+                   / ___|___  _ __ ___  _ __ | | ___| |_ ___
+                  | |   / _ \| '_ \` _ \| '_ \| |/ _ \ __/ _ \\
+                  | |__| (_) | | | | | | |_) | |  __/ ||  __/
+                   \____\___/|_| |_| |_| .__/|_|\___|\__\___|
+                                       |_|
+"
+
+#
+# Message to display when we want the user to reboot
+#
+msg_reboot="Please reboot immediately!"
+
+############################################################ GLOBALS
+
+#
+# Set appropriate shell interpreter
+#
+export SHELL=/bin/sh
+
+#
+# Global exit status variables
+#
+SUCCESS=0
+FAILURE=1
+
+#
+# Program name and directory
+#
+progname="${0##*/}"
+progdir="${0%/*}"
+
+#
+# Host information / OS Glue
+#
+UNAME_S=$(uname -s) # Operating System (i.e. FreeBSD)
+UNAME_P=$(uname -p) # Processor Architecture (i.e. i386)
+UNAME_R=$(uname -r) # Release Level (i.e. X.Y-RELEASE)
+
+#
+# OLDBASE dependencies -- a list of utilities that need to exist in our sandbox
+# prior to unpacking a [potentially] foreign release over the base.
+#
+DEPEND="
+	awk     cat     chflags   chmod      chown    chpass   chroot   chsh
+	cp      date    dialog    env        find     gzip     ln       ls
+	mkdir   mtree   mv        pwd_mkdb   reboot   rm       sed      sh
+	sleep   stat    tar       xargs
+" # END-QUOTE
+
+#
+# On some FreeBSD releases, printf(1) is _NOT_ an sh(1) built-in.
+#
+printf_type=$( type printf )
+case "$printf_type" in
+*builtin) : not required as external dependency ;;
+*) DEPEND="$DEPEND printf" ;;
+esac
+
+#
+# Hostname
+#
+HOSTNAME=$( hostname )
+
+#
+# Settings used while interacting with dialog(1)
+#
+DIALOG_MENU_TAGS="123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+#
+# Standard pathnames
+#
+REPOSDIR="$progdir/../repos"
+OLDBASE="/oldbase"
+
+#
+# ANSI color codes
+#
+case "$ANSI_COLOR" in
+[Yy][Ee][Ss])
+	export ANSI_NON="[0m"		# Reset/Normal
+	export ANSI_BLD="[1m"		# Bold
+	export ANSI_UND="[4m"		# Underline
+	export ANSI_INV="[7m"		# Inverse FG/BG
+	export ANSI_BLD_OFF="[22m"	# Bold disable
+	export ANSI_UND_OFF="[24m"	# Underline disable
+	export ANSI_INV_OFF="[27m"	# Inverse disable
+	export ANSI_BLK="[30m"	# Black text
+	export ANSI_RED="[31m"	# Red text
+	export ANSI_GRN="[32m"	# Green text
+	export ANSI_YEL="[33m"	# Yellow text
+	export ANSI_BLU="[34m"	# Blue text
+	export ANSI_MAG="[35m"	# Magenta text
+	export ANSI_CYN="[36m"	# Cyan text
+	export ANSI_WHT="[37m"	# White text
+	export ANSI_NRM="[39m"	# Default/Normal text
+	export ANSI_BLK_BG="[40m"	# Black background
+	export ANSI_RED_BG="[41m"	# Red background
+	export ANSI_GRN_BG="[42m"	# Green background
+	export ANSI_YEL_BG="[43m"	# Yellow background
+	export ANSI_BLU_BG="[44m"	# Blue background
+	export ANSI_MAG_BG="[45m"	# Magenta background
+	export ANSI_CYN_BG="[46m"	# Cyan background
+	export ANSI_WHT_BG="[47m"	# White background
+	export ANSI_NRM_BG="[49m"	# Default/Normal background
+	;; # [0m -- terminate ANSI (in case we get dumped to screen)
+esac
+
+#
+# Options
+#
+TESTCMD=
+TESTONLY=
+VERBOSE=
+TO_RELEASE=
+DESTDIR=/
+REBOOT=1
+
+############################################################ FUNCTIONS
+
+# have $anything
+#
+# A wrapper to the `type' built-in. Returns true if argument is a valid shell
+# built-in, keyword, or externally-tracked binary, otherwise false.
+#
+have()
+{
+	type "$@" > /dev/null 2>&1
+}
+
+# quietly $command [ $arguments ... ]
+#
+# Run a command quietly (quell any output to stdout or stderr).
+#
+quietly()
+{
+	"$@" > /dev/null 2>&1
+}
+
+# err $fmt [ $opts ... ]
+#
+# Print a message to stderr (fd=2).
+#
+err()
+{
+	printf "$@" >&2
+}
+
+# die [ $fmt [ $opts ... ]]
+#
+# Optionally print a message to stderr before exiting with failure status.
+#
+die()
+{
+	local fmt="$1"
+	[ $# -gt 0 ] && shift 1
+	[  "$fmt"  ] && err "$fmt\n" "$@"
+
+	exit $FAILURE
+}
+
+# usage
+#
+# Prints a short syntax statement and exits.
+#
+usage()
+{
+	local optfmt="\t%-5s%s\n"
+	local argfmt="\t%-13s%s\n"
+	local envfmt="\t%-23s%s\n"
+	local exafmt="\t%s\n"
+	local exbfmt="\t\t%s\n"
+	local XRELEASE="8.1-RELEASE" XREL="FreeBSD-8.1"
+
+	err "Usage: %s [OPTIONS] [-r RELEASE] [DESTDIR]\n" "$progname"
+
+	err "OPTIONS:\n"
+	err "$optfmt" "-h" \
+	    "Print this message to stderr and exit."
+	err "$optfmt" "-v" \
+	    "Verbose. Enables verbose output during build."
+	err "$optfmt" "-q" \
+	    "Quiet. Disables verbose output."
+	err "$optfmt" "-n" \
+	    "Don't actually do anything but show what will be done."
+	err "$optfmt" "-d" \
+	    "Don't automatically reboot upon completion (only applicable"
+	err "$optfmt" "" \
+	    "when rebuilding \`/')."
+	err "\n"
+
+	err "ARGUMENTS:\n"
+	err "$argfmt" "-r RELEASE" \
+	    "Specifies the FreeBSD release to rebuild. For example,"
+	err "$argfmt" "" \
+	    "\"$XRELEASE\". If not specified, the user will be prompted"
+	err "$argfmt" "" \
+	    "to select the release from a list of available options."
+	err "$argfmt" "DESTDIR" \
+	    "Directory to unpack chosen-release to (defaults is \`/')."
+	err "\n"
+
+	err "ENVIRONMENT:\n"
+	err "$envfmt" "HOST_REBUILD_VERBOSE" \
+	    "Verbosity. Must be zero or one (default: \`0')."
+	err "$envfmt" "DIALOG_TMPDIR" \
+	    "Directory to store dialog(1) temporary files"
+	err "$envfmt" "" \
+	    "(default: \`/tmp')."
+	err "\n"
+
+	err "EXAMPLES:\n"
+	err "\n"
+	err "$exafmt" "host_rebuild"
+	err "$exbfmt" \
+	    "Prompts the user to select a release from a list and then"
+	err "$exbfmt" \
+	    "rebuilds the base host using the chosen release. Releases"
+	err "$exbfmt" \
+	    "are located in \`../repos', relative to script-location."
+	err "\n"
+	err "$exafmt" "host_rebuild -r $XRELEASE"
+	err "$exbfmt" \
+	    "Rebuilds the base host as $XREL."
+	err "\n"
+	err "$exafmt" "host_rebuild -r $XRELEASE /usr/vm/kws7p"
+	err "$exbfmt" \
+	    "Rebuilds the jailed host (/usr/vm/kws7p) as $XREL."
+	err "\n"
+	err "$exafmt" "host_rebuild -n -r $XRELEASE"
+	err "$exbfmt" \
+	    "Show the steps required to upgrade the current host to"
+	err "$exbfmt" \
+	    "$XREL but don't actually do anything (except some"
+	err "$exbfmt" \
+	    "light sanity checking of the environment)."
+	err "\n"
+	err "$exafmt" "host_rebuild -n -v -r $XRELEASE"
+	err "$exbfmt" \
+	    "Show the commands required to upgrade the current host to"
+	err "$exbfmt" \
+	    "$XREL but don't actually do anything (except some"
+	err "$exbfmt" \
+	    "light sanity checking of the environment). The commands"
+	err "$exbfmt" \
+	    "displayed are suitable for printing and executing by-hand"
+	err "$exbfmt" \
+	    "to perform the upgrade manually."
+	err "\n"
+
+	die
+}
+
+# dialog_info $info_text ...
+#
+# Throw up a dialog(1) infobox. The infobox remains until another dialog is
+# displayed or `dialog --clear' is called.
+#
+dialog_info()
+{
+	local info_text="$*"
+	dialog --title "$progname" --infobox "$info_text" -1 -1
+}
+
+# note $format [ $arguments ... ]
+#
+# Display some note to the user. How the note is displayed depends on verbosity
+# requested as well as dialog(1) availability.
+#
+note()
+{
+	local fmt="$1"
+	shift 1 # fmt
+	if [ "$CAN_USE_DIALOG" -a ! "$VERBOSE" ]; then
+		dialog_info "$( printf "$fmt" "$@" )"
+	else
+		printf "#################### $fmt\n" "$@"
+	fi
+}
+
+# warn $format [ $arguments ... ]
+#
+# Display some warning to the user. How the warning is displayed depends on
+# verbosity requested as well as dialog(1) availability.
+#
+warn()
+{
+	local fmt="$1"
+	shift 1 # fmt
+	if [ "$CAN_USE_DIALOG" -a ! "$VERBOSE" ]; then
+		dialog_info "$( printf "$fmt" "$@" )"
+	else
+		printf ">>> $fmt\n" "$@"
+	fi
+}
+
+# dialog_menutag2item $tag_chosen $tag1 $item1 $tag2 $item2 ...
+#
+# To use the `--menu' option of dialog(1) you must pass an ordered list of
+# tag/item pairs on the command-line. When the user selects a menu option the
+# tag for that item is printed to stderr.
+#
+# This function allows you to dereference the tag chosen by the user back into
+# the item associated with said tag.
+#
+# Pass the tag chosen by the user as the first argument, followed by the
+# ordered list of tag/item pairs (HINT: use the same tag/item list as was
+# passed to dialog(1) for consistency).
+#
+# If the tag cannot be found, NULL is returned.
+#
+dialog_menutag2item()
+{
+	local tag="$1" tagn item
+	shift 1
+
+	while [ $# -gt 0 ]; do
+		tagn="$1"
+		item="$2"
+		shift 2
+
+		if [ "$tag" = "$tagn" ]; then
+			echo "$item"
+			return
+		fi
+	done
+}
+
+# remove_all_packages
+#
+# Executes a command (which command depends on the operating environment) to
+# remove all packages (or package files, in the case of operating in a DESTDIR
+# other than "/") from a given system.
+#
+# No arguments are taken or expected as the following environment variables
+# are used instead:
+#
+# 	DESTDIR          Root directory of system to operate on (e.g., "/")
+# 	CAN_USE_DIALOG   Null if running via farsh or non-controlling terminal
+# 	VERBOSE          Null unless `-v' was passed via main script arguments
+#
+remove_all_packages()
+{
+	local v= bg=
+	[ "$CAN_USE_DIALOG" -a ! "$VERBOSE" ] && bg="&"
+	[ "$VERBOSE" -a ! "$bg" ] && v="v"
+
+	case "$DESTDIR" in
+	/|"")
+		if [ "$TESTONLY" ]; then
+			[ "$VERBOSE" ] && echo "pkg_delete -fa$v"
+		else
+			eval quietly pkg_delete -fa$v $bg
+		fi
+		;;
+	*)
+		if [ "$TESTONLY" ]; then
+			if [ "$VERBOSE" ]; then
+				echo -n "env "
+				echo -n "PKG_DBDIR=\"${DESTDIR%/}/var/db/pkg\""
+				echo -n " pkg_info -qLa |"
+				echo -n " awk -v prefix=\"${DESTDIR%/}\""
+				echo -n " '{print prefix \$0}' |"
+				echo -n " xargs chflags noschg"
+				echo
+				echo -n "env "
+				echo -n "PKG_DBDIR=\"${DESTDIR%/}/var/db/pkg\""
+				echo -n " $SHELL -c \"pkg_info -qLa |"
+				echo -n " awk -v prefix='${DESTDIR%/}'"
+				echo -n " '{print prefix \\\$0}';"
+				echo -n " pkg_info -Ia |"
+				echo -n " awk -v "
+				echo -n "prefix='${DESTDIR%/}/var/db/pkg'"
+				echo -n " '{print prefix \\\$1}'\" |"
+				echo -n " xargs rm -Rf$v"
+				echo
+			fi
+		else
+			local PKG_DBDIR
+			export PKG_DBDIR="${DESTDIR%/}/var/db/pkg"
+			[ "$VERBOSE" ] &&
+				echo "export PKG_DBDIR=\"$PKG_DBDIR\""
+
+			if [ "$VERBOSE" ]; then
+				pkg_info -qLa | awk -v prefix="${DESTDIR%/}" \
+					'{print prefix $0}' |
+					xargs chflags noschg
+			else
+				pkg_info -qLa | awk -v prefix="${DESTDIR%/}" \
+					'{print prefix $0}' |
+					quietly xargs chflags noschg
+			fi
+
+			eval \( \
+				pkg_info -qLa \| awk \
+					-v prefix="\"${DESTDIR%/}\"" \
+					"'{print prefix \$0}'"\; \
+				pkg_info -Ia \| awk \
+					-v prefix="\"${PKG_DBDIR%/}/\"" \
+					"'{print prefix \$1}'" \
+			\) \| \
+			xargs rm -Rf$v $bg
+		fi
+	esac
+}
+
+# xbak $pathname ...
+#
+# Make a backup of each pathname.
+#
+xbak()
+{
+	local pathname msg
+
+	while [ $# -gt 0 ]; do
+		pathname="$1"
+
+		if [ ! -e "$pathname$DOTBAK" ]; then
+			if [ "$TESTONLY" ]; then
+				note "Back up %s to %s" \
+				     "$pathname" "$pathname$DOTBAK"
+			else
+				note "Backing up %s to %s" \
+				     "$pathname" "$pathname$DOTBAK"
+			fi
+			${TESTONLY:+$TESTCMD} cp -RPpf${VERBOSE:+v} \
+			                         "$pathname" "$pathname$DOTBAK"
+		fi
+
+		shift 1
+	done
+}
+
+# noschg $distribution
+#
+# Given a distribution basename (e.g., `base/base', `kernels/fis', etc.),
+# for each file that would be unpacked, remove the system-immutable (schg)
+# flag from the destination file so that later-unpacking can succeed.
+#
+# The distribution is expected to live in `../repos/RELEASE/' relative-to
+# this scripts' location and is also expected to exist in the form of a split
+# gzip-compressed tar file (e.g., `base/base.aa', `base/base.ab', etc.).
+#
+noschg()
+{
+	local dist="$1" dest="$DESTDIR"
+	if [ "$TESTONLY" ]; then
+		note "Clear distribution schg flag: %s" "$dist"
+	else
+		note "Clearing distribution schg flag: %s" "$dist"
+	fi
+
+	#
+	# Abort immediately if archive files do not exist
+	#
+	if [ ! "$( ls "$REPOS"/$dist.?? 2> /dev/null )" ]; then
+		if [ "$VERBOSE" ]; then
+			if [ "$TESTONLY" ]; then
+				echo "# No such distribution for" \
+				     "this release (ignore)"
+			else
+				echo "# No such distribution for" \
+				     "this release (ignoring)"
+			fi
+		fi
+		return $FAILURE
+	fi
+
+	#
+	# Make sure the destination has a trailing-slash
+	#
+	case "$dest" in
+	*/) : trailing slash already present;;
+	*) dest="$dest/";;
+	esac
+
+	#
+	# Remove system-immutable flag from all destination items
+	#
+	if [ "$TESTONLY" ]; then
+		if [ "$VERBOSE" ]; then
+			echo -n "cat \"$REPOS\"/$dist.?? | tar tzf - | sed -e"
+			echo -n " \"s:^/::;s:^\\(\\./\\)\\{0,1\\}:$dest:\" |"
+			echo -n " xargs chflags noschg"
+			echo
+		fi
+	else
+		cat "$REPOS"/$dist.?? 2> /dev/null |
+			tar tzf - 2> /dev/null |
+			sed -e "s:^/::;s:^\(\./\)\{0,1\}:$dest:" |
+			quietly xargs chflags noschg
+	fi
+}
+
+# unpack $distribution [ $extra_tar_arguments ... ]
+#
+# Given a distribution basename (e.g., `base/base', `kernels/fis', etc.),
+# unpack the distribution to the [globally-set] destination directory.
+#
+# Optionally, you can specify additional arguments to be passed to tar(1),
+# useful for example in specifying `--exclude PATTERN' for excluding certain
+# files from being unpacked.
+#
+unpack()
+{
+	local dist="$1"
+	shift 1
+
+	if [ "$TESTONLY" ]; then
+		note "Unpack distribution contents: %s" "$dist"
+	else
+		note "Unpacking distribution contents: %s" "$dist"
+	fi
+
+	#
+	# Abort immediately if archive files do not exist
+	#
+	if [ ! "$( ls "$REPOS"/$dist.?? 2> /dev/null )" ]; then
+		if [ "$VERBOSE" ]; then
+			if [ "$TESTONLY" ]; then
+				echo "# No such distribution for" \
+				     "this release (ignore)"
+			else
+				echo "# No such distribution for" \
+				     "this release (ignoring)"
+			fi
+		fi
+		return $FAILURE
+	fi
+
+	#
+	# Unpack the distribution
+	#
+	if [ "$TESTONLY" ]; then
+		if [ "$VERBOSE" ]; then
+			echo -n "cat \"$REPOS\"/$dist.?? |"
+			echo -n " tar --unlink -xzp${VERBOSE:+v}f -"
+			echo -n " -C \"$DESTDIR\"" "$@"
+			echo
+		fi
+	else
+		if [ "$VERBOSE" ]; then
+			cat "$REPOS"/$dist.?? |
+				tar --unlink -xzpvf - -C "$DESTDIR" "$@"
+		else
+			cat "$REPOS"/$dist.?? |
+				tar --unlink -xzpf - -C "$DESTDIR" "$@" \
+				2> /dev/null
+		fi
+	fi
+}
+
+# distmtree $distribution
+#
+# Given a distribution basename (e.g., `base/base', `kernels/fis', etc.),
+# perform mtree(8) on distribution-specific files -- setting special file-
+# system attributes as-required.
+#
+distmtree()
+{
+	local dist="$1" msg
+	if [ "$TESTONLY" ]; then
+		note "Employ distribution mtree(8): %s" "$dist"
+	else
+		note "Employing distribution mtree(8): %s" "$dist"
+	fi
+
+	#
+	# Abort immediately if mtree file does not exist
+	#
+	if [ ! -e "$REPOS/$dist.mtree" ]; then
+		if [ "$VERBOSE" ]; then
+			if [ "$TESTONLY" ]; then
+				echo "# No such distribution for" \
+				     "this release (ignore)"
+			else
+				echo "# No such distribution for" \
+				     "this release (ignoring)"
+			fi
+		fi
+		return $FAILURE
+	fi
+
+	#
+	# Perform distribution mtree
+	#
+	if [ "$VERBOSE" ]; then
+		${TESTONLY:+$TESTCMD} mtree -eU \
+			-f "$REPOS/$dist.mtree" -p "$DESTDIR"
+	else
+		${TESTONLY:+$TESTCMD} mtree -eU \
+			-f "$REPOS/$dist.mtree" -p "$DESTDIR" > /dev/null 2>&1
+	fi
+}
+
+# getosreldate $rootdir
+#
+# Get the osreldate for a system rooted in $rootdir.
+#
+getosreldate()
+{
+	local rootdir="$1"
+	awk '/^#define __FreeBSD_version /{ print $3; exit }' \
+	    "$rootdir/usr/include/sys/param.h"
+}
+
+# osreldate2release $osreldate
+#
+# Convert osreldate to appropriate `uname -r' value.
+#
+osreldate2release()
+{
+	local osreldate="$1"
+	case "$osreldate" in
+	440000) echo "4.4-RELEASE";;
+	480000) echo "4.8-RELEASE";;
+	492100|492101) echo "4.11-RELEASE";;
+	801000) echo "8.1-RELEASE";;
+	803000) echo "8.3-RELEASE";;
+	esac
+}
+
+############################################################ MAIN SOURCE
+
+#
+# Store a copy of the arguments we were invoked with (for logging purposes)
+#
+COMMAND_ARGS="$*"
+
+#
+# Process command-line arguments
+#
+while getopts hvqr:nd flag; do
+	case "$flag" in
+	h) usage;;
+	v) HOST_REBUILD_VERBOSE=1;;
+	q) HOST_REBUILD_VERBOSE=0;;
+	r) [ "$OPTARG" ] || die \
+	   	"%s: Missing or null argument to \`-r' flag" "$progname"
+	   TO_RELEASE="$OPTARG";;
+	n) TESTONLY=1;;
+	d) REBOOT=;;
+	\?) usage;;
+	esac
+done
+shift $(( $OPTIND - 1 ))
+[ $# -gt 0 ] && DESTDIR="$1" && shift
+
+#
+# Require root privileges unless we are in test-only mode
+#
+if [ ! "$TESTONLY" ]; then
+	[ "$( id -u )" = "0" ] || die "Must run as root!"
+fi
+
+#
+# Process environment variables
+#
+[ "$HOST_REBUILD_VERBOSE" = "1" ] && VERBOSE=1
+
+#
+# Configure test-only mode for debugging
+#
+if [ "$TESTONLY" ]; then
+	if [ "$VERBOSE" ]; then
+		TESTCMD="echo"
+	else
+		TESTCMD=":"
+	fi
+fi
+
+#
+# Perform sanity checks
+#
+[ -e "$REPOSDIR" ] ||
+	die "%s: %s: No such file or directory" "$progname" "$REPOSDIR"
+[ -d "$REPOSDIR" ] ||
+	die "%s: %s: Not a directory" "$progname" "$REPOSDIR"
+[ -e "$DIALOG_TMPDIR" ] ||
+	die "%s: %s: No such file or directory" "$progname" "$DIALOG_TMPDIR"
+[ -d "$DIALOG_TMPDIR" ] ||
+	die "%s: %s: Not a directory" "$progname" "$DIALOG_TMPDIR"
+
+#
+# Determine if we can [sanely] use dialog(1) to prompt for information and
+# provide user-feedback by attempting to get the terminal characteristics.
+#
+CAN_USE_DIALOG=
+have dialog &&
+	have stty &&
+	quietly stty size &&
+	[ ! "$TESTONLY" ] &&
+	CAN_USE_DIALOG=1
+
+#
+# If we're running non-interactively, shove stderr output into stdout to
+# better aid output-collation through programs that buffer stderr differently.
+#
+[ "$CAN_USE_DIALOG" ] || exec 2>&1
+
+#
+# Determine the release that we are coming from
+#
+case "$DESTDIR" in
+/|"") FROM_RELEASE="$UNAME_R";;
+*)
+	osreldate=$( getosreldate "$DESTDIR" )
+	FROM_RELEASE=$( osreldate2release "$osreldate" )
+esac
+
+#
+# Did the user provide a RELEASE name?
+#
+if [ ! "$TO_RELEASE" ]; then
+
+	#
+	# Exit if we are in an environment that is incapable of using dialog(1)
+	# to prompt the user to select his/her desired release.
+	#
+	[ "$CAN_USE_DIALOG" ] ||
+		die "FATAL! No release name specified %s." \
+		    "(please see \`$progname -h')"
+
+	#
+	# Display a message to let the user know we're working...
+	#
+	[ "$CAN_USE_DIALOG" -a ! "$VERBOSE" ] && dialog_info \
+		"Building list of repositories to choose from..."
+
+	#
+	# Get a list of viable repositories to rebuild our host from
+	#
+	repositories="$(
+		find -s -H "$REPOSDIR" -type d -maxdepth 2 \
+			-name '*-RELEASE*' -o \
+			-name '*-STABLE*'  -o \
+			-name '*-CURRENT*'    \
+		| sort | \
+		(
+			index=1
+			while read -r dirname; do
+				[ $index -le ${#DIALOG_MENU_TAGS} ] || break
+				tag="$( echo "$DIALOG_MENU_TAGS" \
+					| awk "{print substr(\$1,$index,1)}" )"
+				echo "'$tag' '${dirname##*/}'"
+				index=$(( $index + 1 ))
+			done
+		)
+	)"
+	[ "$repositories" ] ||
+		die "No repositories found in \`%s'." "$REPOSDIR"
+
+	#
+	# Prompt the user to select which repository to rebuild the host from
+	#
+	eval dialog \
+		--clear --title "'$progname'" \
+		--hline "'Press arrows, TAB or ENTER'" \
+		--menu "'Select repository to rebuild host from:'" -1 -1 4 \
+		$repositories \
+		2> "$DIALOG_TMPDIR/dialog.menu.$$"
+	retval=$?
+
+	#
+	# Read-in the user's choice and clean-up
+	#
+	tag=$( cat "$DIALOG_TMPDIR/dialog.menu.$$" )
+	quietly rm -f "$DIALOG_TMPDIR/dialog.menu.$$"
+
+	# Exit if the user chose "Cancel" (1) or pressed Esc (255)
+	[ $retval -eq 0 ] || die "User cancelled."
+
+	#
+	# Determine repos path by matching on the unique tag entry
+	#
+	TO_RELEASE="$( eval dialog_menutag2item "'$tag'" $repositories )"
+
+	#
+	# Fixup repos path
+	#
+	REPOS="$REPOSDIR/$TO_RELEASE"
+
+else # $TO_RELEASE
+
+	#
+	# Perform sanity checks on user-provided RELEASE name
+	#
+	case "$TO_RELEASE" in
+	*/*) die "FATAL! Invalid RELEASE name provided with \`-r' flag %s" \
+	         "(must not contain \`/').";;
+	esac
+	REPOS="$REPOSDIR/$TO_RELEASE"
+	[ -e "$REPOS" ] || die "%s: No such file or directory" "$REPOS"
+	[ -d "$REPOS" ] || die "%s: Not a directory" "$REPOS"
+	[ -d "$REPOS/druid" ] || die "%s: Invalid repository" "$REPOS"
+
+fi
+
+#
+# Prompt the user to confirm the destination directory (if possible)
+#
+if [ "$CAN_USE_DIALOG" ]; then
+	msg="Please confirm the destination directory to unpack-to:"
+	hline="Use alpha-numeric, punctuation, TAB or ENTER"
+
+	#
+	# Loop forever until the user provides a valid entry
+	#
+	while :; do
+		dialog \
+			--clear --title "$progname" \
+			--hline "$hline" \
+			--inputbox "$msg" -1 -1 "$DESTDIR" \
+			2> "$DIALOG_TMPDIR/dialog.inputbox.$$"
+		retval=$?
+
+		#
+		# Read-in the user's choice and clean-up
+		#
+		DESTDIR=$( cat "$DIALOG_TMPDIR/dialog.inputbox.$$" )
+		quietly rm -f "$DIALOG_TMPDIR/dialog.inputbox.$$"
+
+		# Exit if the user chose "Cancel" (1) or pressed Esc (255)
+		[ $retval -eq 0 ] || die "Use cancelled."
+
+		# Break from infinite-loop if directory exists
+		[ -d "$DESTDIR" ] && break
+
+		#
+		# Display an appropriate error message
+		#
+		if [ -e "$DESTDIR" ]; then
+			err="$DESTDIR: Not a directory"
+		else
+			err="$DESTDIR: No such file or directory"
+		fi
+		dialog --title "$progname" --msgbox "$err" -1 -1
+	done
+fi
+
+#
+# Last Chance!
+#
+if [ "$CAN_USE_DIALOG" -a ! "$TESTONLY" ]; then
+	msg="Last Chance!  Are you SURE you want to continue the rebuild"
+	msg="$msg operation?\nThough some data is backed-up during the"
+	msg="$msg rebuild, WE STRONGLY ENCOURAGE\nYOU TO MAKE PROPER BACKUPS"
+	msg="$msg before proceeding!\n\nWe can take no reponsibility for lost"
+	msg="$msg contents!"
+	dialog \
+		--clear --title "$progname" \
+		--hline "Press arrows, TAB or ENTER" \
+		--yesno "$msg" -1 -1
+	[ $? -eq 0 ] || die "Use cancelled."
+fi
+
+#
+# Log the output of this script to /var/log if:
+# - we have tee(1) and ...
+# - we cannot use dialog(1) or ...
+# - we are told to be verbose.
+#
+# In other words, avoid logging with tee(1) when dialog(1) may be used.
+#
+if [ ! "$TESTONLY" ] && have tee && [ "$VERBOSE" -o ! "$CAN_USE_DIALOG" ]; then
+	case "$1" in
+	$PPID)
+		printf "%79s\n" | sed -e 'y/ /#/'
+		;;
+	*)
+		dont_reboot=
+		[ "$REBOOT" ] || dont_reboot=1
+		LOGFILE="${DESTDIR%/}/var/log/$progname.log"
+		printf "Output is being logged to: %s\n" "$LOGFILE"
+		:| $0 ${TESTONLY:+-n} ${VERBOSE:+-v} ${dont_reboot:+-d} \
+		   ${TO_RELEASE:+-r} ${TO_RELEASE:+"${TO_RELEASE##*/}"} \
+		   ${DESTDIR:+"$DESTDIR"} \
+		   $$ | tee -a "$LOGFILE"
+		exit $?
+	esac
+fi
+
+#
+# Warn the user if we are running non-interactively
+#
+if [ ! "$TESTONLY" ]; then
+	[ "$CAN_USE_DIALOG" ] ||
+		err "WARNING! Running in a non-interactive terminal session.\n"
+fi
+
+#
+# For display-purposes, generate an upper-case/unique form of the hostname
+#
+ndots=$( IFS=.; set -- $HOSTNAME; echo $(( $# - 1 )) )
+if [ $ndots -ge 3 ]; then
+	#
+	# Hostname is likely of the form `xxx.site.bank.com' and therefore
+	# should be uniquely represented as `XXX.SITE'
+	#
+	HN="$HOSTNAME"
+	while [ $ndots -gt 1 ]; do
+		HN="${HN%.*}"
+		ndots=$(( $ndots - 1 ))
+	done
+else
+	#
+	# Hostname is likely in the form of `xxx.site.com' or simply `xxx' and
+	# therefore should be uniquely represented as simply `XXX'
+	#
+	HN="${HOSTNAME%%.*}"
+fi
+HN=$( :| awk -v hn="$HN" 'END { print toupper(hn) }' )
+
+
+#
+# Introduce some time before proceeding (for safety)
+#
+if [ ! "$TESTONLY" ]; then
+	if have sleep; then
+		seconds=5
+		while [ $seconds -gt 0 ]; do
+			warn "Starting rebuild of \`%s' on %s in %u..." \
+			     "$DESTDIR" "$HN" $seconds
+			sleep 1
+			seconds=$(( $seconds - 1 ))
+		done
+	fi
+	[ "$VERBOSE" ] &&
+		warn "Starting rebuild of \`%s' on %s..." "$DESTDIR" "$HN"
+fi
+
+#
+# Inform the user of what we're about to do and when we were about to do it
+#
+if [ "$VERBOSE" -o ! "$CAN_USE_DIALOG" ]; then
+	case "$0" in
+	/*) COMMAND="$0";;
+	 *) COMMAND=$( realpath "$( pwd )/$0" );;
+	esac
+	if [ "$TESTONLY" ]; then
+		printf "Rebuild %s with repository %s\n" \
+		       "$DESTDIR" "$TO_RELEASE"
+		printf "TEST-ONLY! No actions will be performed"
+		[ "$VERBOSE" ] || printf " (add \`-v' for even more detail)"
+		printf ".\n"
+	else
+		printf "Command: %s %s\n" "$COMMAND" "$COMMAND_ARGS"
+		printf "Rebuilding %s with repository %s\n" \
+		       "$DESTDIR" "$TO_RELEASE"
+		printf "Current OS: %s\n" "$( uname -spr )"
+		printf "Start: %s\n" "$( date '+%X %x' )"
+	fi
+fi
+
+#
+# Perform sanity checks on destination directory
+#
+[ -e "$DESTDIR" ] ||
+	die "%s: %s: No such file or directory" "$progname" "$DESTDIR"
+[ -d "$DESTDIR" ] ||
+	die "%s: %s: Not a directory" "$progname" "$DESTDIR"
+
+#
+# Slurp-in release-specific config (if available)
+#
+conf="$progdir/etc/$TO_RELEASE.conf"
+if [ -f "$conf" ]; then
+	if [ "$TESTONLY" ]; then
+		note "Source %s specific config file" "$TO_RELEASE"
+	else
+		note "Sourcing %s specific config file" "$TO_RELEASE"
+		[ "$VERBOSE" ] && echo "$SHELL -n \"$conf\""
+		$SHELL -n "$conf" || die
+	fi
+
+	#
+	# Check for syntax errors before sourcing
+	#
+	[ "$VERBOSE" ] && echo ". \"$conf\""
+	. "$conf" || die
+fi
+
+#
+# Run release-specific pre_install() function (if-defined)
+#
+if have pre_install; then
+	if [ "$TESTONLY" ]; then
+		note "Run %s specific pre_install" "$TO_RELEASE"
+	else
+		note "Running %s specific pre_install" "$TO_RELEASE"
+	fi
+	[ "$VERBOSE" -a ! "$CAN_USE_DIALOG" ] && echo "pre_install"
+	pre_install || die
+fi
+
+#
+# Remove core-dumps from root filesystem to clear some much-needed disk space
+#
+if [ "$TESTONLY" ]; then
+	note "Find/Remove core-dumps to free-up disk space"
+	if [ "$VERBOSE" ]; then
+		echo -n "find -x \"$DESTDIR\" -maxdepth 2 -name '*.core'"
+		echo -n " -type f | xargs rm -f${VERBOSE:+v}"
+		echo
+	fi
+else
+	note "Finding/Removing core-dumps to free-up disk space"
+	find -x "$DESTDIR" -maxdepth 2 -name '*.core' -type f 2> /dev/null |
+		xargs rm -f${VERBOSE:+v} 2> /dev/null
+fi
+
+#
+# Backup necessary files/directories
+#
+xbak "${DESTDIR%/}/etc"
+xbak "${DESTDIR%/}/usr/local/etc"
+
+#
+# Remove all installed packages
+#
+packages=$( ls -1 "${DESTDIR%/}/var/db/pkg" 2> /dev/null )
+if [ "$packages" ]; then
+	if [ "$CAN_USE_DIALOG" -a ! "$VERBOSE" ]; then
+		pid= n=1 dots1='.  ' dots2='.. ' dots3='...'
+		while :; do
+			#
+			# Create trailing-ellipsis (activity indicator)
+			#
+			dots=$( eval echo "\"\$dots$n\"" )
+			n=$(( $n % 3 + 1 ))
+
+			if [ "$TESTONLY" ]; then
+				msg="Uninstall"
+			else
+				msg="Uninstalling"
+			fi
+
+			if [ "$DESTDIR" = "/" ]; then
+				# [Re-]Calculate remaining packages
+				num_pkgs=$( ls -1 "${DESTDIR%/}/var/db/pkg" \
+				            	2> /dev/null |
+				            	awk "END { print NR }" )
+				msg="$msg $num_pkgs packages"
+			else
+				msg="$msg ALL package files in"
+				msg="$msg ${DESTDIR%/}"
+			fi
+			[ "$TESTONLY" ] || msg="$msg$dots"
+			dialog_info "$msg"
+
+			#
+			# Start operation if not-yet started
+			#
+			if [ ! "$pid" ]; then
+				remove_all_packages
+				pid=$!
+			fi
+
+			[ "$TESTONLY" ] && break
+
+			#
+			# Yield time; break if operation has completed
+			#
+			quietly sleep 1
+			quietly ps $pid || break
+		done
+	else
+		if [ "$TESTONLY" ]; then
+			msg="Uninstall"
+		else
+			msg="Uninstalling"
+		fi
+		if [ "$DESTDIR" = "/" ]; then
+			num_pkgs=$( echo "$packages" | awk "END { print NR }" )
+			note "$msg %s packages..." "$num_pkgs"
+		else
+			note "$msg ALL package files in %s..." "${DESTDIR%/}"
+		fi
+		remove_all_packages
+	fi
+fi
+
+#
+# Produce the destination without trailing-slash
+#
+dest="$DESTDIR"
+while [ ${#dest} -gt 0 ]; do
+	case "$dest" in
+	*/) dest="${dest%?}";;
+	*) break;;
+	esac
+done
+
+#
+# Create pathname for OLDBASE within DESTDIR (for later post-install routines)
+#
+case "$dest" in
+""|/) DEST_OLDBASE="$OLDBASE";;
+   *) DEST_OLDBASE="$DESTDIR/${OLDBASE#/}";;
+esac
+
+#
+# Prepare `$DEST_OLDBASE' sandbox to operate safely within while we overwrite
+# the existing operating system -- potentially with binaries that the current-
+# running kernel cannot interpret/execute.
+#
+if [ "$TESTONLY" ]; then
+	msg="Prepare"
+else
+	msg="Preparing"
+fi
+if [ "$OLDBASE" = "$DEST_OLDBASE" ]; then
+	note "$msg %s directory" "$OLDBASE"
+else
+	note "$msg %s directory within destination %s" "$OLDBASE" "$dest"
+fi
+[ -e "$DEST_OLDBASE" ] ||
+	${TESTONLY:+$TESTCMD} mkdir -p${VERBOSE:+v} "$DEST_OLDBASE" || die
+if [ ! "$TESTONLY" ]; then
+	[ -d "$DEST_OLDBASE" ] ||
+		die "%s: %s: Not a directory" "$progname" "$DEST_OLDBASE"
+fi
+# Determine proper crunchgen(1) executable to use for sandbox
+rebuild_crunch=
+case "$UNAME_R" in
+4.*) rebuild_crunch=rebuild_crunch4 ;;
+8.*) rebuild_crunch=rebuild_crunch8 ;;
+esac
+if [ ! "$TESTONLY" ]; then
+	[ "$rebuild_crunch" ] || die "No rebuild_crunch for %s" "$UNAME_R"
+	[ -e "$progdir/crunch/$rebuild_crunch" ] || die \
+		"%s: %s: No such file or directory" \
+		"$progname" "$progdir/crunch/$rebuild_crunch"
+fi
+# Copy crunchgen(1) executable to `$OLDBASE'
+${TESTONLY:+$TESTCMD} cp -pf${VERBOSE:+v} \
+	"$progdir/crunch/$rebuild_crunch" \
+	"$DEST_OLDBASE/$rebuild_crunch" || die
+# Generate symbolic-links to crunchgen(1) executable
+progs=$( $progdir/crunch/$rebuild_crunch 2>&1 | grep -v '^usage:' )
+for prog in $progs; do
+	[ "$prog" = "$rebuild_crunch" ] && continue
+	${TESTONLY:+$TESTCMD} ln -sf${VERBOSE:+v} \
+		$rebuild_crunch $DEST_OLDBASE/$prog || die
+done
+
+#
+# Update execution environment to run from `$OLDBASE'
+#
+if [ "$DESTDIR" = "/" ]; then
+	if [ "$TESTONLY" ]; then
+		note "Sandbox myself into %s" "$OLDBASE"
+		if [ "$VERBOSE" ]; then
+			echo "# For csh(1) or tcsh(1):"
+			echo "#    setenv SHELL \"$OLDBASE/sh\""
+			echo "#    setenv PATH  \"$OLDBASE\""
+			echo "#    rehash"
+			echo "# For sh(1) or bash(1):"
+			echo "#    export SHELL=\"$OLDBASE/sh\""
+			echo "#    export PATH=\"$OLDBASE\""
+			echo "#    hash -r"
+		fi
+	else
+		note "Sandboxing myself into %s" "$OLDBASE"
+		export SHELL="$OLDBASE/sh"
+		export PATH="$OLDBASE"
+	fi
+fi
+
+#
+# Perform extra sanity checks here-and-now -- making certain that
+# `$DEST_OLDBASE' is truly ready to be used before we proceed.
+#
+if [ "$TESTONLY" ]; then
+	note "Perform final sanity checks"
+else
+	note "Performing final sanity checks"
+fi
+
+#
+# Make sure `$DEST_OLDBASE' exists
+#
+if [ "$VERBOSE" ]; then
+	if [ "$TESTONLY" ]; then
+		echo "# Make sure $DEST_OLDBASE exists"
+	else
+		echo "# Making sure $DEST_OLDBASE exists"
+	fi
+fi
+if [ ! "$TESTONLY" ]; then
+	[ -e "$DEST_OLDBASE" ] || die \
+		"%s: %s: No such file or directory" \
+		"$progname" "$DEST_OLDBASE"
+fi
+
+#
+# Make sure `$DEST_OLDBASE' is a directory
+#
+if [ "$VERBOSE" ]; then
+	if [ "$TESTONLY" ]; then
+		echo "# Make sure $DEST_OLDBASE is a directory"
+	else
+		echo "# Making sure $DEST_OLDBASE is a directory"
+	fi
+fi
+if [ ! "$TESTONLY" ]; then
+	[ -d "$DEST_OLDBASE" ] || die \
+		"%s: %s: Not a directory" "$progname" "$DEST_OLDBASE"
+	[ "$VERBOSE" ] && echo "$DEST_OLDBASE exists and is a directory"
+fi
+
+#
+# Make sure $SHELL exists within $OLDBASE so that we can fork
+#
+if [ "$DESTDIR" = "/" ]; then
+	if [ "$VERBOSE" ]; then
+		if [ "$TESTONLY" ]; then
+			echo "# Make sure \$SHELL exists in $DEST_OLDBASE"
+		else
+			echo "# Making sure \$SHELL exists in $DEST_OLDBASE"
+		fi
+	fi
+	case "$SHELL" in
+	"$DEST_OLDBASE"/*)
+		[ "$VERBOSE" ] &&
+			echo "# \$SHELL ($SHELL) exists within $DEST_OLDBASE"
+		;;
+	*)
+		[ "$TESTONLY" ] || die \
+			"%s: %s: Invalid SHELL (expected to be in \`%s')" \
+			"$progname" "$SHELL" "$DEST_OLDBASE"
+	esac
+fi
+
+#
+# Make sure each one of our OLDBASE dependencies exists
+#
+for dep in $DEPEND; do
+	if [ "$TESTONLY" ]; then
+		[ "$VERBOSE" ] &&
+			echo "# Make sure $dep exists within $DEST_OLDBASE"
+	else
+		[ "$VERBOSE" ] &&
+			echo "# Making sure $dep exists within $DEST_OLDBASE"
+		[ -e "$DEST_OLDBASE/$dep" ] || die \
+			"%s: %s: No such file or directory" \
+			"$progname" "$DEST_OLDBASE/$dep"
+	fi
+done
+
+#
+# Things look good, let's proceed
+#
+[ "$VERBOSE" -a ! "$TESTONLY" ] && echo \
+	"Environment sanity appears GOOD ... proceeding with rebuild"
+
+#
+# Re-install base distribution
+#
+noschg base/base
+unpack base/base \
+	--exclude etc/hosts \
+	--exclude etc/crontab \
+	--exclude etc/group \
+	--exclude etc/sysctl.conf \
+	--exclude etc/master.passwd \
+	--exclude etc/passwd \
+	--exclude etc/spwd.db \
+	--exclude etc/pwd.db \
+	--exclude etc/ssh/sshd_config \
+	--exclude boot/loader.conf
+distmtree base/base
+
+#
+# Re-install remaining distributions
+#
+for dist in local perl lib32 doc games manpages proflibs dict info; do
+	noschg $dist/$dist
+	unpack $dist/$dist
+	distmtree $dist/$dist
+done
+
+#
+# Run final mtree commands
+#
+if [ "$TESTONLY" ]; then
+	note "Run final mtree commands..."
+else
+	note "Running final mtree commands..."
+fi
+for m in root var usr; do
+	[ -f "$dest/etc/mtree/BSD.$m.dist" ] || continue
+
+	case "$m" in
+	root) mdir=;;
+	   *) mdir="$m";;
+	esac
+
+	if [ "$VERBOSE" ]; then
+		${TESTONLY:+$TESTCMD} mtree -eU \
+			-f "$dest/etc/mtree/BSD.$m.dist" -p "$dest/$mdir"
+	else
+		${TESTONLY:+$TESTCMD} mtree -eU \
+			-f "$dest/etc/mtree/BSD.$m.dist" -p "$dest/$mdir" \
+			> /dev/null 2>&1
+	fi
+done
+
+#
+# Copy druid scripts
+#
+if [ "$TESTONLY" ]; then
+	note "Copy post-installation scripts..."
+else
+	note "Copying post-installation scripts..."
+fi
+${TESTONLY:+$TESTCMD} mkdir -p "$dest/dist"
+${TESTONLY:+$TESTCMD} cp -RPpf${VERBOSE:+v} "$REPOS/druid" "$dest/dist/"
+${TESTONLY:+$TESTCMD} cp -RPpf${VERBOSE:+v} "$REPOS/run_once" "$dest/dist/"
+${TESTONLY:+$TESTCMD} cp -RPpf${VERBOSE:+v} "$REPOS/sys_custom" "$dest/dist/"
+if [ "$TESTONLY" ]; then
+	if [ "$VERBOSE" ]; then
+		echo -n "find \"$dest/dist/sys_custom\" -type d -name CVS"
+		echo -n " -exec rm -Rfv '{}' ';'"
+		echo
+		echo -n "find \"$dest/dist/sys_custom\" -type f -name .keep"
+		echo -n " -exec rm -fv '{}' ';'"
+		echo
+	fi
+else
+	find "$dest/dist/sys_custom" -type d -name CVS -exec rm -Rf '{}' ';'
+	find "$dest/dist/sys_custom" -type f -name .keep -exec rm -f '{}' ';'
+fi
+
+#
+# Make-way for sys_custom (pre-unlink destination files)
+#
+# NOTE: The `syscustom' script relies on `copy_directory' from the DRUID's
+#       internal shell subroutines (`sh.subr') -- which is designed to not
+#       overwrite destination files if they already exist. However, since
+#       we're actively rebuilding the system, we WANT to clobber existing
+#       destination files. Work-around is to pre-unlink the destinations.
+#
+if [ "$TESTONLY" ]; then
+	note "Make-way for sys_custom items..."
+	if [ "$VERBOSE" ]; then
+		echo "# Pre-unlink destination files"
+		for src_path in $( find -s "$REPOS/sys_custom" ! -type d ); do
+			dest_path="$dest${src_path#$REPOS/sys_custom}"
+			case "$dest_path" in */.keep|*/CVS/*) continue;; esac
+			echo "rm -f \"$dest_path\""
+		done
+	fi
+else
+	note "Making-way for sys_custom items..."
+	[ "$VERBOSE" ] && echo "# Pre-unlinking destination files"
+	for src_path in $( find -s "$dest/dist/sys_custom" ! -type d ); do
+		dest_path="$dest${src_path#$dest/dist/sys_custom}"
+		case "$dest_path" in */.keep) continue;; esac
+		rm -f${VERBOSE:+v} "$dest_path" 2> /dev/null
+	done
+fi
+
+#
+# Mount devfs(5) on destination `/dev' (if necessary)
+#
+if [ "$DESTDIR" != "/" ]; then
+	if [ "$TESTONLY" ]; then
+		note "Prepare devfs(5) for destination directory..."
+	else
+		note "Preparing devfs(5) for destination directory..."
+	fi
+	${TESTONLY:+$TESTCMD} mount -t devfs devfs "${DESTDIR%/}/dev"
+fi
+
+#
+# Install sys_custom elements
+#
+if [ "$TESTONLY" ]; then
+	note "Install sys_custom items..."
+	if [ "$VERBOSE" ]; then
+		echo -n "env SHELL=$OLDBASE/sh PATH=$OLDBASE"
+		[ "$DESTDIR" = "/" ] ||
+			echo -n " $DEST_OLDBASE/chroot \"$DESTDIR\""
+		echo -n " $OLDBASE/sh /dist/druid/syscustom"
+		echo
+	fi
+else
+	note "Installing sys_custom items..."
+	if [ "$DESTDIR" = "/" ]; then
+		if [ "$VERBOSE" ]; then
+			$SHELL /dist/druid/syscustom
+		else
+			quietly $SHELL /dist/druid/syscustom
+		fi
+	else
+		if [ "$VERBOSE" ]; then
+			env SHELL=$OLDBASE/sh PATH=$OLDBASE \
+				$DEST_OLDBASE/chroot "$DESTDIR" $OLDBASE/sh \
+				/dist/druid/syscustom
+		else
+			quietly env SHELL=$OLDBASE/sh PATH=$OLDBASE \
+				$DEST_OLDBASE/chroot "$DESTDIR" $OLDBASE/sh \
+				/dist/druid/syscustom
+		fi
+	fi
+fi
+
+#
+# chpass(1), chsh(1), and ilk -- which are known to be used by the run_once
+# scripts -- have hard-coded the path of pwd_mkdb(8) as `/usr/sbin/pwd_mkdb'.
+#
+# These utilities will likely fail on fork(2) at this point as the binary at
+# this location has been overwritten with a newer copy.
+#
+# As a work-around, temporarily restore the $OLDBASE copy of this binary prior
+# to executing the run_once scripts (later reversing to the newer binary upon
+# completion of the run_once scripts).
+#
+# NOTE: pwd_mkdb(8) will be rolled-back in the clean-up stage further below.
+#
+if [ "$TESTONLY" ]; then
+	note "Prepare legacy pwd_mkdb(8) for run_once..."
+else
+	note "Preparing legacy pwd_mkdb(8) for run_once..."
+fi
+${TESTONLY:+$TESTCMD} cp -f${VERBOSE:+v} \
+	"$dest/usr/sbin/pwd_mkdb" "$dest/usr/sbin/pwd_mkdb.xnew" || die
+${TESTONLY:+$TESTCMD} ln -sf${VERBOSE:+v} \
+	"$OLDBASE/pwd_mkdb" "$dest/usr/sbin/pwd_mkdb" || die
+
+#
+# DHCP fixup -- if dhclient.conf(5) contains non-blank lines, restore it
+#
+if [ "$TESTONLY" ]; then
+	note "Check dhclient.conf(5) configuration..."
+	if [ "$VERBOSE" ]; then
+		data=$( awk '!/^[[:space:]]*#/ && !/^[[:space:]]*$/{ print }' \
+		            "$dest/etc/dhclient.conf" )
+		if [ "$data" ]; then
+			echo "# Restore original dhclient.conf(5)..."
+			echo -n "cp -pfv \"$dest/etc/dhclient.conf\""
+			echo    " \"$dest/etc/dhclient.conf$DOTBAK\""
+			echo -n "cp -pfv \"$dest/etc$DOTBAK/dhclient.conf\""
+			echo    " \"$dest/etc/dhclient.conf\""
+		else
+			echo "# dhclient.conf(5) not configured (skip)"
+		fi
+	fi
+else
+	note "Checking dhclient.conf(5) configuration..."
+	data=$( awk '!/^[[:space:]]*#/ && !/^[[:space:]]*$/ { print }' \
+	            "$dest/etc$DOTBAK/dhclient.conf" )
+	if [ "$data" ]; then
+		[ "$VERBOSE" ] &&
+			echo "# Restoring original dhclient.conf(5)..."
+		cp -pf${VERBOSE:+v} "$dest/etc/dhclient.conf" \
+		                    "$dest/etc/dhclient.conf$DOTBAK"
+		cp -pf${VERBOSE:+v} "$dest/etc$DOTBAK/dhclient.conf" \
+		                    "$dest/etc/dhclient.conf"
+	else
+		[ "$VERBOSE" ] &&
+			echo "# dhclient.conf(5) not configured (skipping)"
+	fi
+fi
+
+#
+# Execute run_once scripts
+#
+if [ "$TESTONLY" ]; then
+	note "Execute post-installation scripts..."
+	if [ "$VERBOSE" ]; then
+		echo -n "env SHELL=$OLDBASE/sh PATH=$OLDBASE"
+		[ "$DESTDIR" = "/" ] ||
+			echo -n " $DEST_OLDBASE/chroot \"$DESTDIR\""
+		echo -n " $OLDBASE/sh /dist/druid/run_once"
+		echo
+	fi
+else
+	note "Executing post-installation scripts..."
+	if [ "$DESTDIR" = "/" ]; then
+		if [ "$VERBOSE" ]; then
+			$SHELL /dist/druid/run_once
+		else
+			quietly $SHELL /dist/druid/run_once
+		fi
+	else
+		if [ "$VERBOSE" ]; then
+			env SHELL=$OLDBASE/sh PATH=$OLDBASE \
+				$DEST_OLDBASE/chroot "$DESTDIR" $OLDBASE/sh \
+				/dist/druid/run_once
+		else
+			quietly env SHELL=$OLDBASE/sh PATH=$OLDBASE \
+				$DEST_OLDBASE/chroot "$DESTDIR" $OLDBASE/sh \
+				/dist/druid/run_once
+		fi
+	fi
+fi
+
+#
+# Run release-specific post_install() function (if-defined)
+#
+if have post_install; then
+	if [ "$TESTONLY" ]; then
+		note "Run %s specific post_install" "$TO_RELEASE"
+	else
+		note "Running %s specific post_install" "$TO_RELEASE"
+	fi
+	[ "$VERBOSE" -a ! "$CAN_USE_DIALOG" ] && echo "post_install"
+	post_install || die
+fi
+
+#
+# Clean up
+#
+if [ "$TESTONLY" ]; then
+	note "Clean up..."
+else
+	note "Cleaning up..."
+fi
+${TESTONLY:+$TESTCMD} rm -Rf${VERBOSE:+v} "$dest/dist"
+${TESTONLY:+$TESTCMD} mv -f${VERBOSE:+v} \
+	"$dest/usr/sbin/pwd_mkdb.xnew" "$dest/usr/sbin/pwd_mkdb"
+
+#
+# Un-Mount devfs(5) on destination `/dev' (if necessary)
+#
+[ "$DESTDIR" = "/" ] ||
+	${TESTONLY:+$TESTCMD} quietly umount "${DESTDIR%/}/dev"
+
+#
+# Inform the user of our completion
+#
+if [ "$TESTONLY" ]; then
+	note "End"
+else
+	note "System Rebuild Complete"
+	[ "$CAN_USE_DIALOG" ] || echo "Finish: $( date '+%X %x' )"
+	printf "$ANSI_GRN$ANSI_BLD%s$ANSI_BLD_OFF$ANSI_NRM\n" "$msg_complete"
+fi
+
+#
+# Automatically reboot the system if upgrading `/' and `-d' was not passed
+#
+if [ "$DESTDIR" = "/" -a "$REBOOT" ]; then
+	if [ ! "$TESTONLY" ]; then
+		if have sleep; then
+			seconds=5
+			while [ $seconds -gt 0 ]; do
+				warn "Rebooting system in %u..." $seconds
+				sleep 1
+				seconds=$(( $seconds - 1 ))
+			done
+		fi
+		warn "Rebooting system..."
+		reboot
+	fi
+elif [ "$DESTDIR" = "/" ]; then
+	if [ ! "$TESTONLY" ]; then
+		printf "\n"
+		printf "$ANSI_RED$ANSI_BLD%s$ANSI_BLD_OFF$ANSI_NRM\n" \
+		       "$msg_reboot"
+	fi
+fi
+
+################################################################################
+# END
+################################################################################
+#
+# $Header: /cvsroot/druidbsd/druidbsd/druid83/src/freebsd/tools/host_rebuild,v 1.2 2012/10/30 22:32:58 devinteske Exp $
+#
+# $Copyright: 2006-2012 Devin Teske. All rights reserved. $
+#
+# $Log: host_rebuild,v $
+# Revision 1.2  2012/10/30 22:32:58  devinteske
+# Bump FreeBSD version to 1.0b58 for:
+# + host_rebuild: don't overwrite /etc/hosts
+# + host_rebuild: backup /usr/local/etc
+# + druid post-install: don't remove sshd_config.bak
+#
+# Revision 1.1  2012/10/10 23:31:36  devinteske
+# Commit initial public beta release of 8.3 series (beta 57; on-par with
+# the 9.0 series released recently, also beta 57).
+#
+#
+################################################################################

@@ -1,0 +1,41 @@
+# -*- tab-width:  4 -*- ;; Emacs
+# vi: set tabstop=4     :: Vi/ViM
+###############################################################################
+#
+# Each [un-commented] line represents a single menu item in the install menu.
+# Each line should contain:
+#
+# - The command to be executed when the menu item is selected (path cannot
+#   contain whitespace; no arguments will be passed). By default, when a menu
+#   item is selected, before the script is executed, a warning is displayed
+#   verifying that the user will lose all data on the system if they continue.
+#   Prefixing an exclamation point (!) immediately before the script path will
+#   disable the warning (there should be no whitespace between the exclamation
+#   point and the script path).
+#
+# - The desired text to be displayed for the menu item.
+#
+# Example:
+#    [!]script_path   menu_text
+#
+###############################################################################
+
+/path/to/script1		Menuitem Text 1
+/path/to/script2		Menuitem Text 2
+!/path/to/script3		Menuitem Text 3 (no warning)
+
+################################################################################
+# END
+################################################################################
+#
+# $Header: /cvsroot/druidbsd/druidbsd/druid83/dep/freebsd/pxe_menu/menu.conf.sample,v 1.1 2012/10/10 23:30:00 devinteske Exp $
+#
+# $Copyright: 2006-2012 Devin Teske. All rights reserved. $
+#
+# $Log: menu.conf.sample,v $
+# Revision 1.1  2012/10/10 23:30:00  devinteske
+# Commit initial public beta release of 8.3 series (beta 57; on-par with
+# the 9.0 series released recently, also beta 57).
+#
+#
+################################################################################

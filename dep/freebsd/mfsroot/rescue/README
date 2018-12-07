@@ -1,0 +1,5 @@
+$Header: /cvsroot/druidbsd/druidbsd/druid83/dep/freebsd/mfsroot/rescue/README,v 1.1 2012/10/10 23:29:56 devinteske Exp $
+
+The compiled mfsroot.gz file gets stored at /boot/rescue_mfsroot8.gz within the
+compiled mdroot.iso file (which in-turn gets stored at /boot/freebsd/mdroot.iso
+on the Druid ISO)

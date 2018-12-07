@@ -1,0 +1,1799 @@
+#	   user: kensmith
+#	machine: mason.cse.buffalo.edu
+#	   tree: /R/stage/kernels/GENERIC
+#	   date: Mon Apr  9 21:31:14 2012
+
+# .
+/set type=file uname=root gname=wheel mode=0555 nlink=1
+.               type=dir mode=0755 nlink=2 size=31232
+    aac.ko          size=84128 md5digest=570929436ae73a0b70fd4355960d5264
+    aac.ko.symbols  size=439400 md5digest=905b01a43e5e0ab4e793abc1c0147d83
+    accf_data.ko    size=2856 md5digest=b6b679f42b559efe8571f72bc5407788
+    accf_data.ko.symbols \
+                    size=19416 md5digest=8e9d7071d739154a35c0831543aa54d7
+    accf_dns.ko     size=2880 md5digest=6bde0b977a03a48cffe346eae476659f
+    accf_dns.ko.symbols \
+                    size=23648 md5digest=dad3145dfd9faf29793fa5a1cf1d4f2a
+    accf_http.ko    size=6000 md5digest=62687a49a76933d49b639e21af22f6fd
+    accf_http.ko.symbols \
+                    size=34464 md5digest=54d012db0902e4827b78f0c2d56c4c0c
+    acpi_aiboost.ko size=11616 md5digest=12ff8e5351fbb27f6a45283406aa24eb
+    acpi_aiboost.ko.symbols \
+                    size=43576 md5digest=640cb1876eadc270c74969b400431fd0
+    acpi_asus.ko    size=34296 md5digest=fbb095736a8fa879f694a538c627d35f
+    acpi_asus.ko.symbols \
+                    size=71328 md5digest=c27b51d422e7c84d9a05680e68b92915
+    acpi_dock.ko    size=14656 md5digest=60df2fce424f09a5cf0e3f25e243d9b1
+    acpi_dock.ko.symbols \
+                    size=61072 md5digest=ade6f7db6a965d04b37bfde9c53f948e
+    acpi_fujitsu.ko size=16504 md5digest=5dd567b59682cca9d685d3483e5b5a3e
+    acpi_fujitsu.ko.symbols \
+                    size=53552 md5digest=1d2e6cebf15176af6ad4f3aa532ecd6c
+    acpi_hp.ko      size=23672 md5digest=c44ef945325ba85358272a59c98d7b08
+    acpi_hp.ko.symbols \
+                    size=97584 md5digest=3252aa9cf9cde9e10a6ffeebbe80ee6e
+    acpi_ibm.ko     size=21480 md5digest=16d736c4b7808352d244d07d45d71716
+    acpi_ibm.ko.symbols \
+                    size=64408 md5digest=d3ef0a3a2059fec53be407994f88432b
+    acpi_panasonic.ko \
+                    size=12224 md5digest=c43ed2c0fce8e69a0f308c390b1fe4fe
+    acpi_panasonic.ko.symbols \
+                    size=54304 md5digest=ecd2444079d275651b38baf8f290c357
+    acpi_sony.ko    size=8144 md5digest=9fb57ee945e04dd4119245236ed7c316
+    acpi_sony.ko.symbols \
+                    size=31920 md5digest=bfc2ccb94ddb1e6746edde8b219caf87
+    acpi_toshiba.ko size=14984 md5digest=b03b6634f6ba8c27804d50afaa5c23b6
+    acpi_toshiba.ko.symbols \
+                    size=58040 md5digest=5a2a9e837a64ed3b08acd908339b4654
+    acpi_video.ko   size=25352 md5digest=49dce7fa2b23284646086e39dae5bd93
+    acpi_video.ko.symbols \
+                    size=78112 md5digest=e6ebdc53cfe759175ba00636df532a36
+    acpi_wmi.ko     size=21552 md5digest=ad743b65afdfaeecf2845f947cf2698e
+    acpi_wmi.ko.symbols \
+                    size=96640 md5digest=1da76822ece8d14ffc9405e23b000e8b
+    aesni.ko        size=16944 md5digest=b4032db1cce44ddc248038c9b91e168a
+    aesni.ko.symbols \
+                    size=90472 md5digest=e52eae70b492f5ff9f627aaeeea68813
+    agp.ko          size=73016 md5digest=66ae5e4e335007f69b5d6e235502e274
+    agp.ko.symbols  size=321456 md5digest=a603e39073575b305c04a2566fc45306
+    aha.ko          size=35800 md5digest=8641059ded675c77ece898c0bf4d81a7
+    aha.ko.symbols  size=153512 md5digest=7811b0f8419a28cff8a08c3714582740
+    ahc.ko          size=191928 md5digest=efa76c9cd944b47788b9c524a597c84d
+    ahc.ko.symbols  size=988792 md5digest=f535868cf844696cd32a89fa0d16c461
+    ahc_eisa.ko     size=8160 md5digest=62027b0a821273fa3e6d80fd1013a1bd
+    ahc_eisa.ko.symbols \
+                    size=93024 md5digest=be8294ba61306b4423ec3c9d8e2b99ab
+    ahc_isa.ko      size=8832 md5digest=2187474db3176c125dccedf16f96aa3c
+    ahc_isa.ko.symbols \
+                    size=93960 md5digest=18ed653f8bfa9f65d918c3a65e03eaaf
+    ahc_pci.ko      size=47624 md5digest=50c7287a97e586bf275cd0d83318ace9
+    ahc_pci.ko.symbols \
+                    size=314120 md5digest=dc4c805e120de2eb593770a13f354c00
+    ahci.ko         size=68624 md5digest=4bd1d67c6b0c086319f9840878e2b367
+    ahci.ko.symbols size=246176 md5digest=1810f170d0dfbb15f1188e3d453f53b8
+    ahd.ko          size=310584 md5digest=d764076ccc8c4520c8fd6d094406977d
+    ahd.ko.symbols  size=1686384 md5digest=d28703fea34c6194dd795431cc463518
+    aibs.ko         size=9760 md5digest=2621005035c56086efecd26119c1f583
+    aibs.ko.symbols size=37984 md5digest=e7dfca39f1fc10f72e5799d21bb89fd5
+    aio.ko          size=56336 md5digest=b677b8d8bd4e713dcdbfe05a0f192c45
+    aio.ko.symbols  size=246744 md5digest=8b22dc18166719efce31ae48df00f6c2
+    alias_cuseeme.ko \
+                    size=4992 md5digest=1fe6d77c33e0a653405922fbed407e92
+    alias_cuseeme.ko.symbols \
+                    size=29192 md5digest=3dd733889b9d1260e5720232c50a4f5b
+    alias_dummy.ko  size=4312 md5digest=88d8aa35fa1009cb7aeb6a4e8e87e2dc
+    alias_dummy.ko.symbols \
+                    size=24952 md5digest=6a42a883cd8d1f9812afca0285eae859
+    alias_ftp.ko    size=11064 md5digest=8afc5ecf97b52d1e2907b7e64f945538
+    alias_ftp.ko.symbols \
+                    size=46040 md5digest=d761986b9e4edf264c145f7f1f4a7ec8
+    alias_irc.ko    size=7256 md5digest=17c02d496dc8d19435b40b910cf437c6
+    alias_irc.ko.symbols \
+                    size=34120 md5digest=80e6ae8703d8cc53f1e6d1c349923ecf
+    alias_nbt.ko    size=8224 md5digest=fe9ea04eba1dc6d5a34ab4a5f4b5ce4c
+    alias_nbt.ko.symbols \
+                    size=41432 md5digest=c909af1e043dddc4aa8f2036ab7b1aaf
+    alias_pptp.ko   size=7232 md5digest=63efe628948ff19174a785f52880f33a
+    alias_pptp.ko.symbols \
+                    size=38464 md5digest=37b36d94979cbd14e702f05b2633fd64
+    alias_skinny.ko size=5008 md5digest=654922c9104b32470f2aa7e7574dd456
+    alias_skinny.ko.symbols \
+                    size=32136 md5digest=77862aa2e83c822bd96599f77ad084a4
+    alias_smedia.ko size=9208 md5digest=14ec9a46edc01a2cdd8f6efa526fcb8d
+    alias_smedia.ko.symbols \
+                    size=37920 md5digest=5ee63a05517ff09d70e010dc1a55e384
+    alpm.ko         size=16456 md5digest=18db2c4c374a360e0121e7347508adb2
+    alpm.ko.symbols size=67008 md5digest=37a5efee882fa7da2ebe3d364104c464
+    alq.ko          size=16584 md5digest=20aff9b67b1aa150dcf7ed1dc20469a4
+    alq.ko.symbols  size=113384 md5digest=40f3de826ec99bb7f6af4ca860e6df97
+    amdpm.ko        size=16296 md5digest=db4980fa79eed862d083c73ac4d53fb5
+    amdpm.ko.symbols \
+                    size=73376 md5digest=90831d483b82d83a0267a9d06e3219e1
+    amdsbwd.ko      size=10280 md5digest=f5ff39aa9b4b2b6f8c7e46a3332dbd3d
+    amdsbwd.ko.symbols \
+                    size=47336 md5digest=ca0dac3ae5a6a1dd861d5f721423b470
+    amdsmb.ko       size=14896 md5digest=a9c06765419b7b8d2489ec6ed4ba59b3
+    amdsmb.ko.symbols \
+                    size=55176 md5digest=ef7f783e158cf034319341b49d137f91
+    amdtemp.ko      size=10016 md5digest=2ead3fdedb65f51bcf885c9569d06573
+    amdtemp.ko.symbols \
+                    size=42568 md5digest=c65dbd757e696597f82bfb612290a7e2
+    amr.ko          size=50080 md5digest=5021abf9dbc1d7628a2c1605e7b368d6
+    amr.ko.symbols  size=254216 md5digest=2ba0fb65aa5e5e4685eb4b93e36c1897
+    amr_cam.ko      size=9496 md5digest=55fe9c7066e313a74f715984d63dedff
+    amr_cam.ko.symbols \
+                    size=92752 md5digest=156ba090f8514fb57795033d939ef12a
+    amr_linux.ko    size=4144 md5digest=33d549423bb6b82758b0f26dc609945c
+    amr_linux.ko.symbols \
+                    size=48728 md5digest=52d1a25b9a78587dcc1ab0a2a1232366
+    arcmsr.ko       size=46624 md5digest=ff11ac26c7664b676c20468e52a48713
+    arcmsr.ko.symbols \
+                    size=274488 md5digest=e88dc1c1b31138d72c257595505f5bd5
+    asmc.ko         size=43920 md5digest=9f8771fbf2e0ec07471a6e5af7a31fa6
+    asmc.ko.symbols size=76360 md5digest=62e319cec0d10228a2e67cec2c0d5b10
+    ata.ko          size=86168 md5digest=adc35d9e0181dacd47aef1f0eb371e75
+    ata.ko.symbols  size=284048 md5digest=1f387865ec67763ecf47193240968ca0
+    ataacard.ko     size=13248 md5digest=0e16122a51b014f1595f5e35c2ab42a9
+    ataacard.ko.symbols \
+                    size=58912 md5digest=d9ba124fa8527ba1d5bcdc8b6129eb80
+    ataacerlabs.ko  size=16664 md5digest=61f57fb86411bdf782e8f84f6a18e84f
+    ataacerlabs.ko.symbols \
+                    size=63616 md5digest=f0d6380ba0c1793fe0bebe54ba0b1e92
+    ataadaptec.ko   size=8216 md5digest=82f3fd353babb176b71f251aaeef436b
+    ataadaptec.ko.symbols \
+                    size=31656 md5digest=d05096b5de4d53e00ab13fcbc830df57
+    ataahci.ko      size=29304 md5digest=28a84f9d70845dde4c718c9501d8ca11
+    ataahci.ko.symbols \
+                    size=115632 md5digest=ca6d31e5790c6adfbd3ee51de8250ba4
+    ataamd.ko       size=11000 md5digest=9b9937a2d238ec7d7ad71940bd4a8f04
+    ataamd.ko.symbols \
+                    size=49472 md5digest=4619e82c94531be48faf37ef7124a24c
+    ataati.ko       size=15864 md5digest=64f8d611f78275f690bc9444320846ed
+    ataati.ko.symbols \
+                    size=61000 md5digest=feb81892c803dc22f37f1298065a0501
+    atacard.ko      size=7048 md5digest=e9a3378976291a91216a610f26a875f5
+    atacard.ko.symbols \
+                    size=36216 md5digest=a0063a22ea59c0e5fcc830fac6014111
+    atacenatek.ko   size=7712 md5digest=c6239c04255274901cce44a51e094362
+    atacenatek.ko.symbols \
+                    size=30768 md5digest=3b76f6b5028b44d9dc770b65ac48f76c
+    atacypress.ko   size=8696 md5digest=8b4dd8fd161f8dd235721fec13d1fa90
+    atacypress.ko.symbols \
+                    size=44120 md5digest=c8e0abfb7be2dd7fb25bd6e78adbafb8
+    atacyrix.ko     size=8680 md5digest=fa195e4e1ac97cfb9264b1a99241185f
+    atacyrix.ko.symbols \
+                    size=44176 md5digest=9fd8c854e48fc4b4da610752b7aed0e2
+    atadisk.ko      size=15504 md5digest=476f6c5eaee9e9e9cb053d12245aaddb
+    atadisk.ko.symbols \
+                    size=67992 md5digest=1af6ca4dd7c5bfef255c3ba3658bc695
+    atahighpoint.ko size=15392 md5digest=a787e5e6310722e01c8ccb46b9c6bbc2
+    atahighpoint.ko.symbols \
+                    size=61032 md5digest=cec93cfe156eda6a6315631446af4fc4
+    ataintel.ko     size=32912 md5digest=5f6d009db9a51b5e89ee4e8f5a5d8167
+    ataintel.ko.symbols \
+                    size=114672 md5digest=4adc1d22c38d02509a2a9457f9da8dba
+    ataisa.ko       size=7160 md5digest=956bb4a6032012345a32b938d8f9d57f
+    ataisa.ko.symbols \
+                    size=33352 md5digest=d06b1a8b6433c53bda00404ba439391e
+    ataite.ko       size=15040 md5digest=146d4db797375bfc88221397e603dee7
+    ataite.ko.symbols \
+                    size=63224 md5digest=adc2212eef6ea858efc0df78126b0ad0
+    atajmicron.ko   size=11216 md5digest=dea1105298028ea631520c3210fe3247
+    atajmicron.ko.symbols \
+                    size=47464 md5digest=df167a735c080f48bab57846650ef874
+    atamarvell.ko   size=17832 md5digest=bbc9caf62c877cc40e3a65162d18699f
+    atamarvell.ko.symbols \
+                    size=76448 md5digest=be92e8a826d5fe1edb17ba4d51781231
+    atamicron.ko    size=7936 md5digest=24589ca9f4ea05d92d8bae588e723a9b
+    atamicron.ko.symbols \
+                    size=31568 md5digest=448d31c6087744390bbf23ee5a33266c
+    atanational.ko  size=9728 md5digest=c927f19e89b3d99641578ad993cc685d
+    atanational.ko.symbols \
+                    size=47144 md5digest=97c600a2627ae70433e15d9075a097dc
+    atanetcell.ko   size=8320 md5digest=fb32c5f7dc11a1771bffd93fc24ed53d
+    atanetcell.ko.symbols \
+                    size=41032 md5digest=d09fac81ac713dfdf8000a300466d115
+    atanvidia.ko    size=19384 md5digest=5edc9f5941b73ba521e923c2cfad419f
+    atanvidia.ko.symbols \
+                    size=63520 md5digest=65aad4222af4258574514707ff38ddf9
+    atapci.ko       size=42336 md5digest=b89536e133a99d4bc7a236f2845f4a9c
+    atapci.ko.symbols \
+                    size=179784 md5digest=78fcb372c6898e78185e627a3951dbcb
+    atapicam.ko     size=19880 md5digest=378ef1ed9f5c9dc36e3223fe568de2be
+    atapicam.ko.symbols \
+                    size=102240 md5digest=dcdbd755bc0cea7a6218d43acd6db692
+    atapicd.ko      size=39656 md5digest=71fa6ad6f32f43f4e4a22070e87bf9d7
+    atapicd.ko.symbols \
+                    size=148264 md5digest=fea0db0417b5320e6b11231b39b9f073
+    atapifd.ko      size=12736 md5digest=4611f84db7d65beda45f07f1e1f51724
+    atapifd.ko.symbols \
+                    size=65048 md5digest=a28c34497892d43e7ff27c82721ebbc1
+    atapist.ko      size=20144 md5digest=6169c9603d75dfbab25dfefb5d40bf77
+    atapist.ko.symbols \
+                    size=83096 md5digest=0eb99c64c56ec5db75470bb4286cee0b
+    atapromise.ko   size=32192 md5digest=aaeaeea7a00a84a5e8a2cdd5de63b328
+    atapromise.ko.symbols \
+                    size=133064 md5digest=5f2424573f570d9f7bc64801674311c8
+    ataraid.ko      size=110280 md5digest=2054c05e1da71cb5e96af9d196b1ba8d
+    ataraid.ko.symbols \
+                    size=242704 md5digest=d3b617bfa57311c748d6a6b9acdaf91b
+    ataserverworks.ko \
+                    size=17912 md5digest=15b459902a3a1b91cc90890887969e99
+    ataserverworks.ko.symbols \
+                    size=87584 md5digest=af1a3a989fd3512d309a2a76cdefad6d
+    atasiliconimage.ko \
+                    size=28368 md5digest=dd210deaccfff99703e7da0df58153f8
+    atasiliconimage.ko.symbols \
+                    size=105496 md5digest=346e7a2996c034191d6bf3bc211293b1
+    atasis.ko       size=18144 md5digest=5e38e0f5ab319d391aad56a014e2da8a
+    atasis.ko.symbols \
+                    size=66360 md5digest=c231ce6377dad14ffc9f65461f1ffeae
+    atavia.ko       size=23272 md5digest=f9b23b54fa8dcceff901619587f1e25f
+    atavia.ko.symbols \
+                    size=83632 md5digest=779ffbf455c6d9cca2b94f0d344651e9
+    atp.ko          size=34720 md5digest=bfac6cd6d3d698e3320871d1040c2b0c
+    atp.ko.symbols  size=98632 md5digest=e9e00baf10e2063cdb6a4c98e868f8c7
+    blank_saver.ko  size=3624 md5digest=d3cf674a63f84faff42b740b7af3ebaa
+    blank_saver.ko.symbols \
+                    size=25688 md5digest=f8cf1bd189e89ff25ab8aca1e5d7ddb2
+    bridgestp.ko    size=24880 md5digest=970d86583801322afde3b61597d7fd05
+    bridgestp.ko.symbols \
+                    size=92088 md5digest=21de805fc3a16bc817f6f8d48ba4f285
+    cam.ko          size=528512 md5digest=7d9460c7f34d52a15310654ab9b1eba1
+    cam.ko.symbols  size=2446560 md5digest=e6ecb170a48804e019f3ba540cd3c99b
+    cardbus.ko      size=28480 md5digest=1e9d073e5e6cf0f3d1d603f8bb742ae8
+    cardbus.ko.symbols \
+                    size=140424 md5digest=04938ec1e3e8f1a29f9539f19cb45ddc
+    cbb.ko          size=69864 md5digest=0ed64bee588be9ce28ea90c3b850c947
+    cbb.ko.symbols  size=350064 md5digest=b15c3827200ef8ad932dfa116316d15a
+    cc_chd.ko       size=11216 md5digest=a497322e07554171980a510f73f3540d
+    cc_chd.ko.symbols \
+                    size=58848 md5digest=7da618cc60768ebe6d6b369235a4e7bd
+    cc_cubic.ko     size=6080 md5digest=7c831a10d637afe8493cca2d61c2689b
+    cc_cubic.ko.symbols \
+                    size=31352 md5digest=b7d2fe16bbebe07f0645c5d801faae1d
+    cc_hd.ko        size=7552 md5digest=fe94ca217d54471cfd04c2309e29c0d5
+    cc_hd.ko.symbols \
+                    size=50120 md5digest=c18edd67f2cdd9419a91fa0b5cffa27c
+    cc_htcp.ko      size=8016 md5digest=0d66e8a499f8f2f2111bb4f105daf09c
+    cc_htcp.ko.symbols \
+                    size=34336 md5digest=f8a5c22acf9096095e15c50f1453ea96
+    cc_vegas.ko     size=8360 md5digest=d8ca9c5aa1d10cb289e54c64c123a157
+    cc_vegas.ko.symbols \
+                    size=52152 md5digest=db09c579741dd49e3dd4627d330b7e5d
+    cd9660.ko       size=47448 md5digest=b974bbcc3622c98cab48c7f04e27a109
+    cd9660.ko.symbols \
+                    size=599488 md5digest=f3339ebe9df03b8fc682942ea7d08b58
+    cd9660_iconv.ko size=4392 md5digest=520a93b9cbc68c3656371ebddd8bced6
+    cd9660_iconv.ko.symbols \
+                    size=15536 md5digest=37756e1a91abf72183803f6139ac6aa9
+    ciss.ko         size=62592 md5digest=7787ab173d7cf6cd365cbebdf1a6db9c
+    ciss.ko.symbols size=217536 md5digest=1fc87bca7857f1dc23c3c3c5dcfa9dc5
+    cmx.ko          size=15968 md5digest=19bc07483166c9e7d7a72cf1568b8fe7
+    cmx.ko.symbols  size=84384 md5digest=c892b9702b63d3e44cdc760115b821e5
+    coda.ko         size=78288 md5digest=71d0d1c0b6fc45868a20a1fdc2662916
+    coda.ko.symbols size=592848 md5digest=490ea226ab948f3219388a0219eb204e
+    coda5.ko        size=84016 md5digest=b29cc39f3a1b9ecc7a5ed542d94dfca3
+    coda5.ko.symbols \
+                    size=597440 md5digest=d9dda982be267680e0f3409af1b0c87b
+    coretemp.ko     size=9920 md5digest=98d0b7eab45e01bed42476766a0f0980
+    coretemp.ko.symbols \
+                    size=61008 md5digest=96a12d453c18e4b998c3b0e8fdf56dcd
+    cpuctl.ko       size=10888 md5digest=fc8325eb8139188ee4e24407f753a151
+    cpuctl.ko.symbols \
+                    size=66448 md5digest=5f4da42976bdbbf99319a737b5e22792
+    cpufreq.ko      size=61504 md5digest=8c18b7fcba09e1eda988aa626fa3b4e4
+    cpufreq.ko.symbols \
+                    size=252176 md5digest=cdd0cb203c471661843c266acb04fa1a
+    crypto.ko       size=167784 md5digest=a07b8f7596b520c3caf16b5f8d5cc4aa
+    crypto.ko.symbols \
+                    size=415552 md5digest=6cccc9de2d9605dd38ca74206b756635
+    cryptodev.ko    size=17784 md5digest=492b13b3743e1b6631345e7a31e0898b
+    cryptodev.ko.symbols \
+                    size=73728 md5digest=670fdfb1f9667684c1ce2e9eaee15685
+    cxgb_t3fw.ko    size=52064 md5digest=cb6f4ce9009b59ada67ab9731daa0d87
+    cxgb_t3fw.ko.symbols \
+                    size=32312 md5digest=41080c293067ebea5aceead863d6e483
+    cyclic.ko       size=20216 md5digest=f3ec2f3162721791d16432a0140f3804
+    cyclic.ko.symbols \
+                    size=92280 md5digest=97202c7e968fdeaa3f3694a2c27f06b6
+    daemon_saver.ko size=14032 md5digest=665a054bdb7c30f204bdad03b36ca134
+    daemon_saver.ko.symbols \
+                    size=51688 md5digest=32a50059dc77ac26772875a106d60259
+    dcons.ko        size=12000 md5digest=ff8afbab311bcdf31b8a3792bd547300
+    dcons.ko.symbols \
+                    size=85952 md5digest=de5ebf32ac7850bf88026b554f1489a9
+    dcons_crom.ko   size=9584 md5digest=3aae6db550c6431bb79bf60bc2d354ab
+    dcons_crom.ko.symbols \
+                    size=61840 md5digest=6411f5c8f71e2f4ff94c38d94541c821
+    dpms.ko         size=5592 md5digest=b7287bd7bad1d98b1e100af84deee1f3
+    dpms.ko.symbols size=24792 md5digest=c6dd3e779d4e36839c2daa41d1c410cb
+    dragon_saver.ko size=7848 md5digest=a9d9e427d52b7d134328791f7efe3062
+    dragon_saver.ko.symbols \
+                    size=32560 md5digest=5cfb192319d668d7cf4923189a0f1cb0
+    drm.ko          size=134320 md5digest=1a0be211375f36b6adba4fbd2972c4f4
+    drm.ko.symbols  size=1332976 md5digest=67de974c01a04e24f44c81b87c1760d6
+    dtmalloc.ko     size=7712 md5digest=0df3ed3678867af342485d37e4b9beed
+    dtmalloc.ko.symbols \
+                    size=108240 md5digest=4cd75968c201aa9b45c9e535c7684a1d
+    dtnfsclient.ko  size=15888 md5digest=a4c0df92936b0263e861fc3e39e1fa57
+    dtnfsclient.ko.symbols \
+                    size=117136 md5digest=c16fd8365d013946aaeda07c0cdc2edc
+    dtrace.ko       size=295088 md5digest=1bb60e146c9ac44c0bd4ed0c4814ef4a
+    dtrace.ko.symbols \
+                    size=879056 md5digest=8594d992dfacaac0aaa59ee260b551a0
+    dtrace_test.ko  size=3336 md5digest=c9522ee7f25be0f853167de0250c1e9c
+    dtrace_test.ko.symbols \
+                    size=59320 md5digest=d8f5f40f25b9f23830f99d2251b7dcf7
+    dtraceall.ko    size=6848 md5digest=bcf3577bd018903582cfe09d6ee7eb9a
+    dtraceall.ko.symbols \
+                    size=22672 md5digest=f7169e8ba149ceb79d4f1f2d1a8ce2e7
+    dummynet.ko     size=87072 md5digest=18f0d5e4956f3606817dd040a70390f5
+    dummynet.ko.symbols \
+                    size=572432 md5digest=a0da73525b5fc073093e64d37971944f
+    ehci.ko         size=75448 md5digest=51d6603dda020c3c45d6a920aacc641a
+    ehci.ko.symbols size=257336 md5digest=334eea44207db3a7cd4e4bae28effe1b
+    esp.ko          size=46296 md5digest=ed87079e082deb93e8635cc7b21196ef
+    esp.ko.symbols  size=208568 md5digest=692bddf807a7154a998fd5ddc961c6a0
+    exca.ko         size=13176 md5digest=aa0499d2d031702a5f102365a7d176ae
+    exca.ko.symbols size=56960 md5digest=cedc1faf5b74c3caf28be5bcaff5137a
+    ext2fs.ko       size=82688 md5digest=06549fcd765db5a1e6fbe8049481ee52
+    ext2fs.ko.symbols \
+                    size=1053728 md5digest=d200743494afd25b0c18c19eae507395
+    fade_saver.ko   size=4424 md5digest=3832bea0ef835f7772d8e4d9ce69dfa6
+    fade_saver.ko.symbols \
+                    size=26712 md5digest=de9f390de553cc414fc450c4cf6088e0
+    fasttrap.ko     size=58880 md5digest=345e97f8036bae36934da4cd2b40b5b3
+    fasttrap.ko.symbols \
+                    size=301544 md5digest=981932f454e0ce355a442d106a33b695
+    fbt.ko          size=18384 md5digest=7cc4d71745e9fd17b9f2f81202e9c2aa
+    fbt.ko.symbols  size=153152 md5digest=399a6e5f123648d1dd7b60b734fdb6f6
+    fdc.ko          size=51936 md5digest=f0b7740d3e936beccefe24403d4aa3dc
+    fdc.ko.symbols  size=257376 md5digest=fa4dbb1dc9e4462920f7bc8e93d27691
+    fdescfs.ko      size=15288 md5digest=0699fa807078f794161ec3d413b4102d
+    fdescfs.ko.symbols \
+                    size=193232 md5digest=e0b14739c95e5545790840d8df3ca452
+    fire_saver.ko   size=7160 md5digest=0a996d3ce59270e044ab3f298a4b39e0
+    fire_saver.ko.symbols \
+                    size=31552 md5digest=c422f4ff9f656df5fabce4b58e6fcf56
+    firewire.ko     size=127304 md5digest=d11c6e00dedec7bdc779b1636a7bbe85
+    firewire.ko.symbols \
+                    size=550256 md5digest=3b838bcd0eb2911f667ee4ea4f8898af
+    firmware.ko     size=13272 md5digest=336ba31935bd2cdda92aa1e10977feec
+    firmware.ko.symbols \
+                    size=100456 md5digest=0689b5511894d337ee6d17fe0a93d899
+    geom_bde.ko     size=60048 md5digest=7e7cbc973c90f03419fffe3b308c37f3
+    geom_bde.ko.symbols \
+                    size=230080 md5digest=8702ef8743e6bacf155fb2b123a4b558
+    geom_bsd.ko     size=16136 md5digest=055e629a5911e1d34b47014e609ca99b
+    geom_bsd.ko.symbols \
+                    size=78880 md5digest=8b4b8ad5399b6c6cb81ce12c9060ed5b
+    geom_cache.ko   size=32584 md5digest=c369a12136310a9f4b9093a6da44d680
+    geom_cache.ko.symbols \
+                    size=83192 md5digest=64a053a69103e11e1866880467fd7cf5
+    geom_ccd.ko     size=12976 md5digest=07ff4b4e63f09d9742a22989c5bc395c
+    geom_ccd.ko.symbols \
+                    size=50136 md5digest=813b4c923d35ac792111c576f48c2b43
+    geom_concat.ko  size=30408 md5digest=f06d20e213cdc9f575bcf2f9a436d8f0
+    geom_concat.ko.symbols \
+                    size=74408 md5digest=6e9b6d35c9af6a4bdfb6ad46ea32b2c6
+    geom_eli.ko     size=114432 md5digest=b3362a3dd6384db6a660b915cf4627e8
+    geom_eli.ko.symbols \
+                    size=505560 md5digest=3b2ea14417df0af883e29f86f7ed9958
+    geom_fox.ko     size=11136 md5digest=5d4fc7853ef8ae10acfa42acf1f7f003
+    geom_fox.ko.symbols \
+                    size=42256 md5digest=e410edf347749debb304b87b83b27c94
+    geom_gate.ko    size=28928 md5digest=a88245d0bc6840fe6db1c129123fccf8
+    geom_gate.ko.symbols \
+                    size=91136 md5digest=d46b15887476a65b7fc5819ed21a7e0f
+    geom_journal.ko size=119224 md5digest=720cb9846903f2093198359b1fd64e8f
+    geom_journal.ko.symbols \
+                    size=370232 md5digest=ffe80d1fab59a7ef5e36a2be70a54b0c
+    geom_label.ko   size=45312 md5digest=9745f953551ccada836a13dd8a90b93d
+    geom_label.ko.symbols \
+                    size=234640 md5digest=06d1a02471d5aa51680918c48e4d1467
+    geom_linux_lvm.ko \
+                    size=39784 md5digest=0f628464fc9aed074bd0f63767bf4631
+    geom_linux_lvm.ko.symbols \
+                    size=88648 md5digest=06e27014bbdade26fcb5239743784e44
+    geom_mbr.ko     size=13704 md5digest=52146b58574591f18d0eb817f7922768
+    geom_mbr.ko.symbols \
+                    size=53968 md5digest=2766655636ed24608f101edc7db1af73
+    geom_md.ko      size=29672 md5digest=cf0dee2805cf67f0fbe842838a3fd405
+    geom_md.ko.symbols \
+                    size=161072 md5digest=b07823293445c70c938caf07897b7e5c
+    geom_mirror.ko  size=131840 md5digest=b32352000750d296fdab2bae06cdd841
+    geom_mirror.ko.symbols \
+                    size=310408 md5digest=d6e9b8838b901ba63cb80e655db4967c
+    geom_multipath.ko \
+                    size=29216 md5digest=a9ed309b884937d67973f874181edaa4
+    geom_multipath.ko.symbols \
+                    size=80312 md5digest=7aec5128d36c21173b1789b6bdf44cc1
+    geom_nop.ko     size=18728 md5digest=7faa925c7a66ed31351b430c2729fd3b
+    geom_nop.ko.symbols \
+                    size=58184 md5digest=0fb2c3003456fb3be4141bfab9e12f08
+    geom_part_apm.ko \
+                    size=12472 md5digest=640790c91963799b79a3c5846954b156
+    geom_part_apm.ko.symbols \
+                    size=61296 md5digest=2e6a92dac34c4011639570011486e901
+    geom_part_bsd.ko \
+                    size=10200 md5digest=92addcba4f668cdd0f22c4e6302a8fb5
+    geom_part_bsd.ko.symbols \
+                    size=61608 md5digest=6e0017fd776d0cb7c9790a15bfffc2eb
+    geom_part_ebr.ko \
+                    size=11344 md5digest=7c5f1b3cc32617ad599b2ed66afca00c
+    geom_part_ebr.ko.symbols \
+                    size=59240 md5digest=2a7fae3157525b031994fbcb7ffb4b1e
+    geom_part_gpt.ko \
+                    size=23384 md5digest=3de32275ca26660231063258898843d4
+    geom_part_gpt.ko.symbols \
+                    size=92200 md5digest=00548e87237685c9ee5f2197602acb68
+    geom_part_mbr.ko \
+                    size=9856 md5digest=9755f9c634775a6c181ba200acf3df34
+    geom_part_mbr.ko.symbols \
+                    size=56352 md5digest=0bda41c529a4951ccf911416fedddb34
+    geom_part_pc98.ko \
+                    size=9992 md5digest=ca2fc45417e9b4aac7ec0ec84a77f92d
+    geom_part_pc98.ko.symbols \
+                    size=56840 md5digest=c303064704187f6bade21b88452c964f
+    geom_part_vtoc8.ko \
+                    size=10152 md5digest=a95758f5ad17a3fcacfd6b003a1a680f
+    geom_part_vtoc8.ko.symbols \
+                    size=63592 md5digest=39083b414dadea182fee0470245511fc
+    geom_pc98.ko    size=10832 md5digest=ad17958cc80195fdb813457f4fea8518
+    geom_pc98.ko.symbols \
+                    size=48056 md5digest=32c4f6a3aa8b6d1b52dff3cbb1dd232a
+    geom_raid.ko    size=309432 md5digest=1cafcce651e36b828cf6fc3df1579d4b
+    geom_raid.ko.symbols \
+                    size=1032176 md5digest=6a5eda54dbcb82803ea6d5247f83a4d4
+    geom_raid3.ko   size=137696 md5digest=3cf88ba20e23257209a0c5e4c132e324
+    geom_raid3.ko.symbols \
+                    size=312896 md5digest=a45965d06621dff7d22727071068266f
+    geom_sched.ko   size=38800 md5digest=60a00e56fe252070b2025dad1adb5d5b
+    geom_sched.ko.symbols \
+                    size=145040 md5digest=d027d3cdd67b706e15a8518496adff51
+    geom_shsec.ko   size=27800 md5digest=f530e0f7fb75d3108c22f4fcced77b43
+    geom_shsec.ko.symbols \
+                    size=70688 md5digest=a50a78213e066a7183a0b93725fae948
+    geom_stripe.ko  size=35320 md5digest=e496e8e7300e6128cb62d2829e61a02d
+    geom_stripe.ko.symbols \
+                    size=86360 md5digest=8951c2b98c88262130ee177a0c0f88a9
+    geom_sunlabel.ko \
+                    size=9608 md5digest=b42edb3a13ee1865a850eb848e30c264
+    geom_sunlabel.ko.symbols \
+                    size=51320 md5digest=b5210309bca64d22ab24caa1dad3acec
+    geom_uzip.ko    size=12136 md5digest=0b380dba8a1e65f2f66a137d3572323c
+    geom_uzip.ko.symbols \
+                    size=49064 md5digest=98c53ce770f9673c51f5a126b69272d3
+    geom_vinum.ko   size=176432 md5digest=fef50d7691eca7c5671fd277e016c733
+    geom_vinum.ko.symbols \
+                    size=610896 md5digest=18cb41e85544c804380927b525f507ae
+    geom_virstor.ko size=59056 md5digest=d49df63047f87171596fc449395665ca
+    geom_virstor.ko.symbols \
+                    size=144648 md5digest=0f4108baf7e0c07052b0c4764dec8f13
+    geom_vol_ffs.ko size=5080 md5digest=a2d760d4a27cfd78c59ad29da4567493
+    geom_vol_ffs.ko.symbols \
+                    size=37456 md5digest=7f9695cdd6fd61b3fb9d2022df1c1bc0
+    geom_zero.ko    size=5664 md5digest=1ba5aeaad2a69fb3839478223c9208ff
+    geom_zero.ko.symbols \
+                    size=34752 md5digest=710b3504022b77e669dfb415671963e3
+    green_saver.ko  size=3624 md5digest=26e0efbcf1a31b844c928b87d33f9542
+    green_saver.ko.symbols \
+                    size=25688 md5digest=2ec33139fdccbce7dfc5965d967ff5a6
+    gsched_rr.ko    size=12672 md5digest=fcebb77778cc47046ca1c744d0d3677e
+    gsched_rr.ko.symbols \
+                    size=79264 md5digest=c60a86c1ba0c61d24ec62154b095e866
+    h_ertt.ko       size=5792 md5digest=2a18b86aa8302f021f403e184a95be4d
+    h_ertt.ko.symbols \
+                    size=45088 md5digest=2fdc2e234ee2b3aaf5567b8e92f7b436
+    hifn.ko         size=46480 md5digest=f229f3fffc8705e675248ba54dd93859
+    hifn.ko.symbols size=177824 md5digest=1fdd2362b568c5b7d3ec41b560ba9920
+    hpt27xx.ko      size=1062264 md5digest=fb2b971a6659f5cd824ad706bc94ab73
+    hpt27xx.ko.symbols \
+                    size=627344 md5digest=79855abec47e7f923effb9b58515fe5d
+    hptiop.ko       size=36768 md5digest=5e14be2dd9a87aab2e90fc5d295c1e5a
+    hptiop.ko.symbols \
+                    size=193208 md5digest=8ae9d5c848c24d594be0374459592d3a
+    hptmv.ko        size=185920 md5digest=9abe52af89d003af82aa3bd2dd66d70b
+    hptmv.ko.symbols \
+                    size=346040 md5digest=144ccdf614130f5e9d965ad33842b355
+    hptrr.ko        size=640096 md5digest=e99ae1c0ff8b150f7a965765d3908a14
+    hptrr.ko.symbols \
+                    size=464512 md5digest=8f79142bc6eda1376915aa673adf6cf5
+    hwpmc.ko        size=116736 md5digest=b22b0618190e91315d3bbe6390662180
+    hwpmc.ko.symbols \
+                    size=1459400 md5digest=27e3c9631aaf29ec408872c10566546c
+    i915.ko         size=53792 md5digest=ac89115139cae3310f89838804dd8734
+    i915.ko.symbols size=479240 md5digest=db5acc834165ab431bee9ae29c8658c7
+    ichsmb.ko       size=19944 md5digest=ceb06554d6812197ebd398d4db53e475
+    ichsmb.ko.symbols \
+                    size=93648 md5digest=1dcb6da6eb09678ba66647d4a286323a
+    ichwd.ko        size=18480 md5digest=230fe6f40e614e57712211767dccc535
+    ichwd.ko.symbols \
+                    size=62104 md5digest=e9a4f4dc1b5a82bd19f81ebf165e1272
+    ida.ko          size=21840 md5digest=26de311a892515ddaa0940c907b46f56
+    ida.ko.symbols  size=145560 md5digest=573f71031686d4f037e3c701322081ff
+    if_ae.ko        size=39592 md5digest=5469e07d7f419671607e0ad15b79e8ce
+    if_ae.ko.symbols \
+                    size=159480 md5digest=2afc2d07f03909b7f29f2d1eb5501851
+    if_age.ko       size=56416 md5digest=5a08e9e644bd0f78dd0521abbc4c03aa
+    if_age.ko.symbols \
+                    size=189312 md5digest=66c7c6117d01df74b96386bbb09dfba1
+    if_alc.ko       size=67576 md5digest=c62b2ff2ed825aaaa42f61b1337391ce
+    if_alc.ko.symbols \
+                    size=225664 md5digest=712cf382f2d0038af5c91dccb835a77b
+    if_ale.ko       size=60408 md5digest=6a80c9124a4f0e6dd07e8d7bdbd7f814
+    if_ale.ko.symbols \
+                    size=194808 md5digest=029f51fce74b76cb65eefa5bfbde5768
+    if_an.ko        size=76160 md5digest=21450b0df276513bbc3862d9e0c40313
+    if_an.ko.symbols \
+                    size=438752 md5digest=ced30e5543e40f4c03bd75130c7244c4
+    if_ath.ko       size=534528 md5digest=97cb2cd2893c657c075d9dc75e7bfd2b
+    if_ath.ko.symbols \
+                    size=4800904 md5digest=f282c2efd045117e3ee9d224b31d21db
+    if_aue.ko       size=22968 md5digest=f7f26e35f0249881b1d802145f03195b
+    if_aue.ko.symbols \
+                    size=88920 md5digest=c64e02f65303fd18e32a49127fded8f0
+    if_axe.ko       size=28504 md5digest=dc16a2f53946e03e2943044b2e93d664
+    if_axe.ko.symbols \
+                    size=99624 md5digest=6575bcbc42b42d463d2cdcc0fd49fc00
+    if_bce.ko       size=336656 md5digest=be90a763fb13703a1b79699334c1c133
+    if_bce.ko.symbols \
+                    size=325592 md5digest=f142f456dab10a527d55c6a3d51564b4
+    if_bfe.ko       size=37848 md5digest=f397189abcf1b9a8d8a7f86fdfc79236
+    if_bfe.ko.symbols \
+                    size=146552 md5digest=d1adb56ad8e71bc82308eaee4790a747
+    if_bge.ko       size=108712 md5digest=83dd9d731dcfa783481fe47dc2145d35
+    if_bge.ko.symbols \
+                    size=397816 md5digest=c0c7e72dff8afd1a67ae46454195ff34
+    if_bridge.ko    size=49040 md5digest=f715d19411b6db6e0c55efc33dbabec4
+    if_bridge.ko.symbols \
+                    size=199792 md5digest=e83752947470b10c4fd12940d142e74d
+    if_bwi.ko       size=154032 md5digest=f1db9f4df79612b249af5529d63f265c
+    if_bwi.ko.symbols \
+                    size=995464 md5digest=5dad06105fc016d9f80955df28abcbb2
+    if_bwn.ko       size=255936 md5digest=9e59aa10d92ff757e65d8d5d60aac22b
+    if_bwn.ko.symbols \
+                    size=663432 md5digest=d78cc29cd1d0ee94f96c1162b4ca18db
+    if_carp.ko      size=43976 md5digest=6741bd8691641d40fb0092929fea22f1
+    if_carp.ko.symbols \
+                    size=198224 md5digest=7b98b19619172253fa8052795761cd73
+    if_cas.ko       size=49584 md5digest=a784558052262e8d99a9ad58fe12a437
+    if_cas.ko.symbols \
+                    size=211152 md5digest=a755d0974257872eb08b7b43a5dc30b8
+    if_cdce.ko      size=29520 md5digest=fab1f3a090ee1a8fd7d5297114ebcf5c
+    if_cdce.ko.symbols \
+                    size=95760 md5digest=ecf2794f0bcfa748c8baf5483c36aa05
+    if_cue.ko       size=14880 md5digest=90f2db57be3b06f61731367a5b1f1faa
+    if_cue.ko.symbols \
+                    size=73392 md5digest=af6bb7f384b9ccb9e71a2672e8e1ee48
+    if_cxgb.ko      size=254104 md5digest=1dd0f7d4681ae489dfb642d33f72e0d0
+    if_cxgb.ko.symbols \
+                    size=1768072 md5digest=64986bb23054ea15fb1ba9733e28d2ec
+    if_cxgbe.ko     size=245648 md5digest=78a7655dd8daed56e7abd25326004ce4
+    if_cxgbe.ko.symbols \
+                    size=1031888 md5digest=56536ead45cdb5f02c7749566096325f
+    if_dc.ko        size=67272 md5digest=8ebf5cce745baeeb65b2ae5cf98c16d7
+    if_dc.ko.symbols \
+                    size=390312 md5digest=30cce08b3224534409dcdd18b9fe9b82
+    if_de.ko        size=66536 md5digest=1b6e9c08fa870054f57d88e5adf60b6b
+    if_de.ko.symbols \
+                    size=240672 md5digest=dec2e57cafed06d208b60724a407e5e2
+    if_disc.ko      size=5856 md5digest=066271fb99dcda687e46d66a82c4aa90
+    if_disc.ko.symbols \
+                    size=43056 md5digest=035a29c68aa4cb4a2e13840252e6b252
+    if_ed.ko        size=74512 md5digest=0c14f62f28e2c58c941e5303756c8898
+    if_ed.ko.symbols \
+                    size=476880 md5digest=afc47c7c1d0cbbae5ead354f6a26415e
+    if_edsc.ko      size=6440 md5digest=430f2a661a0702e429e25757de6c0605
+    if_edsc.ko.symbols \
+                    size=40928 md5digest=62e791e62b8491ed836282cec997e540
+    if_ef.ko        size=7736 md5digest=ac86ffbcb1e25336fa5d8a815784b8d5
+    if_ef.ko.symbols \
+                    size=48856 md5digest=bbb1211b680e83b7cbb86d9a1962edcf
+    if_em.ko        size=432704 md5digest=43e49dabe22a3de92c871fdb02db341a
+    if_em.ko.symbols \
+                    size=2269696 md5digest=6fb30f7daa917a0cbf7f6e8175f6f865
+    if_en.ko        size=58928 md5digest=d7cfde789ae882423f20007bfc873582
+    if_en.ko.symbols \
+                    size=280728 md5digest=0afdd9d675b989f354e57218e147cba7
+    if_epair.ko     size=17704 md5digest=8a15e64e55e0ee0960dddc73112ae7d0
+    if_epair.ko.symbols \
+                    size=67296 md5digest=f84fdf4472d4d5a64c48def3cfd2daf7
+    if_et.ko        size=56936 md5digest=55b5ad7e51a235d23c4e7e0dbf09caaa
+    if_et.ko.symbols \
+                    size=240728 md5digest=cd36c8a0054cd076a725883a7872f619
+    if_faith.ko     size=9040 md5digest=a3a82f8eb3412bf9056c4954d1892281
+    if_faith.ko.symbols \
+                    size=47800 md5digest=200cbf44240ce5bac4dba66bd63dba6c
+    if_fatm.ko      size=84552 md5digest=eef1372566f0707f5eb8f37770ba8ee0
+    if_fatm.ko.symbols \
+                    size=167368 md5digest=226043ab30e35f28513f4a962e4b557c
+    if_fwe.ko       size=17280 md5digest=7bab3f9a5f855ff33c64000ec9f7f1fb
+    if_fwe.ko.symbols \
+                    size=79976 md5digest=7c0691ddaf3d38a6f7cc79e526b0e8f6
+    if_fwip.ko      size=28744 md5digest=cc9efff474c3345a2abfb184be65aed4
+    if_fwip.ko.symbols \
+                    size=152504 md5digest=b94a7bb6e05c4c0d7aea2b2d7428aa0e
+    if_fxp.ko       size=55160 md5digest=842c345adabf3d6f64c3ea4f29e4e3e5
+    if_fxp.ko.symbols \
+                    size=174832 md5digest=bc2b43250cafdc5a173e360e0a757244
+    if_gem.ko       size=41832 md5digest=5788783063744f68a45bc0a7efdaa1c8
+    if_gem.ko.symbols \
+                    size=218008 md5digest=fd82c275621ed0a2d33e404dfe74e029
+    if_gif.ko       size=27912 md5digest=74def4a661286e48cc105bd32225f539
+    if_gif.ko.symbols \
+                    size=196336 md5digest=186f30fbfec2da47aed8118a103a4306
+    if_gre.ko       size=18248 md5digest=27e28472747ff3c9269bd1c355bc580a
+    if_gre.ko.symbols \
+                    size=137064 md5digest=eb742d3e8d0fd07d6832a882dcd13845
+    if_hatm.ko      size=71032 md5digest=96d68b066524e7ec7f6e09b79e4075d5
+    if_hatm.ko.symbols \
+                    size=482688 md5digest=6b412b5f08e8d5deacad0e14adbc6b4d
+    if_hme.ko       size=33968 md5digest=43c4033aab9b56b81be36af8f9fb47b4
+    if_hme.ko.symbols \
+                    size=179024 md5digest=cdbf6d21778c5a0edf95c9b7cf5ecd8c
+    if_ic.ko        size=10352 md5digest=6552af4f754845b6b5a29b2fa084765a
+    if_ic.ko.symbols \
+                    size=52656 md5digest=08b91f53beb7056d07ea3b4f36b793f8
+    if_igb.ko       size=355848 md5digest=eb80a7b3ade58bf70889dade03a72c03
+    if_igb.ko.symbols \
+                    size=2013648 md5digest=0257762c259bb44d1321ff233d6ebc40
+    if_ipheth.ko    size=14520 md5digest=add875412c9e8009bc0c1fa4d1495642
+    if_ipheth.ko.symbols \
+                    size=70128 md5digest=ea0f6b13507a0682c102b4e761f0f802
+    if_ipw.ko       size=55760 md5digest=f0bc059cb8e9ae864d06e1fa82ef9c04
+    if_ipw.ko.symbols \
+                    size=234280 md5digest=183887659fd652b1c2ba43e2947e8bf4
+    if_iwi.ko       size=75072 md5digest=6db68f60a656536c1a17e0107f9932d9
+    if_iwi.ko.symbols \
+                    size=318408 md5digest=d65f669b7c0c38bb36dc4ac820638869
+    if_iwn.ko       size=122416 md5digest=07e4bc8d3c63e5991c449774c2002964
+    if_iwn.ko.symbols \
+                    size=463832 md5digest=2bc2db31a57f8966b63e816e30fff596
+    if_ixgb.ko      size=48016 md5digest=e66619f37076cb20a5e6f10c0089214b
+    if_ixgb.ko.symbols \
+                    size=299448 md5digest=41fccb96a759c9e00a8f6f382e7697bd
+    if_jme.ko       size=58952 md5digest=45c9db876838a765732d9be17bb7a051
+    if_jme.ko.symbols \
+                    size=248088 md5digest=ce98f48af0d8caec4158cc5bc76661c0
+    if_kue.ko       size=21264 md5digest=6dd07778de0ee2e66d2d395092d96f58
+    if_kue.ko.symbols \
+                    size=75504 md5digest=8fc6ca44ef1c62b735bd3aec1933f37d
+    if_lagg.ko      size=46248 md5digest=6a32fc4712b87cd5d5df34e49474a514
+    if_lagg.ko.symbols \
+                    size=221624 md5digest=87a87aa48b47aa8d6649d0aabc2215b1
+    if_le.ko        size=31296 md5digest=4a1b716e26b51907cc4228d612f28ee1
+    if_le.ko.symbols \
+                    size=191112 md5digest=851e461a9f81f096c6c3520089bf6e8f
+    if_lge.ko       size=24512 md5digest=dbea5a472fdb8bdc4b52f6d7c1263e79
+    if_lge.ko.symbols \
+                    size=112624 md5digest=ce8c811d7878da1bf240fa850e944aea
+    if_lmc.ko       size=70296 md5digest=60cb9aeaddea916fd61148ee7653b885
+    if_lmc.ko.symbols \
+                    size=216184 md5digest=2cdc7e9962444fbdd98f3c911e90a886
+    if_malo.ko      size=63480 md5digest=6d080d7a9fba34d5adcf150076f0591a
+    if_malo.ko.symbols \
+                    size=425632 md5digest=0528e5be537a83483dc437416871b79f
+    if_msk.ko       size=88016 md5digest=1d885828a01ad8d58188335f05af2a47
+    if_msk.ko.symbols \
+                    size=353240 md5digest=0b6cf578dad622423970ec7ab44d30f3
+    if_mwl.ko       size=120688 md5digest=ad915011277aa25cf9b4a951f8724109
+    if_mwl.ko.symbols \
+                    size=582024 md5digest=de93dbfc5146817353443b856e42b686
+    if_mxge.ko      size=86152 md5digest=9150327d197b696d993e6d19b5efcff1
+    if_mxge.ko.symbols \
+                    size=315848 md5digest=238c90d838587572d463c7b8744d6393
+    if_my.ko        size=29480 md5digest=976200f50060747042a8cdfa3db06c03
+    if_my.ko.symbols \
+                    size=121384 md5digest=3681e853f6f261b6e8614d4c29eed92d
+    if_ndis.ko      size=72176 md5digest=c0d45f2ee485090879440b1d7f39b031
+    if_ndis.ko.symbols \
+                    size=658760 md5digest=5af0fa77115700df4c3aa16ce7e1760b
+    if_nfe.ko       size=61088 md5digest=824be95091b2b23da6a36e80be8fcb72
+    if_nfe.ko.symbols \
+                    size=226864 md5digest=0aae3ab89795657f0caa8fc39c8c82de
+    if_nge.ko       size=42384 md5digest=48bdc2bf745bb4ed1bb9c514bedfbfa5
+    if_nge.ko.symbols \
+                    size=185672 md5digest=e14198146037d950570a889e5472b9f6
+    if_nve.ko       size=75000 md5digest=bb72f3e8988e8e1f21319ff313664924
+    if_nve.ko.symbols \
+                    size=136128 md5digest=453a955911ec595be0634c9b0c385699
+    if_nxge.ko      size=225976 md5digest=ae8ff39d3263249a498f74dd250c630e
+    if_nxge.ko.symbols \
+                    size=1941976 md5digest=bde039969e5e47ee3e7948860a21a31d
+    if_patm.ko      size=94672 md5digest=2c3fb1703bce332663e70e6081e8f1fc
+    if_patm.ko.symbols \
+                    size=522000 md5digest=8c6a879ea1ac9dccd726eef50d7e005b
+    if_pcn.ko       size=23176 md5digest=cdc5cec9780796623f0dcaf209424f2b
+    if_pcn.ko.symbols \
+                    size=96488 md5digest=554acba8ddaa60815cbbb4f1ef5bd3f3
+    if_ral.ko       size=96912 md5digest=53b82221fa057e3e916f9f2d5832ad9c
+    if_ral.ko.symbols \
+                    size=519920 md5digest=6c2e00b52bb064da785416b84ccfd858
+    if_re.ko        size=58008 md5digest=b881c1d99275fcbd8b4f081680237b14
+    if_re.ko.symbols \
+                    size=204488 md5digest=0e2cea5b8f51245a7e770886638950bc
+    if_rl.ko        size=34168 md5digest=6cc30020f68719c7d8593b84cda980ba
+    if_rl.ko.symbols \
+                    size=144184 md5digest=ac779db3cd30408a2954dce305d08b53
+    if_rue.ko       size=20064 md5digest=0fcbbc80962424b568b02c63f426c57a
+    if_rue.ko.symbols \
+                    size=89032 md5digest=68d1c8c4ba4dc743f60ddb90c6eecfd6
+    if_rum.ko       size=46272 md5digest=2214b35b6ec781c0e78f0f0d446c1d7c
+    if_rum.ko.symbols \
+                    size=181432 md5digest=84d36d3211dda0dc9f1ed79af3baf8a4
+    if_run.ko       size=80152 md5digest=4b955f18fa83a5b372d1406695ecc15a
+    if_run.ko.symbols \
+                    size=251760 md5digest=9069e3b81f90306d5aeb679b8e9e08b7
+    if_sf.ko        size=43776 md5digest=d77961ee52a353abaf76c31a2aabb811
+    if_sf.ko.symbols \
+                    size=120360 md5digest=7856ec87920e9856421bdad037d79237
+    if_sge.ko       size=33216 md5digest=c853af29b36ffc71106b8e2ad73b3bac
+    if_sge.ko.symbols \
+                    size=133728 md5digest=c479b8c19cc8e42ca8e5ae1f3cd9033b
+    if_sis.ko       size=38456 md5digest=6b9454f7d0a9a012315e35a346e63953
+    if_sis.ko.symbols \
+                    size=196920 md5digest=80dee52469cd0d36a6f0ae26c2c8fb93
+    if_sk.ko        size=55424 md5digest=b677d7a5ee6e66493336be16cf737d93
+    if_sk.ko.symbols \
+                    size=159472 md5digest=8cd28172d69c794321bf996831fdc731
+    if_sn.ko        size=28528 md5digest=4b80e012f03c9329c29dc016aa9885a3
+    if_sn.ko.symbols \
+                    size=192144 md5digest=f980b884bdc7c6306bb981c9d2625b29
+    if_ste.ko       size=39552 md5digest=172a52bfe2938c1304654e022aaf76b0
+    if_ste.ko.symbols \
+                    size=168064 md5digest=615c1e47608dff75698322c678346a0e
+    if_stf.ko       size=14776 md5digest=bb25d74c2ca3c280362bdde95d0048b3
+    if_stf.ko.symbols \
+                    size=99896 md5digest=7c59b0b99be5ead5b1c19ac23c76e1e9
+    if_stge.ko      size=38128 md5digest=de03ed5014f37c8c11d72bf3d456158c
+    if_stge.ko.symbols \
+                    size=163416 md5digest=8aad4f41b963058b7cc927f741b91c7b
+    if_tap.ko       size=27552 md5digest=ebde7249e0e9a6469d082667ac62082f
+    if_tap.ko.symbols \
+                    size=113624 md5digest=6d411e2ef40b0fd70e3d2cab2e052d6c
+    if_ti.ko        size=211520 md5digest=95d057957ffcf846c559ac0973827fda
+    if_ti.ko.symbols \
+                    size=248024 md5digest=804bd07ef30334170c384c8a0e4cd2e7
+    if_tl.ko        size=29968 md5digest=c733d7e6c704b143bb42aa79a58f8a8a
+    if_tl.ko.symbols \
+                    size=132736 md5digest=d412f47bfb113edf8bc324b30035c5e9
+    if_tun.ko       size=27216 md5digest=571d5a4bf63d30742106056dcc79e6cb
+    if_tun.ko.symbols \
+                    size=117744 md5digest=8e64badedb2cbf068860579c2128a54b
+    if_tx.ko        size=30120 md5digest=d04286aa5f249f7ea2d525d7c9c7324f
+    if_tx.ko.symbols \
+                    size=126408 md5digest=dae08fe614dd3c227c4a0abc060594e8
+    if_txp.ko       size=101120 md5digest=7d322cd304dbf6d4628c0fcc9de3dad0
+    if_txp.ko.symbols \
+                    size=168616 md5digest=7b2593bf16bf4fd327cf40b382457b70
+    if_uath.ko      size=43288 md5digest=e59229c14a9ead31eb92f20c08ebb60e
+    if_uath.ko.symbols \
+                    size=203552 md5digest=f9563c8bdf521ed9411cebbfb67dfe39
+    if_udav.ko      size=19632 md5digest=7beaaee30c02eb1a460aea25beca021d
+    if_udav.ko.symbols \
+                    size=86424 md5digest=a40223b36849e8ad4ebbe160df2f8fee
+    if_upgt.ko      size=32088 md5digest=0240e91c83d14385381bc5188007254e
+    if_upgt.ko.symbols \
+                    size=175664 md5digest=7e06eada9204373c6468dd03bbe03504
+    if_ural.ko      size=44216 md5digest=ae2573d4a1989d8b2e391db9072713e8
+    if_ural.ko.symbols \
+                    size=179640 md5digest=077e40b9d487222f9ea4d7d71dc51c29
+    if_urtw.ko      size=59792 md5digest=6ae2a14a853da20bf0e341f8f03dab18
+    if_urtw.ko.symbols \
+                    size=227344 md5digest=e114b769ea31b723c79a4c747f255535
+    if_vge.ko       size=49656 md5digest=b80bd8248db2c4ab7d89e3fe12ce71e8
+    if_vge.ko.symbols \
+                    size=198456 md5digest=def418a4dc90ba259ac1cc439b61020b
+    if_vlan.ko      size=24216 md5digest=790712c5b49f28ddb4265102311abaab
+    if_vlan.ko.symbols \
+                    size=80608 md5digest=f2d1d5a3f993a1de3d2775d367689687
+    if_vr.ko        size=43840 md5digest=32904294b05c199ac4bd37f8b36a2b99
+    if_vr.ko.symbols \
+                    size=185120 md5digest=71e870c788e1b4fcfcedebf3cbe23d35
+    if_vte.ko       size=37000 md5digest=3e0aebb1f8f2a73046cb217b70be3e65
+    if_vte.ko.symbols \
+                    size=137800 md5digest=aab844b52d13d8a576aa081fb7202bd6
+    if_vx.ko        size=22888 md5digest=56e92388242ea51910a9bd6620e6db04
+    if_vx.ko.symbols \
+                    size=132192 md5digest=815211b74453fcb1eb92fb44a27c55a9
+    if_wb.ko        size=25624 md5digest=81b3c66e1097226de6497dd7dd9c9f9a
+    if_wb.ko.symbols \
+                    size=129232 md5digest=cca67d382febb04a04ccfb203f0527b0
+    if_wi.ko        size=55992 md5digest=aa5226c3b4113e52bf45be893201b9f7
+    if_wi.ko.symbols \
+                    size=417952 md5digest=ad4058db31a87dc6f29a1b7946afd762
+    if_wpi.ko       size=71416 md5digest=f33e741a869e088bae3a16d1742b160f
+    if_wpi.ko.symbols \
+                    size=254832 md5digest=008e89f60c5827a9bf507db60f075465
+    if_xl.ko        size=48864 md5digest=3458078d981152f1431cfea531b983fd
+    if_xl.ko.symbols \
+                    size=177136 md5digest=455f56bb7a2ff60514e78efeafcaf264
+    if_zyd.ko       size=70088 md5digest=6c482062d8f1ec5e7b446f89a64674d7
+    if_zyd.ko.symbols \
+                    size=212656 md5digest=ad4941ddd106a95d89706963f94290e9
+    iic.ko          size=12040 md5digest=8b817efb0bca0b391a705e92cd4d8583
+    iic.ko.symbols  size=46008 md5digest=11cc8f03c2a363510cfeb52da60eb6c7
+    iicbb.ko        size=15384 md5digest=28e61eedb51e89e761e4303eda601feb
+    iicbb.ko.symbols \
+                    size=59264 md5digest=f0c6bb14884ed14267cf533699bf19fc
+    iicbus.ko       size=16096 md5digest=db057ce773e9197a4e894a1d1274145f
+    iicbus.ko.symbols \
+                    size=77600 md5digest=69f539f0cfed30491ae84a735f0daa5e
+    iicsmb.ko       size=14264 md5digest=9e0baebb9a7ba7a713352a39bba1bd57
+    iicsmb.ko.symbols \
+                    size=47584 md5digest=eb5f2d9d93ca6bb47c4f7f1c67a255cc
+    iir.ko          size=36896 md5digest=a043b261af799b8c4aadfe78c96bde71
+    iir.ko.symbols  size=213776 md5digest=8d5c0bc2ae7ab83f8087deba8e9e03f0
+    intpm.ko        size=18328 md5digest=bca854893ae401f6bc5155c2f98ca786
+    intpm.ko.symbols \
+                    size=77800 md5digest=1aae3754db7cb491721079e8d69510c9
+    io.ko           size=4744 md5digest=968ccb7ec8562bc8d9119c259ab0daf0
+    io.ko.symbols   size=89632 md5digest=674d97ed96966f78d1e990d660168d48
+    ip_mroute.ko    size=48664 md5digest=88f0bc428afaaa6de355b1eaccb360a9
+    ip_mroute.ko.symbols \
+                    size=141248 md5digest=0781e0d2ce79d003607ffd8572530b6f
+    ipdivert.ko     size=18688 md5digest=c41c0b84b4b8dc92e6313cf57a786c02
+    ipdivert.ko.symbols \
+                    size=109104 md5digest=d86305373e41b2489b2fe55ecbea240e
+    ipfw.ko         size=100264 md5digest=4eb4f2b76e4a994a143326772e64e541
+    ipfw.ko.symbols size=488888 md5digest=6bfb9ad2bb8b82258695434db51266d8
+    ipfw_nat.ko     size=15640 md5digest=8e32f01350f76dfddaf2c2a151b952d1
+    ipfw_nat.ko.symbols \
+                    size=97232 md5digest=c4d7838ac9d9ac6c8523bc88d70017f1
+    ipl.ko          size=334784 md5digest=fd7def797de67bded4765e360c32b26b
+    ipl.ko.symbols  size=1225440 md5digest=aa23f90313318abc5ef44276164a5c34
+    ipmi.ko         size=60000 md5digest=59171c24b782ad66cb15e1251e5d7ec4
+    ipmi.ko.symbols size=350752 md5digest=d5564372003aac0b631c748a295f1005
+    ipmi_linux.ko   size=4240 md5digest=0c1492ac3bd396b6963f938594e06863
+    ipmi_linux.ko.symbols \
+                    size=48848 md5digest=78c583eb68c0773fea4b1a7f07bb40fa
+    ips.ko          size=44160 md5digest=9c03083324b7acb5e852924bcec0900c
+    ips.ko.symbols  size=257192 md5digest=552c8a7bbb5ee9c5ccdb6d9e3c0248b6
+    ipw_bss.ko      size=213568 md5digest=efe009330e13e001e7235eb1413abd72
+    ipw_bss.ko.symbols \
+                    size=15240 md5digest=1bd7a70abe790ab75c8baafab2ff7403
+    ipw_ibss.ko     size=205560 md5digest=cf5b22197b149cf28617e5efb7b84182
+    ipw_ibss.ko.symbols \
+                    size=15272 md5digest=6b6faeb8f5e920b63d25430264fec9f6
+    ipw_monitor.ko  size=200920 md5digest=86279569e8fc8cba4b99b772d8c8e43c
+    ipw_monitor.ko.symbols \
+                    size=15392 md5digest=7da2aa37fb2255425ee23c78a6f509b1
+    isci.ko         size=421520 md5digest=def17f6c4d0733162215453ca6829c1b
+    isci.ko.symbols size=4577896 md5digest=d5a1abf263ef8810199806e78d4e0914
+    iscsi_initiator.ko \
+                    size=93120 md5digest=58dc846dfdb1f6bfb7d660103a9627f1
+    iscsi_initiator.ko.symbols \
+                    size=657168 md5digest=c131f2a78726e9d54919b34f544bd2ce
+    isp.ko          size=228320 md5digest=1a363df38544c3e3a31fea8a3c1eeca4
+    isp.ko.symbols  size=808896 md5digest=20457424b87ce2bcd576196c7a2b45d4
+    isp_1040.ko     size=26856 md5digest=06b16a9a58c6ed7da121567d955ff006
+    isp_1040.ko.symbols \
+                    size=13960 md5digest=a850fa693a61b72dec2601fa49743516
+    isp_1040_it.ko  size=36888 md5digest=b161cf193fc5e1f0f76464dd65cc90b6
+    isp_1040_it.ko.symbols \
+                    size=14032 md5digest=405ebed1f4829a29f2b902fedb91b5cc
+    isp_1080.ko     size=35256 md5digest=d8a4643fc92b51f9b8ddb55d10b36a86
+    isp_1080.ko.symbols \
+                    size=13960 md5digest=fe2bfeee3b229e97d5eb6542e15bdafc
+    isp_1080_it.ko  size=44584 md5digest=70f4d559ef6372f6dc8302e7a5c6d1e3
+    isp_1080_it.ko.symbols \
+                    size=14032 md5digest=7172e61768b84984cda10b49ce7afeca
+    isp_12160.ko    size=31976 md5digest=cbee3ea74373d9605ac38635eb5390a4
+    isp_12160.ko.symbols \
+                    size=14000 md5digest=b2bc00666c70a9a0357c41e72407ae57
+    isp_12160_it.ko size=44576 md5digest=4e2356b70b0869ab8c220ddb2122e97b
+    isp_12160_it.ko.symbols \
+                    size=14048 md5digest=233f57a2bcac4ba3c054f8951e5b885b
+    isp_2100.ko     size=80680 md5digest=ba49342075b5841f771f409b963e0c7f
+    isp_2100.ko.symbols \
+                    size=13960 md5digest=5c9a6b3d2a72b95f08e55d15d4f03930
+    isp_2200.ko     size=81128 md5digest=b579221a82f012147a5932534d96be82
+    isp_2200.ko.symbols \
+                    size=13960 md5digest=44a38b24d1da130436f01b34c5c80f77
+    isp_2300.ko     size=110552 md5digest=29af83a1db8e2b506e23fc9df54b2370
+    isp_2300.ko.symbols \
+                    size=13960 md5digest=52756e08c287790b505d19557c7bface
+    isp_2322.ko     size=125688 md5digest=645c84e4a04ab3b2393bfd85939b2de8
+    isp_2322.ko.symbols \
+                    size=13960 md5digest=1d29c7cca238ca02a3b363860d7d709f
+    isp_2400.ko     size=232504 md5digest=cbea0021567b61bafc0e9a6ec1c4b2db
+    isp_2400.ko.symbols \
+                    size=13880 md5digest=f1076331a95adc5041fdfda7c2418a3a
+    isp_2400_multi.ko \
+                    size=250488 md5digest=8a76707dba00e5f5e911b35d8401acdf
+    isp_2400_multi.ko.symbols \
+                    size=14000 md5digest=ecf0a71df5c7cd2aa37eff01abfc2777
+    isp_2500.ko     size=204488 md5digest=968f7207503422f218d5efbacca2dafb
+    isp_2500.ko.symbols \
+                    size=13880 md5digest=3134941882b9ee10aef8d9a5f4a49dd3
+    isp_2500_multi.ko \
+                    size=234808 md5digest=5afa9555566315e155c51eb99bc06028
+    isp_2500_multi.ko.symbols \
+                    size=14000 md5digest=b50dd05afa1771fa830ba99b72981c99
+    ispfw.ko        size=1501680 md5digest=a9af83b176750c6333e5cdb7575795af
+    ispfw.ko.symbols \
+                    size=27056 md5digest=0e5274a2ed0ee7b9be71ca60f892046b
+    iw_cxgb.ko      size=109064 md5digest=615bbdd91aea67b26932f5f6b1b7bae0
+    iw_cxgb.ko.symbols \
+                    size=1476064 md5digest=275719d34cdf293e2c5f666f9e7e29b3
+    iwi_bss.ko      size=195536 md5digest=ac12437cbc9ad0bdbdbc3a756b3824a5
+    iwi_bss.ko.symbols \
+                    size=15240 md5digest=76616740eff61c4bce9ba7ec4b8296b7
+    iwi_ibss.ko     size=189848 md5digest=55399bd81d12fee287b1f402fa460c79
+    iwi_ibss.ko.symbols \
+                    size=15272 md5digest=1dd96714cd3c1175539920eb5a897fbb
+    iwi_monitor.ko  size=192296 md5digest=387d62de949ed6719073812a76e9658d
+    iwi_monitor.ko.symbols \
+                    size=15392 md5digest=b636cb5aad441e9b454b95ceed924423
+    iwn1000fw.ko    size=341296 md5digest=c1010262b8f03cc5c5d7f983d326cbcc
+    iwn1000fw.ko.symbols \
+                    size=14856 md5digest=d2c2544b1fc6eebf13617c44e9fc7fd0
+    iwn4965fw.ko    size=191760 md5digest=1d5b9abe7ac9255c48d05f098cc50f1e
+    iwn4965fw.ko.symbols \
+                    size=14872 md5digest=425b710808d8b4f31232b586906de7bf
+    iwn5000fw.ko    size=344472 md5digest=d1dad3cbce370ac987a8ba14fddd6a2d
+    iwn5000fw.ko.symbols \
+                    size=14856 md5digest=899475ee3c10496b831f58f871daa6eb
+    iwn5150fw.ko    size=341176 md5digest=cd5cc2fb11f22e26f64d035260570967
+    iwn5150fw.ko.symbols \
+                    size=14856 md5digest=7407a47839e81e562b5c3f9fad8f2c41
+    iwn6000fw.ko    size=458384 md5digest=13b8c94c30231d81db4758635731bdb6
+    iwn6000fw.ko.symbols \
+                    size=14856 md5digest=2c712355dffbb0ba33a48ec928a23abb
+    iwn6000g2afw.ko size=447960 md5digest=6ca8e2b8bfa69cfa579fb277c621b95f
+    iwn6000g2afw.ko.symbols \
+                    size=14984 md5digest=a7c66f3344e6977916a19d1ea2e1c337
+    iwn6000g2bfw.ko size=464744 md5digest=9b3e631ffa2c91979aeb072658d61020
+    iwn6000g2bfw.ko.symbols \
+                    size=14984 md5digest=1c863c650b74ce87b578bfc6a4b7a562
+    iwn6050fw.ko    size=473568 md5digest=86f8dfa4d8a3f5b76779099d4e190053
+    iwn6050fw.ko.symbols \
+                    size=14856 md5digest=99e72b1faa117dea37224bd9b410c057
+    ixgbe.ko        size=231048 md5digest=615ff24cfb8bfa660aed6c35460b4491
+    ixgbe.ko.symbols \
+                    size=1354432 md5digest=08f1d8c77fa99da4d3da5b314b75c26e
+    joy.ko          size=10192 md5digest=0dcfdd9218e2c1e1e94ffc0182d18ae9
+    joy.ko.symbols  size=61912 md5digest=5d34be0e48087b8230696db62a88399e
+    kbdmux.ko       size=24448 md5digest=f0ee627a03b7ed1acfdd9d23dd0bd11b
+    kbdmux.ko.symbols \
+                    size=86888 md5digest=dbaab1f8043a3db3333b67ca99a81651
+    kernel          size=13396212 md5digest=ddbcda1f76a0bcb5cda69daa1ff7c805
+    kernel.symbols  size=52620285 md5digest=fb2bda88873eb7f25f142829c76742d5
+    kgssapi.ko      size=83072 md5digest=04eca4ef5d209f302c9b8963bc5e44ad
+    kgssapi.ko.symbols \
+                    size=768408 md5digest=1dc28f4b218e2fd5bb184c83d62f4824
+    kgssapi_krb5.ko size=44696 md5digest=65adfd371ad27ab9d4a7dcd081c1a966
+    kgssapi_krb5.ko.symbols \
+                    size=199568 md5digest=a5a48577062258bf3e4dfde37de5d947
+    krpc.ko         size=121184 md5digest=0587d8389c2c7f937356de80a0a5c0c1
+    krpc.ko.symbols size=901600 md5digest=5a4f0f1b2528742ab88627743fd245dd
+    krping.ko       size=40528 md5digest=e12e137c3650dc5906c938a218a19c19
+    krping.ko.symbols \
+                    size=168088 md5digest=35bbc31872caf78d69f6a2aa6aa0fdc3
+    ksyms.ko        size=11248 md5digest=546a6aea9bad564a22d63cf7da1b9730
+    ksyms.ko.symbols \
+                    size=79480 md5digest=801606efb6170cee7c4ed8792758d223
+    libalias.ko     size=77528 md5digest=0a28df70b8a8c83b820c63af1d456c26
+    libalias.ko.symbols \
+                    size=380848 md5digest=d92db41b7e4dfb8e14ed73f153588f29
+    libiconv.ko     size=32064 md5digest=f5e54573c6294d8a7f967117c80f0674
+    libiconv.ko.symbols \
+                    size=143256 md5digest=8a266635d820e2f8456a8aa396dc8cc7
+    libmbpool.ko    size=5968 md5digest=b4863a6e6cafec4907768e8777eef6f0
+    libmbpool.ko.symbols \
+                    size=26488 md5digest=2b822aef38fbcb71f7a23aeb68c224b3
+    libmchain.ko    size=8048 md5digest=d4237afc65d9b1dc6e6c924a32537588
+    libmchain.ko.symbols \
+                    size=39496 md5digest=c7afcfcbe9e8faafab61561952c1005e
+    lindev.ko       size=4592 md5digest=b6c44395a031dc5fa573250718cc3bc1
+    lindev.ko.symbols \
+                    size=30520 md5digest=0a708e94aa032b6ff4ea315a02eb67e0
+    linker.hints    mode=0644 size=52392 \
+                    md5digest=5da86cc0c1df1c716ca27a703f7d2ada
+    linprocfs.ko    size=43256 md5digest=26f5166e438e13e0e9890052493fc66f
+    linprocfs.ko.symbols \
+                    size=210480 md5digest=b38311143ee3283e3072266d4fd2f76d
+    linsysfs.ko     size=9936 md5digest=d9d2e294455f00e567f01c85ab477e74
+    linsysfs.ko.symbols \
+                    size=127872 md5digest=96a4f351cef8b54e1dda4b8e8309c746
+    linux.ko        size=258496 md5digest=9594864072470b8c6a294f3776a717d5
+    linux.ko.symbols \
+                    size=1820680 md5digest=4539af0bbddf99458da40bbfb6580a91
+    lockstat.ko     size=9288 md5digest=f475c025d83a70520f8fe70a878dad9a
+    lockstat.ko.symbols \
+                    size=107568 md5digest=917f606e62a40bb29ba5a73d580dce45
+    logo_saver.ko   size=15568 md5digest=de3897fbec44c277e3373362d76f45a9
+    logo_saver.ko.symbols \
+                    size=32608 md5digest=be71f9ac24861d02e863d584c0edad55
+    lpbb.ko         size=11920 md5digest=2f11742815b9c3139c46ffaec80ac08a
+    lpbb.ko.symbols size=42968 md5digest=2c8db8c4d7e2bfd3e80f2c09f7e49d90
+    lpt.ko          size=17664 md5digest=f8ae9665dfb2d0365b9615f699d932e2
+    lpt.ko.symbols  size=65920 md5digest=a5d59022844faebd77a1fa707809998d
+    mac_biba.ko     size=63424 md5digest=deeb7ae9d57568d01958ddd4f4c6596d
+    mac_biba.ko.symbols \
+                    size=332576 md5digest=b6911e51b18d491987f3cd06d7763d17
+    mac_bsdextended.ko \
+                    size=20672 md5digest=aef5c9981d37a1d3295a4e0b5fb21b08
+    mac_bsdextended.ko.symbols \
+                    size=278312 md5digest=b53dd3c0e84896913556b89e7e3efe5f
+    mac_ifoff.ko    size=10384 md5digest=2a9b7118a7d3340993beaf4760becdbf
+    mac_ifoff.ko.symbols \
+                    size=90032 md5digest=3af892dae54e7c73bcf42df3aeae347e
+    mac_lomac.ko    size=56248 md5digest=cd35108f9f4555fe3d7af13110b1b9a9
+    mac_lomac.ko.symbols \
+                    size=302368 md5digest=d39b3e8c561ade0568f9c486cf23e881
+    mac_mls.ko      size=57728 md5digest=6bbe3ba7fbaacc9972d7b5e9660fd34a
+    mac_mls.ko.symbols \
+                    size=321944 md5digest=577f60e8d7b09ab99dfedd97e9c80a47
+    mac_none.ko     size=3152 md5digest=a7b2c17c0dfaf7770acdfd4c2cf535f1
+    mac_none.ko.symbols \
+                    size=49072 md5digest=6c18028f8f324c024745d53e0d50c4fb
+    mac_partition.ko \
+                    size=10304 md5digest=babe99c0a865f2fe682cedcfdd02f562
+    mac_partition.ko.symbols \
+                    size=108352 md5digest=63d0139343cce6243ea8702afc1db031
+    mac_portacl.ko  size=15784 md5digest=2c3eca0914895aa213266f74027e2ae3
+    mac_portacl.ko.symbols \
+                    size=115392 md5digest=03e2bfa601836ef295bff969552aee29
+    mac_seeotheruids.ko \
+                    size=10000 md5digest=6279c7204296f6047efef2a9b00a2074
+    mac_seeotheruids.ko.symbols \
+                    size=102224 md5digest=7b3e51d5be80d33eb4212782ee5eb12c
+    mac_stub.ko     size=24168 md5digest=cea27f8cc24622ed9c528c022c3588da
+    mac_stub.ko.symbols \
+                    size=258696 md5digest=96904bec1a75738e7dfd5a99fd0bbca1
+    mac_test.ko     size=175928 md5digest=8d028111126e5eeead4e079ebf9694a0
+    mac_test.ko.symbols \
+                    size=507536 md5digest=29cebc9e303fa3cea0847cd16625a0f0
+    mach64.ko       size=82360 md5digest=2d4cb321c682596b80711cc15e4aae67
+    mach64.ko.symbols \
+                    size=439944 md5digest=d2850ae848348f01e0c30299c1097d36
+    mcd.ko          size=25104 md5digest=bd985f51900402e65481779cbcc79b11
+    mcd.ko.symbols  size=118248 md5digest=b22710daa4ff162337ec1a3246f66132
+    mem.ko          size=16096 md5digest=9eab407176a23eadd7baa1fa1be7da43
+    mem.ko.symbols  size=144504 md5digest=78310d780cc2f47b85318730feee7861
+    mfi.ko          size=60928 md5digest=24b7cbda33ba2ea8dd8f8fa4b1e55698
+    mfi.ko.symbols  size=295080 md5digest=3c8a51faf06682ff06c823728519850f
+    mfi_linux.ko    size=5200 md5digest=02092d3d7250d390f9e2c1438683eb05
+    mfi_linux.ko.symbols \
+                    size=54616 md5digest=f4381eb1f65ae5f746b3570dcf884567
+    mfip.ko         size=8944 md5digest=362a727a0c1ba288a43416fcf7ef22de
+    mfip.ko.symbols size=122560 md5digest=5f8f2ba02289bdf0a7bc3905880ab695
+    mga.ko          size=87752 md5digest=b5892f49cc01de1498b081fe61e8d0b8
+    mga.ko.symbols  size=487960 md5digest=81f0b1d7e34f8b263dfa071ead5f3b6c
+    miibus.ko       size=251688 md5digest=44bd31891e5ffffb37c21064a9e56198
+    miibus.ko.symbols \
+                    size=1802992 md5digest=83b86ffa6dc6f2ad24be477d9deb8973
+    mlx.ko          size=47896 md5digest=ee4fb0be340b00b640a3ef18f88d628b
+    mlx.ko.symbols  size=214424 md5digest=92e9334b7095ce60e388f5496c6d3dd6
+    mly.ko          size=46176 md5digest=7508d1415a1b83e60c1dbd0e92fb92df
+    mly.ko.symbols  size=190504 md5digest=4a938de725454bfd8aa7f588824311e6
+    mmc.ko          size=43320 md5digest=bfe199dc646086b37946edd98164c903
+    mmc.ko.symbols  size=145504 md5digest=4cdf0f2d03fef5235a5d92d9565c6f45
+    mmcsd.ko        size=15896 md5digest=4c2d71cefc7355bee18831a2933c47e0
+    mmcsd.ko.symbols \
+                    size=67152 md5digest=18212f7b4fa40834b29f9607ac66df63
+    mps.ko          size=212992 md5digest=66aaf181c10d67e55f840e73686d38e9
+    mps.ko.symbols  size=1041328 md5digest=a3624f0b792621ab4826f51b30a87d0b
+    mpt.ko          size=186456 md5digest=4b41210519956747a7fbe58af38962e8
+    mpt.ko.symbols  size=1033256 md5digest=8003ea20f52704003c0deb90df37dae6
+    mqueuefs.ko     size=42896 md5digest=41d6f4edc800ae68fd5e07371cdc9a9d
+    mqueuefs.ko.symbols \
+                    size=213816 md5digest=3e6979d8016d00dd7def7677e8bde02c
+    msdosfs.ko      size=81464 md5digest=46a9dca3c8b081ab83bd7c75db4ef75e
+    msdosfs.ko.symbols \
+                    size=675472 md5digest=afa59ea9960bd967c944c56622e5b910
+    msdosfs_iconv.ko \
+                    size=4424 md5digest=4d93521c1acadd3544f032271f783ed7
+    msdosfs_iconv.ko.symbols \
+                    size=15592 md5digest=468e381417c17d914dadba77a4b375d2
+    musb.ko         size=32920 md5digest=3e569a2e7c3690080f17a6866ab04cc4
+    musb.ko.symbols size=164080 md5digest=32d2f0fe8e2a38166023efef10fcc888
+    mvs.ko          size=57528 md5digest=18d7cbf5c27134bdacb4e0a9f1d2d84f
+    mvs.ko.symbols  size=267048 md5digest=eaea9e4bda8bcc3635461e9b04f47650
+    mw88W8363fw.ko  size=101456 md5digest=8bc4b68ddd8b9cbe11c3150aca233612
+    mw88W8363fw.ko.symbols \
+                    size=15536 md5digest=90dc79208319025ea0e293bf71cf913e
+    mxge_eth_z8e.ko size=123496 md5digest=0c79582b646945f127168101bf5551af
+    mxge_eth_z8e.ko.symbols \
+                    size=14968 md5digest=dff1f3d316c6825fb61b467708e34a3c
+    mxge_ethp_z8e.ko \
+                    size=124192 md5digest=6ada4f8bb834f9b847beb2230907187c
+    mxge_ethp_z8e.ko.symbols \
+                    size=15016 md5digest=fe3865b00969fb8f7db9e08a116597f9
+    mxge_rss_eth_z8e.ko \
+                    size=161664 md5digest=89bd3f9b3a94302137a25cd66cb0b84b
+    mxge_rss_eth_z8e.ko.symbols \
+                    size=15128 md5digest=ed82e04b8e47b9b2cb07a3055b7642a0
+    mxge_rss_ethp_z8e.ko \
+                    size=162808 md5digest=a1a06697c160f6e291f26b2f4479fce9
+    mxge_rss_ethp_z8e.ko.symbols \
+                    size=15176 md5digest=1650825c976372f07a75a9ba0714f095
+    ndis.ko         size=167168 md5digest=ffc319eef80733c5bdd4e40af3a4f420
+    ndis.ko.symbols size=1047120 md5digest=f317813b4abcb347750bc4930a8c9050
+    netgraph.ko     size=77560 md5digest=ac1bfe0e3c6ec6cb1887fa47e1605aed
+    netgraph.ko.symbols \
+                    size=268000 md5digest=9dc5ebeb9c8c955b029e178e9b6d590f
+    nfs_common.ko   size=7408 md5digest=e9786c1b83fe277e25eb1541a7856029
+    nfs_common.ko.symbols \
+                    size=111608 md5digest=7201366440103bf48dfb35acad30c23c
+    nfscl.ko        size=366984 md5digest=e6b94212ffa2e25d3358c76f5f1b4b2a
+    nfscl.ko.symbols \
+                    size=2735512 md5digest=1e525cbb4fdd6f877e4501f3ad668deb
+    nfsclient.ko    size=172392 md5digest=637ca49e2cb5aec82f75b75ff1259d66
+    nfsclient.ko.symbols \
+                    size=1205800 md5digest=666726ef998c30123e7e54856b648889
+    nfscommon.ko    size=130144 md5digest=72b4f381982364e66716fd2c0996e613
+    nfscommon.ko.symbols \
+                    size=1026744 md5digest=99a6a5ec0f4c4316c064f11324b8d1b4
+    nfsd.ko         size=277056 md5digest=3ec0358edd91baadd8a302e11c1e97d7
+    nfsd.ko.symbols size=1840624 md5digest=3d1e115b0be8e3c1bc5ff38a5016dc87
+    nfslock.ko      size=10736 md5digest=733dabd1b16dd2deae9fe46cb8951b15
+    nfslock.ko.symbols \
+                    size=138632 md5digest=9f3c52a9bf0de21ebff751dd1412826f
+    nfslockd.ko     size=94432 md5digest=987cb9d6bd0bf5b0e80b74e6fb38a856
+    nfslockd.ko.symbols \
+                    size=573016 md5digest=f6a021c12d3e45178cf6083468700e97
+    nfsmb.ko        size=18408 md5digest=72311d580861397724a2a3046606f781
+    nfsmb.ko.symbols \
+                    size=69120 md5digest=0e2ebabf8dfa348bcdf9e6609a33c97a
+    nfsserver.ko    size=124640 md5digest=e308c4e6f56a854c8f3e3a2fd5f76e1d
+    nfsserver.ko.symbols \
+                    size=662944 md5digest=66ab564e1544556d555039819d19287f
+    nfssvc.ko       size=4384 md5digest=1f9eece02d18c809f450d8f0299b4f5b
+    nfssvc.ko.symbols \
+                    size=52056 md5digest=4a4e3a97b06375cfee5abfef7e5bb769
+    ng_UI.ko        size=5584 md5digest=c430804e762add67eada6437c27b1a7e
+    ng_UI.ko.symbols \
+                    size=32184 md5digest=c1257c6beadf209b88c8effd09e4fe45
+    ng_async.ko     size=12880 md5digest=00594233b24400b18e93dedc2b85b0a3
+    ng_async.ko.symbols \
+                    size=48688 md5digest=1df196defc95089502c2ff76c3dc2d3e
+    ng_atm.ko       size=29176 md5digest=f09073dd48d843e782424feda587836b
+    ng_atm.ko.symbols \
+                    size=91224 md5digest=78152ae9bdf53e62e37f1b3d782019c6
+    ng_atmllc.ko    size=6384 md5digest=51e4a95649225ab582ee5876da03128d
+    ng_atmllc.ko.symbols \
+                    size=45328 md5digest=fb8d65aebf713ae50d4f57e5b85546cc
+    ng_bluetooth.ko size=11176 md5digest=1f324d624263e64e70b0fa06f574a725
+    ng_bluetooth.ko.symbols \
+                    size=32000 md5digest=4fe72203f3bec35735c6a2b32c10e22c
+    ng_bpf.ko       size=19496 md5digest=152f05e0d33538fa82fd30e83982d276
+    ng_bpf.ko.symbols \
+                    size=61600 md5digest=3be926051a525c5761c5837de345cf3b
+    ng_bridge.ko    size=17888 md5digest=db6b4a769c750a9a510cdd9b00371619
+    ng_bridge.ko.symbols \
+                    size=70376 md5digest=595bf4e62e417bf29a342e3f2e102bf3
+    ng_bt3c.ko      size=26376 md5digest=8fbb2673f5d0b4b1948a18b4ffb6ae9f
+    ng_bt3c.ko.symbols \
+                    size=102400 md5digest=8f48c4493446eea2d61d124987227636
+    ng_btsocket.ko  size=209368 md5digest=8d7158a81cfd2638bc9cc2ea92c45eb8
+    ng_btsocket.ko.symbols \
+                    size=590096 md5digest=0cf8c1b08d26cde76e7c882e4f8ec4ca
+    ng_car.ko       size=12864 md5digest=9404b969778fa95408d42c9108f804d2
+    ng_car.ko.symbols \
+                    size=46336 md5digest=112252b13104fb7c2f92c0500d7656ed
+    ng_ccatm.ko     size=112952 md5digest=2ebe8923d7716bd48f53cece251c92de
+    ng_ccatm.ko.symbols \
+                    size=548048 md5digest=a0f699e9f4bcb7f8448ab441bc23379f
+    ng_cisco.ko     size=10976 md5digest=838f7de3da50f1d44e5cb5749b8c66d3
+    ng_cisco.ko.symbols \
+                    size=61040 md5digest=8ae3008a2b38a2ca00dab11f74660652
+    ng_deflate.ko   size=13432 md5digest=df000e3000d11003ff935a5389b45fd4
+    ng_deflate.ko.symbols \
+                    size=50768 md5digest=8e490e5df4be35fa7c6e91d044e345ec
+    ng_device.ko    size=10072 md5digest=a8ee7a8c0b3459133dcf8bd4a48f4c87
+    ng_device.ko.symbols \
+                    size=65808 md5digest=964f0969b2245d077ffda2b4b7b87252
+    ng_echo.ko      size=3912 md5digest=2d654849ef61063e81a776d06e07366d
+    ng_echo.ko.symbols \
+                    size=27712 md5digest=27f4fbe33e04c0d31e49fe3024abb41a
+    ng_eiface.ko    size=12448 md5digest=ef490ae36a59942425aca3dec26c3909
+    ng_eiface.ko.symbols \
+                    size=91136 md5digest=6e01b752b74d712c3bb3aef51f513edd
+    ng_etf.ko       size=8936 md5digest=a19a077e9f08e2a0ad64563f2492de37
+    ng_etf.ko.symbols \
+                    size=39552 md5digest=380bf5245bef07dc25b2d8fd1eda92b7
+    ng_ether.ko     size=16208 md5digest=b4b6a0306bf58fb436f89c5aa640f081
+    ng_ether.ko.symbols \
+                    size=93128 md5digest=f018ab523a22860f2462c46e2a3934d6
+    ng_ether_echo.ko \
+                    size=4328 md5digest=2ff1bce3f0bba279a40ec7ed0d28f470
+    ng_ether_echo.ko.symbols \
+                    size=28680 md5digest=2cd994ab2faf8162dd08a8dc6582e4c3
+    ng_fec.ko       size=16832 md5digest=b6bd21c5f35e39f9b0de23e0f4ec5ea1
+    ng_fec.ko.symbols \
+                    size=79008 md5digest=6ae6f3cc47efddc2c97302a21fc7304d
+    ng_frame_relay.ko \
+                    size=7048 md5digest=858a054271490d6be55dd6f1cfe460da
+    ng_frame_relay.ko.symbols \
+                    size=36856 md5digest=74f312e9fc6c111c48baad945fc732f5
+    ng_gif.ko       size=10328 md5digest=8de21a38f1f0f5f2a1ef5e2357d69e2f
+    ng_gif.ko.symbols \
+                    size=60152 md5digest=6e69254be9f010bc26a914084e3940ae
+    ng_gif_demux.ko size=7336 md5digest=742a601330a9f8e1b938250b1287d430
+    ng_gif_demux.ko.symbols \
+                    size=37856 md5digest=654b6ed7335fe3816689619e09f12114
+    ng_hci.ko       size=74904 md5digest=d0305ae5664c370dea9c103e450bc436
+    ng_hci.ko.symbols \
+                    size=248944 md5digest=f34e1be1c4af94d7cd19bd9524f8da43
+    ng_hole.ko      size=5888 md5digest=e2f1eecd677fb49fa05bdc82789e1818
+    ng_hole.ko.symbols \
+                    size=32192 md5digest=dd8cfdd736dd0f50460a61a3e9b5e491
+    ng_hub.ko       size=5912 md5digest=494c3e52aff8aeb9b2121b6cde44fdf8
+    ng_hub.ko.symbols \
+                    size=32072 md5digest=6bf0fe16180fc1668f0306f9749ff414
+    ng_iface.ko     size=14392 md5digest=f65b60831de9bac12bda8a07ec2d4995
+    ng_iface.ko.symbols \
+                    size=95504 md5digest=8f4df5b0a78ae8f24e94caffe7afe402
+    ng_ip_input.ko  size=3720 md5digest=be3be2cd23f4372d3b467512c786905a
+    ng_ip_input.ko.symbols \
+                    size=64784 md5digest=6c250d2c598f4ba20b1e33bb3215e666
+    ng_ipfw.ko      size=7328 md5digest=defa4a4b42d45e711afb4c102cba3b11
+    ng_ipfw.ko.symbols \
+                    size=58584 md5digest=b68aa7ec18d5ba292db5eb3a034f04df
+    ng_ksocket.ko   size=21976 md5digest=90136f6277a2ecd63cb580cb99be0c71
+    ng_ksocket.ko.symbols \
+                    size=102448 md5digest=50b22270fe1443be4f271318b390540f
+    ng_l2cap.ko     size=86896 md5digest=6b18f1c8c799cbdabb4aa3afc53ee3f5
+    ng_l2cap.ko.symbols \
+                    size=315008 md5digest=ec975bd85731f45e47d46d6669f67a21
+    ng_l2tp.ko      size=24272 md5digest=978e73e7b845c9bc1e991ed7cd66965d
+    ng_l2tp.ko.symbols \
+                    size=71760 md5digest=ce7bf8caa8028a918ce93207f91fe17c
+    ng_lmi.ko       size=16448 md5digest=c71024979e9f17c55ed91fcb9d9cd9e0
+    ng_lmi.ko.symbols \
+                    size=54936 md5digest=94f2ecd91f0089caf72b3a1dc804a174
+    ng_mppc.ko      size=13880 md5digest=acec52d603ccf12e066992e9be9e0325
+    ng_mppc.ko.symbols \
+                    size=54144 md5digest=e29e9336df5a964442370dae452a781c
+    ng_nat.ko       size=17128 md5digest=60e5bd6df6e2c3607cacb075cad09bf6
+    ng_nat.ko.symbols \
+                    size=57608 md5digest=5450097984510895eb2eba87d59f85c0
+    ng_netflow.ko   size=22752 md5digest=007e8c5c8ac67636a96452a6b0dc2f2f
+    ng_netflow.ko.symbols \
+                    size=128248 md5digest=eb8e4f7276449392a97991c53d4327c1
+    ng_one2many.ko  size=10344 md5digest=dfcb301646a3936e4074dadcf78a45c1
+    ng_one2many.ko.symbols \
+                    size=43712 md5digest=819e300da298a1bdc4a1ab59360ad0e9
+    ng_patch.ko     size=12880 md5digest=6085189e20d6f58b32fc48da72cd9811
+    ng_patch.ko.symbols \
+                    size=44176 md5digest=b072e789beb89515451e29caeedd1268
+    ng_pipe.ko      size=19376 md5digest=7d438856e000fc46ceef9c0e500794fd
+    ng_pipe.ko.symbols \
+                    size=60200 md5digest=88207ccac2e38cb6a21cb4b965ae18dd
+    ng_ppp.ko       size=33672 md5digest=15a8c04c5594ed2161406d5056f1f377
+    ng_ppp.ko.symbols \
+                    size=111776 md5digest=3e662648d1b03cd103e02d6f66353644
+    ng_pppoe.ko     size=26704 md5digest=1770441cd660e409a9e8efa185364a9e
+    ng_pppoe.ko.symbols \
+                    size=82368 md5digest=87dbec934d2984c4d470d12dbdff818f
+    ng_pptpgre.ko   size=16264 md5digest=c2d8138934852b774c23b50442b9cf93
+    ng_pptpgre.ko.symbols \
+                    size=58624 md5digest=6d096453f70a7d1f6fd22dbeca1c1f32
+    ng_pred1.ko     size=12136 md5digest=da587a6737d86d91aabd8f7f70b16bd2
+    ng_pred1.ko.symbols \
+                    size=48968 md5digest=194414842f1d61e672804e7cf82f0ec7
+    ng_rfc1490.ko   size=8968 md5digest=82adb2514f6fdc8932ac36c4febd67ae
+    ng_rfc1490.ko.symbols \
+                    size=51488 md5digest=f901ec0ec6f988deb2f4f137e74bc169
+    ng_socket.ko    size=22680 md5digest=14d32df3ef88a3709c53d8c55f6fc21a
+    ng_socket.ko.symbols \
+                    size=88256 md5digest=74bd6979474c78e3d1f6c7bd9895997e
+    ng_source.ko    size=15528 md5digest=ecd455270defc8789314aa6dba16e71f
+    ng_source.ko.symbols \
+                    size=68104 md5digest=f7ea8d2bcb4a18d6b1870d571d1bfe98
+    ng_split.ko     size=4912 md5digest=73ed9bd950720a7397c4f209c27b31c6
+    ng_split.ko.symbols \
+                    size=29640 md5digest=270cbc42d76613cc41f1896c37a2835d
+    ng_sppp.ko      size=9696 md5digest=e2a28ba98fc99b31039ddcbc450dc7fa
+    ng_sppp.ko.symbols \
+                    size=57608 md5digest=4fec90e6e26d513db9533cfd63ce64da
+    ng_sscfu.ko     size=19824 md5digest=adc1c8cda71c3ab01fcfa394aa87d82b
+    ng_sscfu.ko.symbols \
+                    size=77792 md5digest=9aa0e08ca3d5dad3e353eed8bb9c6d1b
+    ng_sscop.ko     size=108952 md5digest=45ecf9b6bd1ea6e5df672d07337a58bd
+    ng_sscop.ko.symbols \
+                    size=315648 md5digest=b37d61a70b401b9789d48153126f8234
+    ng_tag.ko       size=11376 md5digest=eafe15834ebe65021d01e0537c5c1eb0
+    ng_tag.ko.symbols \
+                    size=45184 md5digest=45da5ae8016a3087c6bae099148cd27a
+    ng_tcpmss.ko    size=8032 md5digest=20ecd79b287f1e8c2279ce5a2e78448e
+    ng_tcpmss.ko.symbols \
+                    size=41032 md5digest=d08584d033063b192c1c2c968b052417
+    ng_tee.ko       size=8432 md5digest=346015e3d20d0dd7eb9df356f19fe4df
+    ng_tee.ko.symbols \
+                    size=38096 md5digest=9c8c09ab48307890ba673c6bfa6cd290
+    ng_tty.ko       size=10832 md5digest=a23ce3db14c0fd677e4915157e776da1
+    ng_tty.ko.symbols \
+                    size=92528 md5digest=7982a1b5782f4608f6bcfc056fa4b3b2
+    ng_ubt.ko       size=31352 md5digest=0b48322e23457a1639b57de55a3e6c34
+    ng_ubt.ko.symbols \
+                    size=88240 md5digest=2d8f231e010410e86ec2853fbdc92bc3
+    ng_uni.ko       size=197024 md5digest=04fa99a8d8a820728971b1a6319d998b
+    ng_uni.ko.symbols \
+                    size=883504 md5digest=d591f474b8e2a30d141b4949a165c58f
+    ng_vjc.ko       size=17560 md5digest=6b324c45ae129ccbb6d826d26254d587
+    ng_vjc.ko.symbols \
+                    size=71320 md5digest=c4350dfe1ef8b3258dcb5b155b9b6380
+    ng_vlan.ko      size=9616 md5digest=4586e4cada7ad0b2c3d83dd026bb8ed7
+    ng_vlan.ko.symbols \
+                    size=53976 md5digest=71e2ae40c8ca0d60f942e48500de5a72
+    ngatmbase.ko    size=262688 md5digest=76e4d3b0959884f95137368079d0c1d8
+    ngatmbase.ko.symbols \
+                    size=589424 md5digest=65daa2fc762eb05b520e2bb730f70b8b
+    nmdm.ko         size=8008 md5digest=4386a3cbd4df229b44a8e7c4fef2bb73
+    nmdm.ko.symbols size=66840 md5digest=bf544a7af31c65b88eade6930b6d13d1
+    ntfs.ko         size=56384 md5digest=180c568b1edcd84f5441cd538516a6cd
+    ntfs.ko.symbols size=540304 md5digest=dcf49fd22b07ecda34e3d82f037d3b87
+    ntfs_iconv.ko   size=4352 md5digest=4d468504660f1092266c17c33fd65b91
+    ntfs_iconv.ko.symbols \
+                    size=15424 md5digest=84ece23fea2257f6f6cdd969cceb1193
+    nullfs.ko       size=22320 md5digest=08fd947e70e74b78e2df5752c689ad9f
+    nullfs.ko.symbols \
+                    size=266976 md5digest=278339d66b52749fcfc2a4400c3b8f63
+    nvram.ko        size=4992 md5digest=d3580b77653c7dea403c32623ecea17f
+    nvram.ko.symbols \
+                    size=51816 md5digest=bd256c769561ddc13d7737f4a47fe692
+    oce.ko          size=101352 md5digest=f8c3917bd76e91924bb7e8e27f15aed2
+    oce.ko.symbols  size=655072 md5digest=b61285e8c0a835a7cddac17fc58a4d44
+    ohci.ko         size=53200 md5digest=c171856200a9677bc7772ecc67b9ef91
+    ohci.ko.symbols size=239744 md5digest=af62d397ede7c3bbf9d658b531b38196
+    opensolaris.ko  size=13456 md5digest=413fb01eb5f5148e9512d9f2a4647d4c
+    opensolaris.ko.symbols \
+                    size=196736 md5digest=0473270908ae1ca11c5b9f7bf219d1e7
+    padlock.ko      size=19392 md5digest=a68c03ec2a2c1727e1d314b3614b971d
+    padlock.ko.symbols \
+                    size=85808 md5digest=3f1fe2341eaa625c801464bfbfbd4815
+    pccard.ko       size=75216 md5digest=70ca2b845f84dfe7e5e7e7b9215dbceb
+    pccard.ko.symbols \
+                    size=259080 md5digest=718b69986b792d2995a3e7e03c47d36a
+    pcf.ko          size=9752 md5digest=8f3940b7e8e8283f5a0a1c843ed0dce6
+    pcf.ko.symbols  size=51480 md5digest=ccdb35a1050688b30d80c79048ab4b08
+    pf.ko           size=296656 md5digest=85d42733cfe0d04c792711fd449e3a8f
+    pf.ko.symbols   size=1087520 md5digest=92cc698b1f0f7f1dcd094fa99ce6fff9
+    pflog.ko        size=8712 md5digest=f74647b5ddc27496d713ccddd04319b6
+    pflog.ko.symbols \
+                    size=67952 md5digest=569e3e4ccea885a6af0701165b8c0c4e
+    plip.ko         size=32496 md5digest=41e6365b49e94e87458373f3cbeda02f
+    plip.ko.symbols size=126616 md5digest=b6ebd9a6d2c0ac5301ee49bfb403a26a
+    portalfs.ko     size=13232 md5digest=fb78114e3feb14bbcf6daf70a9d384db
+    portalfs.ko.symbols \
+                    size=200456 md5digest=5962adaee822e08ffabe5f2eeb807168
+    ppbus.ko        size=37000 md5digest=dc5dd42fe2baad1390d1f96eb41aa427
+    ppbus.ko.symbols \
+                    size=152976 md5digest=80925a727d62fb399cb07e60e57b0e80
+    ppc.ko          size=33752 md5digest=5c1a67fef9e05d3fb6abf70a4b7e2cd4
+    ppc.ko.symbols  size=170072 md5digest=bb2878880d581a66413726858b398938
+    ppi.ko          size=23320 md5digest=1308214feda54267e8845f9b4b951f97
+    ppi.ko.symbols  size=98360 md5digest=f42ad5c566aab4d75982e4f8140f7431
+    pps.ko          size=13384 md5digest=5efcc58d542689316d3b8d17bba801e5
+    pps.ko.symbols  size=54456 md5digest=de67dec577dec298876b139fb0d4dff9
+    procfs.ko       size=32528 md5digest=9ad55b89a17f299479a9a3fa53b713e8
+    procfs.ko.symbols \
+                    size=601520 md5digest=3cf260ebf499ede94cb2cead6fe82519
+    profile.ko      size=11024 md5digest=8b679ed4e316f7d3448ce78d32b5aa12
+    profile.ko.symbols \
+                    size=121128 md5digest=f83f56a2f2b6d93be45ebd779f2f6796
+    prototype.ko    size=5864 md5digest=ca7c6cb2b0ad05ae6c78fbbe5516bc7a
+    prototype.ko.symbols \
+                    size=104248 md5digest=fe79f4e6712b9b6f7d95fd56d2d4c522
+    pseudofs.ko     size=34944 md5digest=f9f9bb4ec4ffa6dc4f15dfd22a3e343d
+    pseudofs.ko.symbols \
+                    size=347824 md5digest=fd68055b38d5ea1510533639627e9018
+    puc.ko          size=44000 md5digest=2e562cbdfc1d7dc3c6614b549a736f87
+    puc.ko.symbols  size=172240 md5digest=328c7b2ca3d975395fa2267d7a917a7a
+    r128.ko         size=67912 md5digest=a845731f1c49771ae92dfc65f122eb2b
+    r128.ko.symbols size=435320 md5digest=25f65298dee30b39c4658b8774c3420c
+    radeon.ko       size=496784 md5digest=516f57c8be8b03b75e55ddff4677c631
+    radeon.ko.symbols \
+                    size=1439736 md5digest=74d406b27c1f67292a47c6b7d5e15038
+    rain_saver.ko   size=6824 md5digest=e5cd0d3a555991d434324af21009afb5
+    rain_saver.ko.symbols \
+                    size=30704 md5digest=dc0847c088660cbdb24562a249b31b48
+    random.ko       size=57568 md5digest=f152aee2acbf62cf4d612449a9fbfec6
+    random.ko.symbols \
+                    size=213648 md5digest=e88118a14e5e55332e1661af40ce34e5
+    rc4.ko          size=3120 md5digest=94c15cfffc4449ba0600055d3b4425be
+    rc4.ko.symbols  size=15400 md5digest=68ce68f478a805afc9cc1a914d6a3233
+    rdma_addr.ko    size=11912 md5digest=561352de3b1b97f895061ea4fb1e3b0c
+    rdma_addr.ko.symbols \
+                    size=55992 md5digest=bdd9361bcf85e73ffbd06a146e8102f3
+    rdma_cma.ko     size=31664 md5digest=95ae122a3cb2ea465b16396e0f2b4346
+    rdma_cma.ko.symbols \
+                    size=183576 md5digest=89c33e98033c52ac72019c392a3beb5a
+    rdma_core.ko    size=31768 md5digest=b8e49ac2097e5ae7841f176b0db8ba09
+    rdma_core.ko.symbols \
+                    size=189856 md5digest=b60d5e56d9ada9aa01d546ab79b871e5
+    rdma_iwcm.ko    size=19120 md5digest=de37f842ac500dcca1d23aae3fa840e2
+    rdma_iwcm.ko.symbols \
+                    size=112400 md5digest=c47f5e8ab78a6dfa16154485b2057f1c
+    reiserfs.ko     size=45208 md5digest=68f35cdb1d9606b282d68f53e802a813
+    reiserfs.ko.symbols \
+                    size=870256 md5digest=91982596dd31cea8ca313451b2f53638
+    rt2561fw.ko     size=11896 md5digest=6efc6eadf0b266d2cc31dd4f52d62999
+    rt2561fw.ko.symbols \
+                    size=14744 md5digest=d9a309e29f16197ac398e21b7b685645
+    rt2561sfw.ko    size=11920 md5digest=2bc71a347572613e05421ed12a736c8c
+    rt2561sfw.ko.symbols \
+                    size=14792 md5digest=62f1b03e7055e8f4b480df374a330219
+    rt2661fw.ko     size=11896 md5digest=68efcf269ac0952a7e9b2938a4576319
+    rt2661fw.ko.symbols \
+                    size=14744 md5digest=1fd6df3563f3a75f2fe2b13d85ce557e
+    runfw.ko        size=11824 md5digest=fe1d398d95449f6710f338caf4abfd5a
+    runfw.ko.symbols \
+                    size=14616 md5digest=d3d9033af12addd63df34f966c6279c9
+    s3.ko           size=10976 md5digest=84c73601c3b1c6cda3464ab02ad9db6e
+    s3.ko.symbols   size=59392 md5digest=e1819a5628ed081735b733ee05d29fd1
+    safe.ko         size=32392 md5digest=d5a5ed723a6b25509181d0803c5056bb
+    safe.ko.symbols size=138824 md5digest=17750f9b41286ed52beade0c0e95ab93
+    savage.ko       size=51704 md5digest=899f6456d46c22f628853c3b0ef2bdd8
+    savage.ko.symbols \
+                    size=335232 md5digest=3bc8a9ea5eca2bf848dc333c17c28f88
+    sbp.ko          size=62120 md5digest=48212870d275dfe855c8f7b05cdbe620
+    sbp.ko.symbols  size=191032 md5digest=c8e53f5ae8613f7be610f3417748ccbb
+    sbp_targ.ko     size=37392 md5digest=e76933060563889d51cbeb2bdf1d8138
+    sbp_targ.ko.symbols \
+                    size=157696 md5digest=24b8e646dcb8cb3032d369383c3ce4a2
+    scc.ko          size=18368 md5digest=9dba0a1dd90c7006fb35d990a2884f74
+    scc.ko.symbols  size=110856 md5digest=9e9e9905ed1fc17266de9c432893faf3
+    scd.ko          size=20128 md5digest=606d528fac23b285c6d12faeec3aeee5
+    scd.ko.symbols  size=111800 md5digest=606da99fa317ff0195bf0f84afd8d954
+    scsi_low.ko     size=47808 md5digest=767e4fbab6de9376167fd0fc03f93948
+    scsi_low.ko.symbols \
+                    size=290120 md5digest=ac515e01d2344946023b63f3f9a084db
+    sdhci.ko        size=31464 md5digest=dd246b69ec93b2f24750ecbc6b4ad532
+    sdhci.ko.symbols \
+                    size=140112 md5digest=c5685b7f6c1301c4e7fc1e6d17650507
+    sdt.ko          size=7232 md5digest=86cee82a8b6038e9c60c53c468f6ade1
+    sdt.ko.symbols  size=110152 md5digest=3f8cb5cbd040a1421d839699ee036ab9
+    sem.ko          size=21544 md5digest=eaf5709ffc7046d56a4e2c453802f1f7
+    sem.ko.symbols  size=144616 md5digest=f2037789d870d68e9d22facf1fc6bc57
+    siba_bwn.ko     size=49160 md5digest=c6d2156f93e6f275a69604d1d9cc40bf
+    siba_bwn.ko.symbols \
+                    size=200272 md5digest=c01ea34bd09f2ee67a4d42e264e21814
+    siftr.ko        size=23392 md5digest=1962cb546fade407498b6e93b63c7116
+    siftr.ko.symbols \
+                    size=118272 md5digest=afa22d9ac657f97e4c558415efbb5ea3
+    siis.ko         size=40616 md5digest=48a600196cf6408ac2b64cd729888668
+    siis.ko.symbols size=176824 md5digest=8f1e9a39c637eff0c12064fcc71c5028
+    sis.ko          size=16472 md5digest=327486e9cff3f3fc1a317f9386f55bdb
+    sis.ko.symbols  size=176568 md5digest=99e388d8c21910c8fc40f24df18d9ae3
+    smb.ko          size=10944 md5digest=0711b2923902c7db6e7468c51f13d80a
+    smb.ko.symbols  size=48736 md5digest=6dae29ba753b7577aa8b9c1c94345ecf
+    smbfs.ko        size=183536 md5digest=683e79ee2656b0d1f559bb99b17a0cbb
+    smbfs.ko.symbols \
+                    size=1426296 md5digest=5a6161e60f165f0d2ca844812e2b551f
+    smbus.ko        size=8608 md5digest=a4d69c6159b2ba72ec651e7d62e834e2
+    smbus.ko.symbols \
+                    size=41472 md5digest=90d552fe07cc2f00f67ae16ba5660d15
+    snake_saver.ko  size=8024 md5digest=90451999213e1bfc84bd575303ef0e7c
+    snake_saver.ko.symbols \
+                    size=40552 md5digest=f1ef79fcd9214cb5254f8a36f41f3782
+    snd_ad1816.ko   size=19344 md5digest=ea4210522bc12007eaeb577e9ba6abca
+    snd_ad1816.ko.symbols \
+                    size=102072 md5digest=9b9ff2b5d9afb4ffee7315e25c858e2b
+    snd_als4000.ko  size=21392 md5digest=0378203ff15184fba900c2fe1b2b5a2e
+    snd_als4000.ko.symbols \
+                    size=119560 md5digest=7947228d658e499f96e96b80f6c22c8b
+    snd_atiixp.ko   size=29000 md5digest=cad7da7146ae1fc04594e810ad8a245e
+    snd_atiixp.ko.symbols \
+                    size=142432 md5digest=c9b7b920030ef249a42c77045c9fca2a
+    snd_cmi.ko      size=21264 md5digest=bfc455afae7d1b5e21cf317570cbcf61
+    snd_cmi.ko.symbols \
+                    size=115616 md5digest=93caaee193089fe31c4165eae21042a0
+    snd_cs4281.ko   size=21584 md5digest=58a46bc315891d3faebac215669439ad
+    snd_cs4281.ko.symbols \
+                    size=136496 md5digest=9f6c06208b43b3d07855549c33fd1393
+    snd_csa.ko      size=88664 md5digest=88b7639ea6e83e172bd3763c7e41c369
+    snd_csa.ko.symbols \
+                    size=161384 md5digest=b65890f7ee4c328821464eced9a41603
+    snd_driver.ko   size=13208 md5digest=1674e950171bd02ed37034456b55f424
+    snd_driver.ko.symbols \
+                    size=37784 md5digest=2e0888859393c4847a055392b4da5b16
+    snd_ds1.ko      size=50840 md5digest=fd117d3c65251d4e0044639f796dc3cd
+    snd_ds1.ko.symbols \
+                    size=130336 md5digest=876d8bef37a32f680c05c6497adb8f55
+    snd_emu10k1.ko  size=34736 md5digest=55ba493d0c6789eee7e80e8388896c28
+    snd_emu10k1.ko.symbols \
+                    size=146376 md5digest=ba09132916cc1e723d2406682e0347db
+    snd_emu10kx.ko  size=101688 md5digest=bbf0679db51b378ecba05a799254ee56
+    snd_emu10kx.ko.symbols \
+                    size=325496 md5digest=beb88066850f31c728fc0c26ddf68653
+    snd_envy24.ko   size=40560 md5digest=2c339f45eba9277abbd8862426a6b65f
+    snd_envy24.ko.symbols \
+                    size=164680 md5digest=bebbee4e53c6bd8d8f71a47d3274639f
+    snd_envy24ht.ko size=38056 md5digest=42419bb6881313a144e7500f3509ed40
+    snd_envy24ht.ko.symbols \
+                    size=152952 md5digest=5774c0156a60e27de9a4e2930b00aabd
+    snd_es137x.ko   size=42400 md5digest=ed4957d9bcbae198ec6338c4e844a6a0
+    snd_es137x.ko.symbols \
+                    size=178040 md5digest=8a9bd3a0833435b9f7c75c475a07b88c
+    snd_ess.ko      size=23848 md5digest=127fcf54a63b7db20dbd614f78a5c65a
+    snd_ess.ko.symbols \
+                    size=113688 md5digest=e560c16b0415bd986526728846b7e818
+    snd_fm801.ko    size=17144 md5digest=cb0966ca790f702cf52dd9b604f630fa
+    snd_fm801.ko.symbols \
+                    size=103928 md5digest=7d01887b02456508856cada53a25bb8b
+    snd_hda.ko      size=146816 md5digest=45400b74a458d9e8dd5f5fe8cbfba0bc
+    snd_hda.ko.symbols \
+                    size=361808 md5digest=a30a420c2059524ac08ab14a769b761c
+    snd_ich.ko      size=28288 md5digest=b0d14450a212aa2b7817b8786d155381
+    snd_ich.ko.symbols \
+                    size=132888 md5digest=271508b03a94f2a5a9606c19fda12a33
+    snd_maestro.ko  size=39944 md5digest=adfcb945acdffce9a26d2952f20d69f2
+    snd_maestro.ko.symbols \
+                    size=180544 md5digest=e32292660c9edfb55e7a6cc877f7dd66
+    snd_maestro3.ko size=46992 md5digest=beb4d0bcc5e9bbd37cf5c8b98b62e213
+    snd_maestro3.ko.symbols \
+                    size=228096 md5digest=6b373e6835a7e9b090beff1302323d0d
+    snd_mss.ko      size=62544 md5digest=6a4a22abd54358d97334d69b0d75d2b7
+    snd_mss.ko.symbols \
+                    size=222272 md5digest=b9b09c6106e47db75b851ecf3bd60b67
+    snd_neomagic.ko size=70416 md5digest=bce4a169de44652645f0f97fefeaaf43
+    snd_neomagic.ko.symbols \
+                    size=115696 md5digest=f9b87c888ae4dd3971ca0bb20277cc49
+    snd_sb16.ko     size=19888 md5digest=40221ca6bf4ce2c3d673774c00132560
+    snd_sb16.ko.symbols \
+                    size=102784 md5digest=0ddd94eaff891db24c2f62a1e086c248
+    snd_sb8.ko      size=18336 md5digest=7cbe46981efb94b75f522cc0270ce33c
+    snd_sb8.ko.symbols \
+                    size=103224 md5digest=25e16306d6023f422916507c59c92a3f
+    snd_sbc.ko      size=18800 md5digest=dd99c12b1224d49589dcbaaf663ea68c
+    snd_sbc.ko.symbols \
+                    size=61256 md5digest=bbb8dffce431a1b5e4ca0978d2f4697b
+    snd_solo.ko     size=23744 md5digest=6891aa37ac7c56dc943367b216211683
+    snd_solo.ko.symbols \
+                    size=125920 md5digest=4a68c9eee836f5ec0df6f4cbf9328f2e
+    snd_spicds.ko   size=7352 md5digest=30339c30d91e29e8969011bfa2523ff1
+    snd_spicds.ko.symbols \
+                    size=29832 md5digest=371e0f4be4a5005de2029b4addd963fe
+    snd_t4dwave.ko  size=21840 md5digest=b71a5223142b05c5da10bd7d1548620e
+    snd_t4dwave.ko.symbols \
+                    size=116472 md5digest=3b2b3575305547c4975e63844a03e40d
+    snd_uaudio.ko   size=74544 md5digest=2bcf959371d949bd7c745ad4c6c7879d
+    snd_uaudio.ko.symbols \
+                    size=282472 md5digest=3ad823bc188a3de18fff46948dc3284c
+    snd_via8233.ko  size=34776 md5digest=58b0779942e031fb3476ebe0871f3d4e
+    snd_via8233.ko.symbols \
+                    size=153496 md5digest=aff71a01971517348a29b7632c901e57
+    snd_via82c686.ko \
+                    size=18736 md5digest=97afe4dc10357e6f13a66ad31870a822
+    snd_via82c686.ko.symbols \
+                    size=117016 md5digest=9825d97620aeb342ecd5f1fd232ca5e7
+    snd_vibes.ko    size=22504 md5digest=7c7726c9f5b787badf1cc8eac5d3f1e4
+    snd_vibes.ko.symbols \
+                    size=121544 md5digest=26d2d6341aea45f7b69e789909da3284
+    snp.ko          size=9504 md5digest=ac6473ca48ea871b2fb6cf655130acb2
+    snp.ko.symbols  size=68024 md5digest=41ecf06bb43cc0c445b92a76eb6a3480
+    sound.ko        size=452664 md5digest=6f8d9556a2708998780d88d4486d9697
+    sound.ko.symbols \
+                    size=2086144 md5digest=b3d17114c8cccd369e452664f03068e0
+    speaker.ko      size=12080 md5digest=e30144623eb6f851f62bac319c61e21d
+    speaker.ko.symbols \
+                    size=40784 md5digest=1450795d125ca7ef73791d16238a6ceb
+    splash_bmp.ko   size=10384 md5digest=e2cb95c16ef06b166ac9ec8e92adf906
+    splash_bmp.ko.symbols \
+                    size=38008 md5digest=6fdccb7c0f81befe9909046de9d09da2
+    splash_pcx.ko   size=7248 md5digest=bdfc27110a0960d64d28fded388d6e8b
+    splash_pcx.ko.symbols \
+                    size=30344 md5digest=5244a7fe0d1c44ec01407696b05325be
+    splash_txt.ko   size=4568 md5digest=5ec317354d7d3dfd0b1dfdf76fa22a18
+    splash_txt.ko.symbols \
+                    size=36472 md5digest=c44f5d0fafb5edd524d39f0bd62fea9a
+    sppp.ko         size=89120 md5digest=317c4bb3f99309ae488570b085957b81
+    sppp.ko.symbols size=246440 md5digest=fac44dae800ef35d85f011f4531bd711
+    star_saver.ko   size=5184 md5digest=5102b16a5802a7739085d6b16548b2e3
+    star_saver.ko.symbols \
+                    size=36624 md5digest=3717096913d3181fbf3b14439b6da5b0
+    sym.ko          size=79248 md5digest=740ac85e9863ceb93f5445856807ee04
+    sym.ko.symbols  size=366032 md5digest=10073c9ee92373a854b4abbbe2c0417c
+    systrace.ko     size=91728 md5digest=772c31653309e06374d2ddb8df85d771
+    systrace.ko.symbols \
+                    size=380520 md5digest=33455025d7326dabaf62150ea6b38447
+    systrace_freebsd32.ko \
+                    size=88056 md5digest=fd653300fd1aa860b1a4d926c911389f
+    systrace_freebsd32.ko.symbols \
+                    size=357344 md5digest=be8f559527f2f534603b224b5b16b859
+    systrace_linux32.ko \
+                    size=66880 md5digest=95301b419acf623edc776efa64d28b94
+    systrace_linux32.ko.symbols \
+                    size=272304 md5digest=2acc950475643ec940b9fd7d19ed14e4
+    sysvmsg.ko      size=28040 md5digest=ebfdc8dee44885a2e7b34111d240030a
+    sysvmsg.ko.symbols \
+                    size=106480 md5digest=e712763643f89d9e34b95620a128d418
+    sysvsem.ko      size=33208 md5digest=4799f3f2afdfaa1870af0c0d451ca981
+    sysvsem.ko.symbols \
+                    size=110768 md5digest=90b96a302d643443faa68663ee3b9a2e
+    sysvshm.ko      size=24432 md5digest=123450cf65d5be6c2e809c038bb9351c
+    sysvshm.ko.symbols \
+                    size=109728 md5digest=f26dbbe77131848412a281597426c3f7
+    t4fw_cfg.ko     size=26448 md5digest=317176175d49bfae103389546561b166
+    t4fw_cfg.ko.symbols \
+                    size=15488 md5digest=ec7908badfd761a0b1a3424db80ca3ae
+    tdfx.ko         size=5760 md5digest=1d0f83943fc9e24b3b75256df48bc357
+    tdfx.ko.symbols size=75768 md5digest=3169f127670c18c53379f03dc31b8252
+    tmpfs.ko        size=43720 md5digest=e224788b362f639765e1d80e3c687d01
+    tmpfs.ko.symbols \
+                    size=432376 md5digest=89e0f1990244a1186f3ef4ffb386d994
+    toecore.ko      size=7896 md5digest=67688d6d1b17749185a67346c3fe5e92
+    toecore.ko.symbols \
+                    size=53312 md5digest=d404f3ebeecf2cdd711c78836613e30d
+    tpm.ko          size=19256 md5digest=04f96bddf0a1cb76bf7d478b27aa1b46
+    tpm.ko.symbols  size=138256 md5digest=b185e15d1bffd6f9c08de75f64b621e4
+    trm.ko          size=33008 md5digest=fcfd8f90e2762301950ff9a372592b39
+    trm.ko.symbols  size=205016 md5digest=2bd7a59d68acbd3f34d24a607e63f3b1
+    twa.ko          size=85136 md5digest=c1f8cac425a7bfaa06254655235af24d
+    twa.ko.symbols  size=372888 md5digest=6fd735fe982abb5d22dd79d87f46e273
+    twe.ko          size=47864 md5digest=06cc56807177719ceeb1716d626cbbc6
+    twe.ko.symbols  size=177608 md5digest=1842526c68015e5c64e7bfc1a50488bd
+    tws.ko          size=60152 md5digest=1f31f1850de5bcbece325a55ba0d9519
+    tws.ko.symbols  size=486256 md5digest=6e8fb0de4499c7a3603f74a5c85160e1
+    u3g.ko          size=26128 md5digest=76fa2ade6c2b8c0b1a5084e86e439c8c
+    u3g.ko.symbols  size=68120 md5digest=8816d543107ba2699c48b7066e6d5e15
+    uark.ko         size=10496 md5digest=873875f5e17e36368475effa6f59e2f4
+    uark.ko.symbols size=56768 md5digest=bbf7b504948afbea57ecd1759adf379d
+    uart.ko         size=92728 md5digest=6c7dde247102bb697ba36cb83c05d8ac
+    uart.ko.symbols size=608216 md5digest=360b586f23429ea817ad5d777d71cadf
+    ubsa.ko         size=15064 md5digest=32f341e3ffb0e7a85cbd6c7642223971
+    ubsa.ko.symbols size=65304 md5digest=b97cf4bd0ffbd44a6ee6ce548efccc07
+    ubsec.ko        size=46808 md5digest=0143d3cad8af10d7d02c7dced5948c6a
+    ubsec.ko.symbols \
+                    size=172696 md5digest=2c492589703b05da2cf3e80eaa48e7ed
+    ubser.ko        size=12776 md5digest=330608687e7a29775a4dcc9c2751efcb
+    ubser.ko.symbols \
+                    size=59232 md5digest=bd50600605fa686e7aa3463c595ef200
+    ubtbcmfw.ko     size=9248 md5digest=720b7b3c54db8aa334002514a2909ea8
+    ubtbcmfw.ko.symbols \
+                    size=78048 md5digest=bd8956680bff338238d3f7807dc0568f
+    uchcom.ko       size=16968 md5digest=598209a5b6ac5f2345e2cd6f0eb472d0
+    uchcom.ko.symbols \
+                    size=75456 md5digest=874972928c5ff775350fac65f77346ae
+    ucom.ko         size=26520 md5digest=7ce7a2a4100c387269d4582453372584
+    ucom.ko.symbols size=86112 md5digest=0ece9f2033aa08343aaea9d501e210a7
+    ucycom.ko       size=12552 md5digest=b68928c9c88c4ceb7612f48205b04f4e
+    ucycom.ko.symbols \
+                    size=59848 md5digest=43ea491c6f0bdfe47ebe268e67f934bf
+    udbp.ko         size=19224 md5digest=68daf920471a965b1fb0ae626b4a7f16
+    udbp.ko.symbols size=68696 md5digest=9e14740e461bb61bebfaad449eab76c9
+    udf.ko          size=36320 md5digest=dd2dd165c01cb0bb2c65a4381137a7dc
+    udf.ko.symbols  size=281744 md5digest=118e8b2e09bace8f4672daed08361fde
+    udf_iconv.ko    size=4328 md5digest=c8afbe727342b5d5b28be7d7c76d3ce4
+    udf_iconv.ko.symbols \
+                    size=15408 md5digest=b6dec6d7adaad226da9d0c5f11545c4a
+    uep.ko          size=11600 md5digest=0281986fd88685bda3cfe96e343db2ba
+    uep.ko.symbols  size=46312 md5digest=78fb6c5dea88b760d3f14d7b50d81640
+    uether.ko       size=14088 md5digest=b0252cf1a7dd413c5860efed75a7fad6
+    uether.ko.symbols \
+                    size=71032 md5digest=dd8da92b68ccbe578c1007c4a79a1b1a
+    ufm.ko          size=7504 md5digest=8da871d7e183e072677cb5a74eda6784
+    ufm.ko.symbols  size=35424 md5digest=47574cb1eefbcbfb7cba8519062b0b99
+    ufoma.ko        size=23152 md5digest=967ef144be18d158e8cd4338fb2b9583
+    ufoma.ko.symbols \
+                    size=85840 md5digest=5984ed58313b6bbda9cfec2135c0438b
+    ufs.ko          size=375664 md5digest=672ee5917ada2733f343d545d8673071
+    ufs.ko.symbols  size=2436624 md5digest=8e11e88843eb91153934f35a1ee543b1
+    uftdi.ko        size=16280 md5digest=ad2eeeb39b514d4afa37785b4676d13f
+    uftdi.ko.symbols \
+                    size=68232 md5digest=cf9d575b25ea2d270221dfed4d662695
+    ugensa.ko       size=10144 md5digest=8a677a3cf7735e55af9f66300397b0ea
+    ugensa.ko.symbols \
+                    size=53792 md5digest=2d94bfe39f0326410d52249514ba893c
+    uhci.ko         size=57016 md5digest=ba607b80b978d19341c951e8e2f5235f
+    uhci.ko.symbols size=227368 md5digest=72f4c71c26ebd747747d8a55e93f8746
+    uhid.ko         size=17264 md5digest=8f889da34a786517ebaf43775ebcf059
+    uhid.ko.symbols size=60728 md5digest=cf504eaef82f98100508c04c64e7e8ed
+    uhso.ko         size=42240 md5digest=3cce92148f5685e6b51d9fb432eae211
+    uhso.ko.symbols size=156312 md5digest=277ebe18438b590fed118d660733f660
+    uipaq.ko        size=25072 md5digest=945e142a11deeda881fe563fee93dede
+    uipaq.ko.symbols \
+                    size=56144 md5digest=13e109355034edfe18e3609810e2fb01
+    ukbd.ko         size=43448 md5digest=db8511a76e2af0330d479e3255ba609e
+    ukbd.ko.symbols size=133408 md5digest=471b6d0b82ce6812b47833dc8e2c7faf
+    ulpt.ko         size=17216 md5digest=7f941ebf4d62d0ad49635af076a7cca1
+    ulpt.ko.symbols size=54904 md5digest=bdc3036427fe69f9babc50714f2dc300
+    umass.ko        size=60704 md5digest=09c9954af49f77a95d837d431c4ddc0a
+    umass.ko.symbols \
+                    size=166160 md5digest=586686edcfb6ad557165fa0ee4ad43ad
+    umcs.ko         size=25496 md5digest=b80f727e3a0da54e2604144f0fc24c30
+    umcs.ko.symbols size=84944 md5digest=a5ad739863a615410f9acbc2a039b2a1
+    umct.ko         size=12040 md5digest=c9503c043814a90faa116acd04ce0a97
+    umct.ko.symbols size=62304 md5digest=945620f5eb3fda3ecd3aaba607d94b65
+    umodem.ko       size=18912 md5digest=7979b5a780ccf98303e9f6535e5fbc71
+    umodem.ko.symbols \
+                    size=77448 md5digest=9c9530c4257cce0da22741caf7deea7d
+    umoscom.ko      size=14688 md5digest=7d525e33f9dced01ab20d45b87c48a14
+    umoscom.ko.symbols \
+                    size=66664 md5digest=8c4d2d0c4aff04ae8d592082feebd466
+    ums.ko          size=21872 md5digest=02f4dae6a4a0fe94e17c02563104ed73
+    ums.ko.symbols  size=65368 md5digest=7ac80c572da771c8d160724ac4117b26
+    unionfs.ko      size=64080 md5digest=292ff3809b86ba73c765398066d6a558
+    unionfs.ko.symbols \
+                    size=422656 md5digest=c1633d9c763223bc773c16a13436e36a
+    uplcom.ko       size=20280 md5digest=7df636e9be5e1445beaa3a9a45293d22
+    uplcom.ko.symbols \
+                    size=71648 md5digest=641e87f89f5fc811ebe2c66704057cd7
+    urio.ko         size=12736 md5digest=1cde1ba1178875743da63ec63c93ed2f
+    urio.ko.symbols size=50320 md5digest=2c48cc76b8309d331726680729c0f2e6
+    usb.ko          size=285584 md5digest=f81973b67d88160282c679806a6c7d04
+    usb.ko.symbols  size=1547288 md5digest=ca32b7b830944b49d97173e4b53061e6
+    usb_quirk.ko    size=16928 md5digest=cb0c2d41b6dd34d0497a6795add5917e
+    usb_quirk.ko.symbols \
+                    size=33640 md5digest=35e0cc1d556fa6ac8a76b7e48f99e107
+    usb_template.ko size=29912 md5digest=b070d2e605743ed907a7a63e9cb611b3
+    usb_template.ko.symbols \
+                    size=185776 md5digest=471c56a89bd48890b4acdecb9a483032
+    usfs.ko         size=25648 md5digest=98fd4213e75ec8728ca2dcc7a16c835a
+    usfs.ko.symbols size=73424 md5digest=b2c9ddfb2a6e3e27c3f81638e9474de9
+    uslcom.ko       size=20712 md5digest=e58b5329b87e8ebb32dd29204c47d924
+    uslcom.ko.symbols \
+                    size=70504 md5digest=d46fda1e177ea1f05933bc92c98a4b32
+    uss820dci.ko    size=26616 md5digest=f4e2b3549e7566ed7e3403cdb51cdf57
+    uss820dci.ko.symbols \
+                    size=129064 md5digest=415067d2a43c86fa86ff35641296abb3
+    utopia.ko       size=24288 md5digest=3bc2f19b916a874c2ddac835b4a88aee
+    utopia.ko.symbols \
+                    size=166984 md5digest=c988b4bd46fec855fbe66a7f28a9560a
+    uvisor.ko       size=14520 md5digest=c18bfc046b58021713cf3add239f7b66
+    uvisor.ko.symbols \
+                    size=62280 md5digest=f221aad49cf1f694518d28c2af17b81d
+    uvscom.ko       size=15608 md5digest=3e3db10e846482eeb84b8d8a9f17a8b7
+    uvscom.ko.symbols \
+                    size=68072 md5digest=147d45bdf4e56f2764309aa2583de749
+    vesa.ko         size=27288 md5digest=47038500d1dadda74a4f823c71a56be0
+    vesa.ko.symbols size=122792 md5digest=e71ba86d4fcb78c0e94944cca4b72b48
+    viapm.ko        size=30192 md5digest=e485241c66ecdc4b4cc25a3a7910def1
+    viapm.ko.symbols \
+                    size=102240 md5digest=ae89a38d1a4904d93a16b7183d33ac3c
+    viawd.ko        size=7728 md5digest=5c5e9fad4672e59ce83d1e94f9a21924
+    viawd.ko.symbols \
+                    size=38968 md5digest=9e6006d855cab0db25d0df908d04a586
+    vkbd.ko         size=25848 md5digest=a592513eab1fd5181dc9085fd068234d
+    vkbd.ko.symbols size=92216 md5digest=429d730ff0df9a22900c31a9ce1b1c8f
+    vpo.ko          size=27712 md5digest=38117b17778bf2444e860aa056d9b79b
+    vpo.ko.symbols  size=120088 md5digest=7a6e1d9c68d0577eff20495635b3837b
+    warp_saver.ko   size=6832 md5digest=7b79f62c331345376eaff5994a53ae8e
+    warp_saver.ko.symbols \
+                    size=29984 md5digest=300ad26b67d87645fdbb781b6c9a1804
+    wlan.ko         size=454968 md5digest=b719ee600c332a56ef9a2d330e3e7832
+    wlan.ko.symbols size=3483560 md5digest=d329ffc59fbca4556dd30df45ec3e510
+    wlan_acl.ko     size=10440 md5digest=9c4012b4d1eea2a95d6f08108091e985
+    wlan_acl.ko.symbols \
+                    size=101736 md5digest=bf5ed4efa5bb03248a653cdc80050916
+    wlan_amrr.ko    size=8128 md5digest=eddcd102187d7364db606913d064abbc
+    wlan_amrr.ko.symbols \
+                    size=96280 md5digest=16514fc1161076d29f85ca7bf5b3a075
+    wlan_ccmp.ko    size=29992 md5digest=2107930f47c034521c34b3d523aa09fc
+    wlan_ccmp.ko.symbols \
+                    size=125096 md5digest=7abd457d6d1732d3aeaf42cd07d545cb
+    wlan_rssadapt.ko \
+                    size=8296 md5digest=31e5959f9b241cd1f94d60d51da85b0e
+    wlan_rssadapt.ko.symbols \
+                    size=98840 md5digest=ffde966a74f57eb232f6d6f0c13d3a3b
+    wlan_tkip.ko    size=15344 md5digest=2c6f902a7c55c99feda907077e67cfdb
+    wlan_tkip.ko.symbols \
+                    size=115792 md5digest=7509ae74f09db766aa018d52543f5449
+    wlan_wep.ko     size=9728 md5digest=0fd08677f7e897d0cb556da7ef3a6d1d
+    wlan_wep.ko.symbols \
+                    size=98088 md5digest=b7fa92f4116575bd9373118f23ee6121
+    wlan_xauth.ko   size=4672 md5digest=e1d886bdb4ea737bd7740a7488b09c47
+    wlan_xauth.ko.symbols \
+                    size=87864 md5digest=9d985fccde95f1b9db33670e23a884c4
+    wpifw.ko        size=153344 md5digest=7b9aa2f91a504b3ccc68b070cfd14230
+    wpifw.ko.symbols \
+                    size=14704 md5digest=053ba0fcca1697dd97c44555b94d0e4b
+    x86bios.ko      size=86944 md5digest=1718d47506f7816469e955f78cc4dcfc
+    x86bios.ko.symbols \
+                    size=492928 md5digest=9a0433ec0fcf6be0af157e6d52e5d245
+    xfs.ko          size=591656 md5digest=02f705338cf7aebe9d26d31ed69dec50
+    xfs.ko.symbols  size=9648704 md5digest=9a68c96f41704309fdb6ed9a329c8d65
+    xhci.ko         size=65648 md5digest=ec3c8606dca7e004ed68850164569270
+    xhci.ko.symbols size=240128 md5digest=22340d1ff26e2aec0f8ee3e6c3fd41e5
+    zfs.ko          size=1942168 md5digest=99d9f753b9d71600c8cabe758547ba60
+    zfs.ko.symbols  size=15887856 md5digest=1a7099ef866bf5871a461e9a3ac9f4f4
+    zlib.ko         size=44104 md5digest=bb78213868bdd0e391178ae52b2a5754
+    zlib.ko.symbols size=125088 md5digest=7f93f2b70286ea4133cc2e08cbd12565
+..
+

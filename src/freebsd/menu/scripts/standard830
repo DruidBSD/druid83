@@ -1,0 +1,63 @@
+#!/bin/sh
+# -*- tab-width:  4 -*- ;; Emacs
+# vi: set tabstop=4     :: Vi/ViM
+
+############################################################ CONFIGURATION
+
+# MENU_ROOT is exported by the mfsroot scripts and contains the path
+# to the directory that our menu resources live in
+
+# Whether to use ANSI color or not
+ANSI_COLOR=YES
+
+# Configuration file (used by `all_install')
+CONF=$MENU_ROOT/etc/install830.conf
+
+############################################################ FUNCTIONS
+
+# Include standard functions
+. "$MENU_ROOT/etc/sh.subr"
+
+############################################################ MAIN SOURCE
+
+print_bold "Starting standard installation...\n"
+
+#
+# Execute common commands for all installs
+#
+. "$MENU_ROOT/etc/all_install" \
+	|| die "Unable to source file \`%s'" "$MENU_ROOT/etc/all_install"
+
+#
+# Append restart command
+#
+task_begin "Finalizing installation script..."
+( echo 'command="/dist/druid/restart"' >> "$CFG_FILE" ) \
+	|| die "Unable to write to file \`%s'" "$CFG_FILE"
+( echo 'system' >> "$CFG_FILE" ) \
+	|| die "Unable to write to file \`%s'" "$CFG_FILE"
+task_end $SUCCESS
+
+#
+# Drop to scripted sysinstall
+#
+print_bold "Beginning Installation..."
+sleep 1.5
+
+exit $SUCCESS
+
+################################################################################
+# END
+################################################################################
+#
+# $Header: /cvsroot/druidbsd/druidbsd/druid83/src/freebsd/menu/scripts/standard830,v 1.1 2012/10/10 23:30:22 devinteske Exp $
+#
+# $Copyright: 2006-2012 Devin Teske. All rights reserved. $
+#
+# $Log: standard830,v $
+# Revision 1.1  2012/10/10 23:30:22  devinteske
+# Commit initial public beta release of 8.3 series (beta 57; on-par with
+# the 9.0 series released recently, also beta 57).
+#
+#
+################################################################################

@@ -1,0 +1,40 @@
+#!/bin/sh
+# -*- tab-width:  4 -*- ;; Emacs
+# vi: set tabstop=4     :: Vi/ViM
+
+###############################################################################
+
+# Path to our rescue directory
+rescue="/cdrom/freebsd/rescue"
+[ -d "$rescue" ] \
+	|| rescue="/cdrom/rescue"
+
+###############################################################################
+
+# Modify LD_LIBRARY_PATH to include rescue lib directory
+unset de
+while [ "${de=${LD_LIBRARY_PATH}:}" ]; do
+	[ "${de%%:*}" = "${rescue}/lib" ] && break
+	de="${de#*:}"
+done
+[ "${de}" ] || export \
+LD_LIBRARY_PATH="${LD_LIBRARY_PATH}${LD_LIBRARY_PATH:+:}${rescue}/lib"
+unset de
+
+# Initialize ELF binary support
+/stand/mkdir -p /libexec
+/stand/ln -sf "${rescue}/libexec/ld-elf.so.1" /libexec/
+
+# Generate library hints
+/stand/ldconfig "${rescue}/lib"
+
+# Invoke the rescue shell (interactively)
+${rescue}/bash --noprofile --rcfile ${rescue}/etc/profile -i
+
+################################################################################
+#
+# $Header: /cvsroot/druidbsd/druidbsd/druid83/dep/freebsd/mfsroot/standard/src/stand/rescue,v 1.1 2012/10/10 23:29:59 devinteske Exp $
+#
+# $Copyright: 2006-2012 Devin Teske. All rights reserved. $
+#
+################################################################################

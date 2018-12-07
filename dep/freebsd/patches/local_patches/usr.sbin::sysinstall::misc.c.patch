@@ -1,0 +1,22 @@
+--- usr.sbin/sysinstall/misc.c.orig	2010-06-13 19:09:06.000000000 -0700
++++ usr.sbin/sysinstall/misc.c	2010-11-19 03:31:37.000000000 -0800
+@@ -328,7 +328,8 @@ Mount(char *mountp, void *dev)
+ 	return DITEM_SUCCESS;
+ 
+     if (*((char *)dev) != '/') {
+-    	sprintf(device, "%s/dev/%s", RunningAsInit ? "/mnt" : "", (char *)dev);
++    	sprintf(device, "%s/dev%s/%s", RunningAsInit ? "/mnt" : "",
++    	        noDevfs() ? "fs" : "", (char *)dev);
+ 	sprintf(mountpoint, "%s%s", RunningAsInit ? "/mnt" : "", mountp);
+     }
+     else {
+@@ -364,7 +365,8 @@ Mount_msdosfs(char *mountp, void *dev)
+ 	return DITEM_SUCCESS;
+ 
+     if (*((char *)dev) != '/') {
+-    	sprintf(device, "%s/dev/%s", RunningAsInit ? "/mnt" : "", (char *)dev);
++    	sprintf(device, "%s/dev%s/%s", RunningAsInit ? "/mnt" : "",
++    	        noDevfs() ? "fs" : "", (char *)dev);
+ 	sprintf(mountpoint, "%s%s", RunningAsInit ? "/mnt" : "", mountp);
+     }
+     else {

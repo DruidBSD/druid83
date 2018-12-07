@@ -1,0 +1,96 @@
+#	   user: kensmith
+#	machine: mason.cse.buffalo.edu
+#	   tree: /R/stage/trees/info
+#	   date: Mon Apr  9 21:28:20 2012
+
+# .
+/set type=file uname=root gname=wheel mode=0755 nlink=1
+.               type=dir nlink=3 size=512
+
+# ./usr
+    usr             type=dir nlink=3 size=512
+
+# ./usr/share
+        share           type=dir nlink=3 size=512
+
+# ./usr/share/info
+/set type=file uname=root gname=wheel mode=0444 nlink=1
+            info            type=dir mode=0755 nlink=2 size=1024
+                am-utils.info.gz \
+                                size=97651 \
+                                md5digest=7d96bf3113294f425c36f2ee5f2e115f
+                as.info.gz      size=63382 \
+                                md5digest=f26342f58a598c7f6d88bb66900a8321
+                binutils.info.gz \
+                                size=40763 \
+                                md5digest=c16808d77905316c572311c2db8ca903
+                com_err.info.gz size=7738 \
+                                md5digest=ea698b3d3a204f7e9aa841408a68e666
+                cpp.info.gz     size=68600 \
+                                md5digest=f437a525c1551b94e15229465133bfb9
+                cppinternals.info.gz \
+                                size=17181 \
+                                md5digest=bfb4cb7ef1b7260a7f75a52905fad626
+                cvs.info.gz     size=131707 \
+                                md5digest=22b835c831b6fdbf10f4aa88b0638d7b
+                cvsclient.info.gz \
+                                size=28746 \
+                                md5digest=9e5755d35468c8336f0c516dd00ef705
+                dc.info.gz      size=5226 \
+                                md5digest=8cbf30d57c4df7cf4fd2db1ad5ff5222
+                diff.info.gz    size=59438 \
+                                md5digest=57789617aec4760f1f616406bfa0df52
+                dir             size=4570 \
+                                md5digest=7b1ac121b56b37110f00b2de9b95bd61
+                gasp.info.gz    size=19133 \
+                                md5digest=42a2055a58d111312f38fd63cb0ee2c4
+                gcc.info.gz     size=372201 \
+                                md5digest=7eec9ba2cbd95e463935d615be222808
+                gccint.info.gz  size=425363 \
+                                md5digest=32d89f7f0adf4116603ef6d3b988e3c2
+                gdb.info.gz     size=256174 \
+                                md5digest=221b9ccf32ed856c6ef5bee831f33220
+                gdbint.info.gz  size=91576 \
+                                md5digest=27d4fa4ac3bba06a3c20bdb94bb37a88
+                gperf.info.gz   size=22854 \
+                                md5digest=308acd1d29a06e7a4f29cb0859f4c55d
+                grep.info.gz    size=26214 \
+                                md5digest=1f27b6142f8c4bd039cd35922a7cb8b0
+                groff.info.gz   size=159670 \
+                                md5digest=e7eaf2be946f9f67745e31eff0d2bf8c
+                heimdal.info.gz size=41576 \
+                                md5digest=a8deba3f260189dd66e29f1fafdade01
+                history.info.gz size=16559 \
+                                md5digest=757f06f1f4aa05d14c488f486782a077
+                info-stnd.info.gz \
+                                size=32446 \
+                                md5digest=c3fa12898f99e7a02468d4fc020f8631
+                info.info.gz    size=20820 \
+                                md5digest=ea120b48aa886709e6b90b7ccdab0e03
+                ld.info.gz      size=74737 \
+                                md5digest=f0cd42c9d2c418fe9ea791bc67f18b28
+                readline.info.gz \
+                                size=49650 \
+                                md5digest=ecabb2e0bb046f52e3fc09a318f401c2
+                regex.info.gz   size=30836 \
+                                md5digest=a30546cbc7047dcba62295b7f54ab8af
+                rluserman.info.gz \
+                                size=21809 \
+                                md5digest=53c7b0ab67ad7f7fe46a48b093bd3529
+                send-pr.info.gz size=18470 \
+                                md5digest=4f92ddfe818eb757c5483074a292400c
+                stabs.info.gz   size=52827 \
+                                md5digest=3f51427d3472255f36d3de04bca8d5f1
+                texinfo.info.gz size=206961 \
+                                md5digest=73d83515e501fe220cbe8f6d2bea169f
+            # ./usr/share/info
+            ..
+
+        # ./usr/share
+        ..
+
+    # ./usr
+    ..
+
+..
+

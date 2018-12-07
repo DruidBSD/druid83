@@ -1,0 +1,14 @@
+$Header: /cvsroot/druidbsd/druidbsd/druid83/doc/TODO,v 1.1 2012/10/10 23:30:07 devinteske Exp $
+
+TODO (must be completed before 1.0 can be released to field):
+- Add missing documentation for jump from Universal Installer to Druid
+
+TODO (eventually):
+- Add missing documentation for CHANGES between 1.0 and 1.7.
+- Move CHANGES and TODO files into the disc source (so that end-users
+  downloading the image can see a list of recent changes, etc. on the
+  burned disc -- presumably in the `doc/' directory). Please don't do this
+  until the missing documentation has been added.
+- Update mediaSetNullFS in sysinstall(8)'s `media.c' to support being pointed
+  at a `repos' directory containing releases, causing sysinstall(8) to display
+  a simple selection menu of available choices in said repos.

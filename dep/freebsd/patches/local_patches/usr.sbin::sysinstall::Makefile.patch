@@ -1,0 +1,11 @@
+--- usr.sbin/sysinstall/Makefile.orig	2012-05-21 09:52:28.000000000 -0700
++++ usr.sbin/sysinstall/Makefile	2012-05-21 09:53:59.000000000 -0700
+@@ -10,7 +10,7 @@ SRCS=	anonFTP.c cdrom.c command.c config
+ 	disks.c dispatch.c dist.c dmenu.c doc.c dos.c floppy.c \
+ 	ftp.c globals.c http.c index.c install.c installUpgrade.c keymap.c \
+ 	label.c main.c makedevs.c media.c menus.c misc.c modules.c \
+-	mouse.c msg.c network.c nfs.c options.c package.c \
++	mouse.c msg.c network.c nfs.c nullfs.c options.c package.c \
+ 	system.c tcpip.c termcap.c ttys.c ufs.c usb.c user.c \
+ 	variable.c ${_wizard} keymap.h countries.h
+ 

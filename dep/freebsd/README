@@ -1,0 +1,22 @@
+$Header: /cvsroot/druidbsd/druidbsd/druid83/dep/freebsd/README,v 1.1 2012/10/10 23:29:56 devinteske Exp $
+
+The files in this directory [and subsequent sub-directories] are required by
+the FreeBSD portion of the DRUID installer.
+
+For example, the sources required to build the files:
+
+	druid/mdroot/boot/fis_mfsroot8.gz
+	druid/mdroot/boot/rescue_mfsroot8.gz
+
+are located in the `mfsroot' sub-directory of this directory.
+
+While the above example is of an indirect dependency -- where the files
+contained in the `mfsroot' sub-directory must be compiled on a FreeBSD
+[compatible] Operating System then subsequently stored back to the source-
+tree -- the sources contained in the `druid' sub-directory are an example of a
+direct dependency. The `druid' sub-directory itself is copied recursively to
+`src/freebsd/repos/*-{RELEASE,STABLE,CURRENT}/druid' during make(1) and is
+deleted during `make clean' or `make distclean'.
+
+For additional information, please reference the `README' file in each sub-
+directory if/when available.

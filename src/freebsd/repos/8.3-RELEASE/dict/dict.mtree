@@ -1,0 +1,52 @@
+#	   user: kensmith
+#	machine: almeida.cse.buffalo.edu
+#	   tree: /R/stage/trees/dict
+#	   date: Mon Apr  9 21:50:11 2012
+
+# .
+/set type=file uname=root gname=wheel mode=0755 nlink=1
+.               type=dir nlink=3 size=512
+
+# ./usr
+    usr             type=dir nlink=3 size=512
+
+# ./usr/share
+        share           type=dir nlink=4 size=512
+
+# ./usr/share/dict
+/set type=file uname=root gname=wheel mode=0444 nlink=1
+            dict            type=dir mode=0755 nlink=2 size=512
+                README          size=1689 \
+                                md5digest=43da2eda8a1d7c0aac393f438e46ac3f
+                eign            size=620 \
+                                md5digest=ff704b9bef2043d6e9fafd026ace25ef
+                freebsd         size=2003 \
+                                md5digest=2d6b3666eda94afa501979a7bd9361b9
+                propernames     size=8546 \
+                                md5digest=5139a1b28cc4dee66f9a908823d061a0
+                web2            size=2493500 \
+                                md5digest=a36bed2474b02f195e66a67810fb76aa
+                web2a           size=1012731 \
+                                md5digest=65a61dc31d7e77799875bc9345a65ba7
+                words           type=link mode=0755 size=4 link=web2
+            # ./usr/share/dict
+            ..
+
+
+# ./usr/share/misc
+            misc            type=dir mode=0755 nlink=2 size=512
+                birthtoken      size=374 \
+                                md5digest=ed0405cb866502055093555577ad957a
+                flowers         size=1391 \
+                                md5digest=608c28ca014aedfd6e7d5486fa49c565
+            # ./usr/share/misc
+            ..
+
+        # ./usr/share
+        ..
+
+    # ./usr
+    ..
+
+..
+

@@ -1,0 +1,8 @@
+\ Loader.rc
+\ $Header: /cvsroot/druidbsd/druidbsd/druid83/mdroot/boot/loader.rc,v 1.1 2012/10/10 23:30:08 devinteske Exp $
+
+\ Load in the boot menu
+include /boot/include/beastie.4th
+
+\ Start the boot menu
+beastie-start

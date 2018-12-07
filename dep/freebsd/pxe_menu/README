@@ -1,0 +1,10 @@
+$Header: /cvsroot/druidbsd/druidbsd/druid83/dep/freebsd/pxe_menu/README,v 1.1 2012/10/10 23:30:00 devinteske Exp $
+
+This is the FreeBSD OS-Selection menu. It is essentially a stripped-down
+version of sysinstall(8), re-worked to display a simple-menu driven by a
+single configuration file. See documentation in the sample configuration file
+(`menu.conf.sample' in this directory) for additional information.
+
+Currently, this source can only be compiled on FreeBSD-4.x. However, the
+resulting compiled binary (`menu') is statically-linked and thus should work
+fine regardless of the rutime environment so long as it is still FreeBSD.

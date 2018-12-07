@@ -1,0 +1,7 @@
+#!/bin/sh
+# -*- tab-width:  4 -*- ;; Emacs
+# vi: set tabstop=4     :: Vi/ViM
+
+############################################################ MAIN SOURCE
+
+mtree -c -i -p . -k gname,md5digest,mode,nlink,uname,size,link,type

@@ -1,0 +1,3633 @@
+#!/bin/sh
+# -*- tab-width:  4 -*- ;; Emacs
+# vi: set tabstop=4     :: Vi/ViM
+#
+# Revision: 4.0.2
+# Created: September 21st, 2010
+# Last Modified: January 26th, 2012
+############################################################ COPYRIGHT
+#
+# Devin Teske (c)2006-2012. All Rights Reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+#
+############################################################ INFORMATION
+#
+# Description:
+# 	An easier/safer way to configure your BSD basics.
+#
+# Command Usage:
+#
+#    host-setup [OPTIONS]
+#
+#    OPTIONS:
+#    	-h   Print this message to stderr and exit.
+#    	-X   Use Xdialog(1) in place of dialog(1).
+#    	-s   Secure. Prompt for sudo(8) credentials.
+#
+# Dependencies (sorted alphabetically):
+#
+#    Xdialog(1)*    awk(1)       cat(1)     chmod(1)      chown(8)
+#    chsh(1)        cmp(1)       cp(1)      date(1)       df(1)
+#    dhclient(8)    dialog(1)    grep(1)    hostname(1)   id(1)
+#    ifconfig(8)    mktemp(1)    mount(8)   mv(1)         printf(1)**
+#    rm(1)          route(8)     sed(1)     sh(1)***      sleep(1)
+#    stat(1)        strings(1)   su(1)      sudo(8)       tail(1)
+#    tzdialog(8)*   tzsetup(8)   uname(1)   which(1)      xterm(1)*
+#
+# * Optional
+# ** Is a shell-builtin on some releases
+# *** Specifically, `/bin/sh' must exist
+#
+# NOTES:
+# 	tzdialog(8) can be found at http://druidbsd.sf.net/
+#
+############################################################ CONFIGURATION
+
+#
+# Corporate Branding Information
+#
+brand=""
+
+#
+# Default directory to store dialog(1) temporary files
+#
+: ${DIALOG_TMPDIR:="/tmp"}
+
+#
+# Path to resolv.conf(5).
+#
+: ${RESOLV_CONF:="/etc/resolv.conf"}
+
+#
+# When updating resolv.conf(5), should we populate the `search' directive with
+# all possible sub-domains? In example, if the domain is "dev.vicor.com", when
+# the below option is set to 1, include both "dev.vicor.com" and "vicor.com"
+# in the `search' directive, otherwise use only "dev.vicor.com".
+#
+# When enabled (set to 1), specify the minimum number of dots required for each
+# `search' domain by setting the second option below, `RESOLVER_SEARCH_NDOTS'.
+#
+: ${RESOLVER_SEARCH_DOMAINS_ALL:=1}
+: ${RESOLVER_SEARCH_NDOTS:=1}
+
+############################################################ GLOBALS
+
+# Global exit status variables
+export SUCCESS=0
+export FAILURE=1
+
+#
+# Program name
+#
+progname="${0##*/}"
+
+#
+# Program revision (from CVS)
+#
+revision='$Revision: 1.1 $' # ident(1)
+revision="${revision#*:[$IFS]}"
+revision="${revision%%[$IFS]*}"
+case "$revision" in
+[0-9]*) : valid revision ;;
+*) revision=
+esac
+
+#
+# Host information / OS Glue
+#
+UNAME_S=$(uname -s) # Operating System (i.e. FreeBSD)
+UNAME_P=$(uname -p) # Processor Architecture (i.e. i386)
+UNAME_R=$(uname -r) # Release Level (i.e. X.Y-RELEASE)
+
+#
+# Standard pathnames (inherit values from shell if available)
+#
+: ${RC_DEFAULTS:="/etc/defaults/rc.conf"}
+
+#
+# Default name of dialog(1) utility
+# NOTE: This is changed to "Xdialog" by the optional `-X' argument
+#
+DIALOG="dialog"
+
+#
+# Default dialog(1) title text
+#
+DIALOG_TITLE="$brand${brand:+ }${progname:-$0}${revision:+ v}$revision"
+
+#
+# Settings used while interacting with dialog(1)
+#
+DIALOG_MENU_TAGS="123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+#
+# Not all implementations of dialog(1) support the `--hline TEXT' option.
+# NOTE: Initially assumed to be supported but tested later in MAIN
+# NOTE: Test in MAIN can be disable by setting CHECK_DIALOG_FOR_HLINE to NULL
+# NOTE: Passing `-X' will implicitly disable both of the following options
+#
+DIALOG_ENABLE_HLINE=1
+CHECK_DIALOG_FOR_HLINE=1
+
+#
+# Declare that we are fully-compliant with Xdialog(1) by unset'ing all
+# compatibility settings.
+#
+unset XDIALOG_HIGH_DIALOG_COMPAT
+unset XDIALOG_FORCE_AUTOSIZE
+unset XDIALOG_INFOBOX_TIMEOUT
+
+#
+# Xdialog(1) size considerations
+# Pick a sensible fall-back in-case `Xdialog --print-maxsize' fails.
+#
+#XDIALOG_MAX_SIZE="20 78"	# for 720x400 (9:5)
+#XDIALOG_MAX_SIZE="24 69"	# for 640x480 (4:3)
+XDIALOG_MAX_SIZE="31 86"	# for 800x600 (4:3)
+#XDIALOG_MAX_SIZE="32 90"	# for 832x624 (4:3)
+#XDIALOG_MAX_SIZE="40 111"	# for 1024x768 (4:3)
+#XDIALOG_MAX_SIZE="46 126"	# for 1152x864 (4:3)
+#XDIALOG_MAX_SIZE="51 140"	# for 1280x960 (4:3)
+#XDIALOG_MAX_SIZE="54 140"	# for 1280x1024 (5:4)
+#XDIALOG_MAX_SIZE="64 175"	# for 1600x1200 (4:3)
+
+#
+# Settings used while interacting with various dialog(1) menus
+#
+DIALOG_MENU_NETDEV_KICK_INTERFACES=1
+DIALOG_MENU_NETDEV_SLEEP_AFTER_KICK=3
+
+#
+# Options
+#
+USE_XDIALOG=
+SECURE=
+
+###############################################################################
+################################## FUNCTIONS ##################################
+###############################################################################
+
+# have $anything
+#
+# A wrapper to the `type' built-in. Returns true if argument is a valid shell
+# built-in, keyword, or externally-tracked binary, otherwise false.
+#
+have()
+{
+	type "$@" > /dev/null 2>&1
+}
+
+# fprintf $fd $fmt [ $opts ... ]
+#
+# Like printf, except allows you to print to a specific file-descriptor. Useful
+# for printing to stderr (fd=2) or some other known file-descriptor.
+#
+fprintf()
+{
+	local fd=$1
+	[ $# -gt 1 ] || return $FAILURE
+	shift 1
+	printf "$@" >&$fd
+}
+
+# eprintf $fmt [ $opts ... ]
+#
+# Print a message to stderr (fd=2).
+#
+eprintf()
+{
+	fprintf 2 "$@"
+}
+
+# quietly $command [ $arguments ... ]
+#
+# Run a command quietly (quell any output to stdout or stderr).
+#
+quietly()
+{
+	"$@" > /dev/null 2>&1
+}
+
+# isinteger $arg
+#
+# Returns true if argument is a positive/negative whole integer.
+#
+isinteger()
+{
+	local arg="$1"
+
+	# Prevent division-by-zero
+	[ "$arg" = "0" ] && return $SUCCESS
+
+	# Attempt to perform arithmetic division (an operation which will exit
+	# with error unless arg is a valid positive/negative whole integer).
+	#
+	( : $((0/$arg)) ) > /dev/null 2>&1
+}
+
+# syslogd_console on|off
+#
+# Enable/Disable console log messages.
+#
+syslogd_console()
+{
+	local arg="$1" syslog_conf="/etc/syslog.conf" sed
+
+	# Sanity check
+	[ -r "$syslog_conf" ] || return
+
+	# Are we turning console-logging on? or off?
+	case "$1" in
+	[Oo][Nn]) sed='
+			s@^#(.*[[:space:]]root)$@\1@
+			s@^#(.*[[:space:]]/dev/console)$@\1@
+		';;
+	[Oo][Ff][Ff]) sed='
+			s@^([^#].*[[:space:]]root)$@#\1@
+			s@^([^#].*[[:space:]]/dev/console)$@#\1@
+		';;
+	esac
+
+	# Modify configuration file
+	quietly sed -E -e "$sed" -i.bak "$syslog_conf"
+
+	# Recover if the operation was unsuccessful
+	[ "$( cat "$syslog_conf" )" ] || \
+		cat "$syslog_conf.bak" > "$syslog_conf"
+
+	quietly rm -f "$syslog_conf.bak"
+}
+
+# mounted $local_directory
+#
+# Return success if a filesystem is mounted on a particular directory.
+#
+mounted()
+{
+	local dir="$1"
+	[ -d "$dir" ] || return $FAILURE
+	mount | grep -Eq " on $dir \([^)]+\)$"
+}
+
+# clean_up
+#
+# Clean-up routines (run when script exits or is killed).
+#
+clean_up()
+{
+	quietly rm -f "$DIALOG_TMPDIR"/dialog.*.$$
+}
+
+# reset_shell
+#
+# Reset the user's shell to a real shell (never returns).
+#
+reset_shell()
+{
+	[ "$SHELL" = "$0" ] || return
+		# return unless the current shell is this script
+
+	local new_shell="/bin/csh"
+	[ -x "$new_shell" ] || new_shell="/bin/sh"
+
+	# Change the user's login shell
+	quietly chsh -s "$new_shell"
+
+	# Launch the shell (replaces the running instance of
+	# this script with an instance of the shell)
+	export SHELL="$new_shell"
+	case "$new_shell" in
+	*/csh) exec "$SHELL" -l;;
+	*/sh) exec "$SHELL";;
+	esac
+
+	exit $? # Never reached unless error
+}
+
+# die [ $err_msg ... ]
+#
+# Abruptly terminate due to an error.
+#
+die()
+{
+	local fmt="$1"
+	[ $# -gt 0 ] && shift 1
+	[  "$fmt"  ] && eprintf "$fmt\n" "$@"
+
+	syslogd_console on
+	clean_up
+	reset_shell # never returns if invoked as login shell
+
+	exit $FAILURE
+}
+
+# interrupt
+#
+# Interrupt handler.
+#
+interrupt()
+{
+	exec 2>&1 # fix sh(1) bug where stderr gets lost within async-trap
+	die
+}
+
+# usage
+#
+# Prints a short syntax statement and exits.
+#
+usage()
+{
+	local optfmt="\t%-11s%s\n"
+
+	eprintf "Usage: %s [OPTIONS]\n" "$progname"
+
+	eprintf "OPTIONS:\n"
+	eprintf "$optfmt" "-h" \
+	        "Print this message to stderr and exit."
+	eprintf "$optfmt" "-X" \
+	        "Use Xdialog(1) in place of dialog(1)."
+	eprintf "$optfmt" "-s" \
+	        "Secure. Prompt for sudo(8) credentials."
+
+	die
+}
+
+# device_desc $device_name
+#
+# Print a description for a device name (eg., `fxp0').
+#
+device_desc()
+{
+	local device="$1" d="[1234567890]" desc=""
+
+	# Check variables
+	[ "$device" ] || return ${SUCCESS-0}
+
+	case "$device" in
+	# Network devices
+	ae$d)    desc="Attansic/Atheros L2 Fast Ethernet";;
+	age$d)   desc="Attansic/Atheros L1 Gigabit Ethernet";;
+	alc$d)   desc="Atheros AR8131/AR8132 PCIe Ethernet";;
+	ale$d)   desc="Atheros AR8121/AR8113/AR8114 PCIe Ethernet";;
+	an$d)    desc="Aironet 4500/4800 802.11 wireless adapter";;
+	ath$d)   desc="Atheros IEEE 802.11 wireless adapter";;
+	aue$d)   desc="ADMtek USB Ethernet adapter";;
+	axe$d)   desc="ASIX Electronics USB Ethernet adapter";;
+	bce$d)   desc="Broadcom NetXtreme II Gigabit Ethernet card";;
+	bfe$d)   desc="Broadcom BCM440x PCI Ethernet card";;
+	bge$d)   desc="Broadcom BCM570x PCI Gigabit Ethernet card";;
+	bm$d)    desc="Apple BMAC Built-in Ethernet";;
+	bwn$d)   desc="Broadcom BCM43xx IEEE 802.11 wireless adapter";;
+	cas$d)   desc="Sun Cassini/Cassini+ or NS DP83065 Saturn Ethernet";;
+	cc3i$d)  desc="SDL HSSI sync serial PCI card";;
+	cue$d)   desc="CATC USB Ethernet adapter";;
+	cxgb$d)  desc="Chelsio T3 10Gb Ethernet card";;
+	dc$d)    desc="DEC/Intel 21143 (and clones) PCI Fast Ethernet card";;
+	de$d)    desc="DEC DE435 PCI NIC or other DC21040-AA based card";;
+	disc$d)  desc="Software discard network interface";;
+	ed$d)    desc="Novell NE1000/2000; 3C503; NE2000-compatible PCMCIA";;
+	el$d)    desc="3Com 3C501 Ethernet card";;
+	em$d)    desc="Intel(R) PRO/1000 Ethernet card";;
+	en$d)    desc="Efficient Networks ATM PCI card";;
+	ep$d)    desc="3Com 3C509 Ethernet card/3C589 PCMCIA";;
+	et$d)    desc="Agere ET1310 based PCI Express Gigabit Ethernet card";;
+	ex$d)    desc="Intel EtherExpress Pro/10 Ethernet card";;
+	fe$d)    desc="Fujitsu MB86960A/MB86965A Ethernet card";;
+	fpa$d)   desc="DEC DEFPA PCI FDDI card";;
+	fwe$d)   desc="FireWire Ethernet emulation";;
+	fwip$d)  desc="IP over FireWire";;
+	fxp$d)   desc="Intel EtherExpress Pro/100B PCI Fast Ethernet card";;
+	gem$d)   desc="Apple GMAC or Sun ERI/GEM Ethernet adapter";;
+	hme$d)   desc="Sun HME (Happy Meal Ethernet) Ethernet adapter";;
+	ie$d)    desc="AT&T StarLAN 10 and EN100; 3Com 3C507; NI5210";;
+	igb$d)   desc="Intel(R) PRO/1000 PCI Express Gigabit Ethernet card";;
+	ipw$d)   desc="Intel PRO/Wireless 2100 IEEE 802.11 adapter";;
+	iwi$d)   desc="Intel PRO/Wireless 2200BG/2225BG/2915ABG adapter";;
+	iwn$d)   desc="Intel Wireless WiFi Link 4965AGN IEEE 802.11n adapter";;
+	ix$d)    desc="Intel Etherexpress Ethernet card";;
+	ixgb$d)  desc="Intel(R) PRO/10Gb Ethernet card";;
+	ixgbe$d) desc="Intel(R) PRO/10Gb Ethernet card";;
+	jme$d)   desc="JMicron JMC250 Gigabit/JMC260 Fast Ethernet";;
+	kue$d)   desc="Kawasaki LSI USB Ethernet adapter";;
+	le$d)    desc="AMD Am7900 LANCE or Am79C9xx PCnet Ethernet adapter";;
+	lge$d)   desc="Level 1 LXT1001 Gigabit Ethernet card";;
+	lnc$d)   desc="Lance/PCnet (Isolan/Novell NE2100/NE32-VL) Ethernet";;
+	lp$d)    desc="Parallel Port IP (PLIP) peer connection";;
+	lo$d)    desc="Loop-back (local) network interface";;
+	malo$d)  desc="Marvell Libertas 88W8335 802.11 wireless adapter";;
+	msk$d)   desc="Marvell/SysKonnect Yukon II Gigabit Ethernet";;
+	mxge$d)  desc="Myricom Myri10GE 10Gb Ethernet card";;
+	nfe$d)   desc="NVIDIA nForce MCP Ethernet";;
+	ng${d}_*|ng$d${d}_*|ng$d$d${d}_*|ng$d$d$d${d}_*|ng$d$d$d$d${d}_*)
+	         desc="Vimage netgraph(4) bridged Ethernet device";;
+	nge$d)   desc="NatSemi PCI Gigabit Ethernet card";;
+	nve$d)   desc="NVIDIA nForce MCP Ethernet";;
+	nxge$d)  desc="Neterion Xframe 10GbE Server/Storage adapter";;
+	pcn$d)   desc="AMD Am79c79x PCI Ethernet card";;
+	plip$d)  desc="Parallel Port IP (PLIP) peer connection";;
+	ral$d)   desc="Ralink Technology IEEE 802.11 wireless adapter";;
+	ray$d)   desc="Raytheon Raylink 802.11 wireless adapter";;
+	re$d)    desc="RealTek 8139C+/8169/8169S/8110S PCI Ethernet adapter";;
+	rl$d)    desc="RealTek 8129/8139 PCI Ethernet card";;
+	rue$d)   desc="RealTek USB Ethernet card";;
+	rum$d)   desc="Ralink Technology USB IEEE 802.11 wireless adapter";;
+	sf$d)    desc="Adaptec AIC-6915 PCI Ethernet card";;
+	sge$d)   desc="Silicon Integrated Systems SiS190/191 Ethernet";;
+	sis$d)   desc="SiS 900/SiS 7016 PCI Ethernet card";;
+	sk$d)    desc="SysKonnect PCI Gigabit Ethernet card";;
+	sn$d)    desc="SMC/Megahertz Ethernet card";;
+	snc$d)   desc="SONIC Ethernet card";;
+	sr$d)    desc="SDL T1/E1 sync serial PCI card";;
+	ste$d)   desc="Sundance ST201 PCI Ethernet card";;
+	stge$d)  desc="Sundance/Tamarack TC9021 Gigabit Ethernet";;
+	ti$d)    desc="Alteon Networks PCI Gigabit Ethernet card";;
+	tl$d)    desc="Texas Instruments ThunderLAN PCI Ethernet card";;
+	tx$d)    desc="SMC 9432TX Ethernet card";;
+	txp$d)   desc="3Com 3cR990 Ethernet card";;
+	uath$d)  desc="Atheros AR5005UG and AR5005UX USB wireless adapter";;
+	upgt$d)  desc="Conexant/Intersil PrismGT USB wireless adapter";;
+	ural$d)  desc="Ralink Technology RT2500USB 802.11 wireless adapter";;
+	urtw$d)  desc="Realtek 8187L USB wireless adapter";;
+	vge$d)   desc="VIA VT612x PCI Gigabit Ethernet card";;
+	vlan$d)  desc="IEEE 802.1Q VLAN network interface";;
+	vr$d)    desc="VIA VT3043/VT86C100A Rhine PCI Ethernet card";;
+	vx$d)    desc="3COM 3c590 / 3c595 Ethernet card";;
+	wb$d)    desc="Winbond W89C840F PCI Ethernet card";;
+	wi$d)    desc="Lucent WaveLAN/IEEE 802.11 wireless adapter";;
+	wpi$d)   desc="Intel 3945ABG IEEE 802.11 wireless adapter";;
+	wx$d)    desc="Intel Gigabit Ethernet (82452) card";;
+	xe$d)    desc="Xircom/Intel EtherExpress Pro100/16 Ethernet card";;
+	xl$d)    desc="3COM 3c90x / 3c90xB PCI Ethernet card";;
+	zyd$d)   desc="ZyDAS ZD1211/ZD1211B USB 802.11 wireless adapter";;
+	# Unknown device
+	*)       desc="<unknown network interface type>";;
+	esac
+	printf "%s" "$desc"
+}
+
+# clean_env [ --except $varname ... ]
+#
+# Unset all environment variables in the current scope. An optional list of
+# arguments can be passed, indicating which variables to avoid unsetting; the
+# `--except' is required to enable the exclusion-list as the remainder of
+# positional arguments.
+#
+# Be careful not to call this in a shell that you still expect to perform
+# $PATH expansion in, because this will blow $PATH away. This is best used
+# within a sub-shell block "(...)" or "$(...)" or "`...`".
+#
+clean_env()
+{
+	local var arg except=
+
+	#
+	# Should we process an exclusion-list?
+	#
+	if [ "$1" = "--except" ]; then
+		except=1
+		shift 1
+	fi
+
+	#
+	# Loop over a list of variable names from set(1) built-in.
+	#
+	for var in $( set | awk -F= \
+		'/^[[:alpha:]_][[:alnum:]_]*=/ {print $1}' \
+		| grep -v '^except$'
+	); do
+		#
+		# In POSIX bourne-shell, attempting to unset(1) OPTIND results
+		# in "unset: Illegal number:" and causes abrupt termination.
+		#
+		[ "$var" = OPTIND ] && continue
+
+		#
+		# Process the exclusion-list?
+		#
+		if [ "$except" ]; then
+			for arg in "$@" ""; do
+				[ "$var" = "$arg" ] && break
+			done
+			[ "$arg" ] && continue
+		fi
+
+		unset "$var"
+	done
+}
+
+# sysrc_get $varname
+#
+# Get a system configuration setting from the collection of system-
+# configuration files (in order: /etc/defaults/rc.conf /etc/rc.conf
+# and /etc/rc.conf).
+#
+# NOTE: Additional shell parameter-expansion formats are supported. For
+# example, passing an argument of "hostname%%.*" (properly quoted) will
+# return the hostname up to (but not including) the first `.' (see sh(1),
+# "Parameter Expansion" for more information on additional formats).
+#
+sysrc_get()
+{
+	# Sanity check
+	[ -f "$RC_DEFAULTS" -a -r "$RC_DEFAULTS" ] || return $FAILURE
+
+	# Taint-check variable name
+	case "$1" in
+	[0-9]*)
+		# Don't expand possible positional parameters
+		return $FAILURE;;
+	*)
+		[ "$1" ] || return $FAILURE
+	esac
+
+	( # Execute within sub-shell to protect parent environment
+
+		#
+		# Clear the environment of all variables, preventing the
+		# expansion of normals such as `PS1', `TERM', etc.
+		#
+		clean_env --except RC_DEFAULTS
+
+		. "$RC_DEFAULTS" > /dev/null 2>&1
+		source_rc_confs > /dev/null 2>&1
+
+		#
+		# This must be the last functional line for both the sub-shell
+		# and the function to preserve the return status from formats
+		# such as "${varname?}" and "${varname:?}" (see "Parameter
+		# Expansion" in sh(1) for more information).
+		#
+		eval echo '"${'"$1"'}"' 2> /dev/null
+	)
+}
+
+# sysrc_find $varname
+#
+# Find which file holds the effective last-assignment to a given variable
+# within the rc.conf(5) file(s).
+#
+# If the variable is found in any of the rc.conf(5) files, the function prints
+# the filename it was found in and then returns success. Otherwise output is
+# NULL and the function returns with error status.
+#
+sysrc_find()
+{
+	local varname="$1"
+	local regex="^[[:space:]]*$varname="
+	local rc_conf_files="$( sysrc_get rc_conf_files )"
+	local conf_files=
+	local file
+
+	# Check parameters
+	[ "$varname" ] || return $FAILURE
+
+	#
+	# Reverse the order of files in rc_conf_files (the boot process sources
+	# these in order, so we will search them in reverse-order to find the
+	# last-assignment -- the one that ultimately effects the environment).
+	#
+	for file in $rc_conf_files; do
+		conf_files="$file${conf_files:+ }$conf_files"
+	done
+
+	#
+	# Append the defaults file (since directives in the defaults file
+	# indeed affect the boot process, we'll want to know when a directive
+	# is found there).
+	#
+	conf_files="$conf_files${conf_files:+ }$RC_DEFAULTS"
+
+	#
+	# Find which file matches assignment to the given variable name.
+	#
+	for file in $conf_files; do
+		[ -f "$file" -a -r "$file" ] || continue
+		if grep -Eq "$regex" $file; then
+			echo $file
+			return $SUCCESS
+		fi
+	done
+
+	return $FAILURE # Not found
+}
+
+# sysrc_set $varname $new_value
+#
+# Change a setting in the system configuration files (edits the files in-place
+# to change the value in the last assignment to the variable). If the variable
+# does not appear in the source file, it is appended to the end of the primary
+# system configuration file `/etc/rc.conf'.
+#
+# This function is a two-parter. Below is the awk(1) portion of the function,
+# afterward is the sh(1) function which utilizes the below awk script.
+#
+sysrc_set_awk='
+# Variables that should be defined on the invocation line:
+# 	-v varname="varname"
+# 	-v new_value="new_value"
+#
+BEGIN {
+	regex = "^[[:space:]]*"varname"="
+	found = retval = 0
+}
+{
+	# If already found... just spew
+	if ( found ) { print; next }
+
+	# Does this line match an assignment to our variable?
+	if ( ! match($0, regex) ) { print; next }
+
+	# Save important match information
+	found = 1
+	matchlen = RSTART + RLENGTH - 1
+
+	# Store the value text for later munging
+	value = substr($0, matchlen + 1, length($0) - matchlen)
+
+	# Store the first character of the value
+	t1 = t2 = substr(value, 0, 1)
+
+	# Assignment w/ back-ticks, expression, or misc.
+	# We ignore these since we did not generate them
+	#
+	if ( t1 ~ /[`$\\]/ ) { retval = 1; print; next }
+
+	# Assignment w/ single-quoted value
+	else if ( t1 == "'\''" ) {
+		sub(/^'\''[^'\'']*/, "", value)
+		if ( length(value) == 0 ) t2 = ""
+		sub(/^'\''/, "", value)
+	}
+
+	# Assignment w/ double-quoted value
+	else if ( t1 == "\"" ) {
+		sub(/^"(.*\\\\+")*[^"]*/, "", value)
+		if ( length(value) == 0 ) t2 = ""
+		sub(/^"/, "", value)
+	}
+
+	# Assignment w/ non-quoted value
+	else if ( t1 ~ /[^[:space:];]/ ) {
+		t1 = t2 = "\""
+		sub(/^[^[:space:]]*/, "", value)
+	}
+
+	# Null-assignment
+	else if ( t1 ~ /[[:space:];]/ ) { t1 = t2 = "\"" }
+
+	printf "%s%c%s%c%s\n", substr($0, 0, matchlen), \
+		t1, new_value, t2, value
+}
+END { exit retval }
+'
+sysrc_set()
+{
+	local varname="$1" new_value="$2"
+
+	# Check arguments
+	[ "$varname" ] || return $FAILURE
+
+	#
+	# Find which rc.conf(5) file contains the last-assignment
+	#
+	local not_found=
+	local file="$( sysrc_find "$varname" )"
+	if [ "$file" = "$RC_DEFAULTS" -o ! "$file" ]; then
+		#
+		# We either got a null response (not found) or the variable
+		# was only found in the rc.conf(5) defaults. In either case,
+		# let's instead modify the first file from $rc_conf_files.
+		#
+
+		not_found=1
+
+		#
+		# If `-f file' was passed, use $RC_CONFS
+		# rather than $rc_conf_files.
+		#
+		if [ "$RC_CONFS" ]; then
+			file="${RC_CONFS%%[$IFS]*}"
+		else
+			file=$( sysrc_get rc_conf_files )
+			file="${file%%[$IFS]*}"
+		fi
+	fi
+
+	#
+	# If not found, append new value to last file and return.
+	#
+	if [ "$not_found" ]; then
+		echo "$varname=\"$new_value\"" >> "$file"
+		return $SUCCESS
+	fi
+
+	#
+	# Perform sanity checks.
+	#
+	if [ ! -w "$file" ]; then
+		eprintf "\n%s: cannot create %s: Permission denied\n" \
+		        "$progname" "$file"
+		return $FAILURE
+	fi
+
+	#
+	# Create a new temporary file to write to.
+	#
+	local tmpfile="$( mktemp -t "$progname" )"
+	[ "$tmpfile" ] || return $FAILURE
+
+	#
+	# Fixup permissions (else we're in for a surprise, as mktemp(1) creates
+	# the temporary file with 0600 permissions, and if we simply mv(1) the
+	# temporary file over the destination, the destination will inherit the
+	# permissions from the temporary file).
+	#
+	local mode
+	mode=$( stat -f '%#Lp' "$file" 2> /dev/null )
+	quietly chmod "${mode:-0644}" "$tmpfile"
+
+	#
+	# Fixup ownership. The destination file _is_ writable (we tested
+	# earlier above). However, this will fail if we don't have sufficient
+	# permissions (so we throw stderr into the bit-bucket).
+	#
+	local owner
+	owner=$( stat -f '%u:%g' "$file" 2> /dev/null )
+	quietly chown "${owner:-root:wheel}" "$tmpfile"
+
+	#
+	# Operate on the matching file, replacing only the last occurrence.
+	#
+	local new_contents retval
+	new_contents=$( tail -r $file 2> /dev/null )
+	new_contents=$( echo "$new_contents" | awk -v varname="$varname" \
+		-v new_value="$new_value" "$sysrc_set_awk" )
+	retval=$?
+
+	#
+	# Write the temporary file contents.
+	#
+	echo "$new_contents" | tail -r > "$tmpfile" || return $FAILURE
+	if [ $retval -ne $SUCCESS ]; then
+		echo "$varname=\"$new_value\"" >> "$tmpfile"
+	fi
+
+	#
+	# Taint-check our results.
+	#
+	if ! /bin/sh -n "$tmpfile"; then
+		eprintf "%s: Not overwriting \`%s' due to %s\n" \
+		        "$progname" "$file" "previous syntax errors"
+		rm -f "$tmpfile"
+		return $FAILURE
+	fi
+
+	#
+	# Finally, move the temporary file into place.
+	#
+	mv "$tmpfile" "$file"
+}
+
+# sysrc_delete $varname
+#
+# Remove a setting from the system configuration files (edits files in-place).
+# Deletes all assignments to the given variable in all config files. If the
+# `-f file' option is passed, the removal is restricted to only those files
+# specified, otherwise the system collection of rc_conf_files is used.
+#
+# This function is a two-parter. Below is the awk(1) portion of the function,
+# afterward is the sh(1) function which utilizes the below awk script.
+#
+sysrc_delete_awk='
+# Variables that should be defined on the invocation line:
+# 	-v varname="varname"
+#
+BEGIN {
+	regex = "^[[:space:]]*"varname"="
+	found = 0
+}
+{
+	if ( $0 ~ regex )
+		found = 1
+	else
+		print
+}
+END { exit ! found }
+'
+sysrc_delete()
+{
+	local varname="$1"
+	local file
+
+	# Check arguments
+	[ "$varname" ] || return $FAILURE
+
+	#
+	# Operate on each of the specified files
+	#
+	for file in ${RC_CONFS:-$( sysrc_get rc_conf_files )}; do
+		[ -e "$file" ] || continue
+
+		#
+		# Create a new temporary file to write to.
+		#
+		local tmpfile="$( mktemp -t "$progname" )"
+		[ "$tmpfile" ] || return $FAILURE
+
+		#
+		# Fixup permissions and ownership (mktemp(1) defaults to 0600
+		# permissions) to instead match the destination file.
+		#
+		local mode owner
+		mode=$( stat -f '%#Lp' "$file" 2> /dev/null )
+		owner=$( stat -f '%u:%g' "$file" 2> /dev/null )
+		quietly chmod "${mode:-0644}" "$tmpfile"
+		quietly chown "${owner:-root:wheel}" "$tmpfile"
+
+		#
+		# Operate on the file, removing all occurrences, saving the
+		# output in our temporary file.
+		#
+		awk -v varname="$varname" "$sysrc_delete_awk" "$file" \
+			> "$tmpfile"
+		if [ $? -ne $SUCCESS ]; then
+			# The file didn't contain any assignments
+			rm -f "$tmpfile"
+			continue
+		fi
+
+		#
+		# Taint-check our results.
+		#
+		if ! /bin/sh -n "$tmpfile"; then
+			eprintf "%s: Not overwriting \`%s' due to %s\n" \
+			        "$progname" "$file" "previous syntax errors"
+			rm -f "$tmpfile"
+			continue
+		fi
+
+		#
+		# Perform sanity checks
+		#
+		if [ ! -w "$file" ]; then
+			eprintf "%s: %s: Permission denied\n" \
+			        "$progname" "$file"
+			rm -f "$tmpfile"
+			continue
+		fi
+
+		#
+		# Finally, move the temporary file into place.
+		#
+		mv "$tmpfile" "$file"
+	done
+}
+
+# ifconfig_inet $interface
+#
+# Returns the IPv4 address associated with $interface.
+#
+ifconfig_inet()
+{
+	local interface="$1"
+	ifconfig "$interface" 2> /dev/null | awk \
+	'
+		BEGIN { found = 0 }
+		( $1 == "inet" ) \
+		{
+			print $2
+			found = 1
+			exit
+		}
+		END { exit ! found }
+	'
+}
+
+# ifconfig_netmask $interface
+#
+# Returns the IPv4 subnet mask associated with $interface.
+#
+ifconfig_netmask()
+{
+	local interface="$1" octets
+	octets=$( ifconfig "$interface" 2> /dev/null | awk \
+	'
+		BEGIN { found = 0 }
+		( $1 == "inet" ) \
+		{
+			printf "%s %s %s %s\n",
+				substr($4,3,2),
+				substr($4,5,2),
+				substr($4,7,2),
+				substr($4,9,2)
+			found = 1
+			exit
+		}
+		END { exit ! found }
+	' ) || return $FAILURE
+
+	local octet netmask=
+	for octet in $octets; do
+		netmask="$netmask${netmask:+.}$( printf "%u" "0x$octet" )"
+	done
+	echo $netmask
+}
+
+# ifconfig_options $interface
+#
+# Returns any/all extra ifconfig(8) parameters associated with $interface.
+#
+ifconfig_options()
+{
+	local interface="$1"
+	[ "$interface" ] || return $SUCCESS
+
+	#
+	# Loop over the options, removing what we don't want
+	#
+	(
+		set -- $( sysrc_get ifconfig_$interface )
+
+		#
+		# Return if the the interface is configured for DHCP
+		#
+		glob="[Dd][Hh][Cc][Pp]"
+		case "$*" in
+		$glob) exit $SUCCESS;;
+		[Ss][Yy][Nn][Cc]$glob|[Nn][Oo][Ss][Yy][Nn][Cc]$glob)
+			case "${UNAME_R%%.*}" in # Major OS revision
+			1|2|3|4|5) : [NO]SYNCDHCP unsupported ;;
+			6) case "${UNAME_R%%-*}" in # Minor OS revision
+			   6.0|6.1) : [NO]SYNCDHCP unsupported ;;
+			   6.[2-9]) exit $SUCCESS
+			   esac;;
+			*?*) exit $SUCCESS
+			esac
+		esac
+
+		output=
+		while [ $# -gt 0 ]; do
+			case "$1" in
+			inet|netmask) shift 1;;
+			*) output="$output${output:+ }$1"
+			esac
+			shift 1
+		done
+		echo "$output"
+	)
+}
+
+# ifconfig_media $interface
+#
+# Returns list of supported media for $interface.
+#
+ifconfig_media()
+{
+	local interface="$1"
+	ifconfig -m "$interface" 2> /dev/null | awk \
+	'
+		BEGIN { media_found = 0 }
+		{
+			if ( media_found == 1 ) { print; next }
+		}
+		( $1 $2 == "supported" "media:" ) \
+		{
+			media_found = 1
+			next
+		}
+		END { exit ! media_found }
+	'
+}
+
+# route_get_default
+#
+# Returns the IP address of the currently active default router.
+#
+route_get_default()
+{
+	route -n get default 2> /dev/null | awk \
+	'
+		BEGIN { found = 0 }
+		( $1 == "gateway:" ) \
+		{
+			print $2
+			found = 1
+			exit
+		}
+		END { exit ! found }
+	'
+}
+
+# resolv_conf_domain
+#
+# Returns the domain configured in resolv.conf(5).
+#
+resolv_conf_domain()
+{
+	tail -r "$RESOLV_CONF" 2> /dev/null | awk \
+	'
+		BEGIN { found = 0 }
+		( tolower($1) == "domain" ) \
+		{
+			print $2
+			found = 1
+			exit
+		}
+		END { exit ! found }
+	'
+}
+
+# resolv_conf_search
+#
+# Returns the search configured in resolv.conf(5).
+#
+resolv_conf_search()
+{
+	tail -r "$RESOLV_CONF" 2> /dev/null | awk \
+	'
+		BEGIN { found = 0 }
+		{
+			tl0 = tolower($0)
+			if ( match(tl0, /^[[:space:]]*search[[:space:]]+/) ) {
+				search = substr($0, RLENGTH + 1)
+				sub(/[[:space:]]*#.*$/, "", search)
+				gsub(/[[:space:]]+/, " ", search)
+				print search
+				found = 1
+				exit
+			}
+		}
+		END { exit ! found }
+	'
+}
+
+# resolv_conf_nameservers
+#
+# Returns nameserver(s) configured in resolv.conf(5).
+#
+resolv_conf_nameservers()
+{
+	awk \
+	'
+		BEGIN { found = 0 }
+		( $1 == "nameserver" ) \
+		{
+			print $2
+			found = 1
+		}
+		END { exit ! found }
+	' \
+	"$RESOLV_CONF" 2> /dev/null
+}
+
+# jailed
+#
+# Returns true if the current process is jail(8)ed.
+#
+jailed()
+{
+	! quietly ps 1
+}
+
+# nfs_mounted
+#
+# Returns true if there are any NFS mounts currently active, otherwise false.
+#
+nfs_mounted()
+{
+	[ "$( df -t nfs )" ]
+}
+
+# substr "$string" $start [ $length ]
+#
+# Simple wrapper to awk(1)'s `substr' function.
+#
+substr()
+{
+	local string="$1" start="${2:-0}" len="${3:-0}"
+	echo "$string" | awk "{ print substr(\$0, $start, $len) }"
+}
+
+# longest_line_length
+#
+# Simple wrapper to an awk(1) script to print the length of the longest line of
+# input (read from stdin). Supports the newline escape-sequence `\n' for
+# splitting a single line into multiple lines.
+#
+longest_line_length_awk='
+BEGIN { longest = 0 }
+{
+	if (split($0, lines, /\\n/) > 1)
+	{
+		for (n in lines)
+		{
+			len = length(lines[n])
+			longest = ( len > longest ? len : longest )
+		}
+	}
+	else
+	{
+		len = length($0)
+		longest = ( len > longest ? len : longest )
+	}
+}
+END { print longest }
+'
+longest_line_length()
+{
+	awk "$longest_line_length_awk"
+}
+
+# number_of_lines
+#
+# Simple wrapper to an awk(1) script to print the number of lines read from
+# stdin. Supports newline escape-sequence `\n' for splitting a single line into
+# multiple lines.
+#
+number_of_lines_awk='
+BEGIN { num_lines = 0 }
+{
+	num_lines += split($0, unused, /\\n/)
+}
+END { print num_lines }
+'
+number_of_lines()
+{
+	awk "$number_of_lines_awk"
+}
+
+###############################################################################
+############################ DIALOG SIZE FUNCTIONS ############################
+###############################################################################
+
+# dialog_infobox_size $title $prompt
+#
+# Not all versions of dialog(1) perform auto-sizing of the width and height of
+# `--infobox' boxes sensibly.
+#
+# This function helps solve this issue by taking as arguments (in order of
+# appearance) the title and prompt, returning the optimal width and height for
+# the menu (not exceeding the actual terminal width or height).
+#
+# Output is in the format of "height width".
+#
+dialog_infobox_size()
+{
+	local title="$1" prompt="$2" n
+	local min_width max_size
+
+	if [ "$USE_XDIALOG" ]; then
+		min_width=35
+		max_size="$XDIALOG_MAX_SIZE" # see CONFIGURATION
+	else
+		min_width=24
+		min_rows=0
+		max_size="$( stty size )" # usually "24 80"
+	fi
+
+	local max_height="${max_size%%[$IFS]*}"
+	local max_width="${max_size##*[$IFS]}"
+	local height width=$min_width
+
+	#
+	# Bump width for long titles (but don't exceed terminal width).
+	#
+	n=$(( ${#title} + 4 ))
+	if [ $n -gt $width -a $n -gt $min_width ]; then
+		# Add 16.6% width for Xdialog(1)
+		[ "$USE_XDIALOG" ] && n=$(( $n + $n / 6 ))
+
+		if [ $n -lt $max_width ]; then
+			width=$n
+		else
+			width=$max_width
+		fi
+	fi
+
+	#
+	# Bump width for long prompts (if not already at maximum width).
+	#
+	if [ $width -lt $max_width ]; then
+		n=$( echo "$prompt" | longest_line_length )
+		n=$(( $n + 4 ))
+
+		# Add 16.6% width for Xdialog(1)
+		[ "$USE_XDIALOG" ] && n=$(( $n + $n / 6 ))
+
+		if [ $n -gt $width -a $n -gt $min_width ]; then
+			if [ $n -lt $max_width ]; then
+				width=$n
+			else
+				width=$max_width
+			fi
+		fi
+	fi
+
+	#
+	# Set height based on number of rows in prompt
+	#
+	height=$( echo "$prompt" | number_of_lines )
+	height=$(( $height + 2 ))
+	[ $height -le $max_height ] || height=$max_height
+
+	# Return both
+	echo "$height $width"
+}
+
+# dialog_buttonbox_size $title $prompt
+#
+# Not all versions of dialog(1) perform auto-sizing of the width and height of
+# `--msgbox' and `--yesno' boxes sensibly.
+#
+# This function helps solve this issue by taking as arguments (in order of
+# appearance) the title and prompt, returning the optimal width and height for
+# the box (not exceeding the actual terminal width and height).
+#
+# Output is in the format of "height width".
+#
+dialog_buttonbox_size()
+{
+	local title="$1" prompt="$2"
+	local size="$( dialog_infobox_size "$title" "$prompt" )"
+	local height="${size%%[$IFS]*}"
+	local width="${size##*[$IFS]}"
+
+	# Add height to accomodate the buttons
+	height=$(( $height + 2 ))
+
+	# Adjust for clipping with Xdialog(1) on Linux/GTK2
+	[ "$USE_XDIALOG" ] && height=$(( $height + 3 ))
+
+	#
+	# Enforce maximum height regardless
+	#
+	local max_size
+	if [ "$USE_XDIALOG" ]; then
+		max_size="$XDIALOG_MAX_SIZE" # see CONFIGURATION
+	else
+		max_size="$( stty size )" # usually "24 80"
+	fi
+	local max_height="${max_size%%[$IFS]*}"
+	[ $height -le $max_height ] || height=$max_height
+
+	# Return both
+	echo "$height $width"
+}
+
+# dialog_inputbox_size $title $prompt $init
+#
+# Not all versions of dialog(1) perform auto-sizing of the width and height of
+# `--inputbox' boxes sensibly.
+#
+# This function helps solve this issue by taking as arguments (in order of
+# appearance) the title, prompt, and initial text, returning the optimal width
+# and height for the box (not exceeding the actual terminal width and height).
+#
+# Output is in the format of "height width".
+#
+dialog_inputbox_size()
+{
+	local title="$1" prompt="$2" init="$3" n
+	local size="$( dialog_buttonbox_size "$title" "$prompt" )"
+	local height="${size%%[$IFS]*}"
+	local width="${size##*[$IFS]}"
+
+	local min_width max_size
+	if [ "$USE_XDIALOG" ]; then
+		min_width=35
+		max_size="$XDIALOG_MAX_SIZE" # see CONFIGURATION
+	else
+		min_width=24
+		max_size="$( stty size )" # usually "24 80"
+	fi
+	local max_height="${max_size%%[$IFS]*}"
+	local max_width="${max_size##*[$IFS]}"
+
+	#
+	# Add height to accomodate the input box
+	#
+	[ ! "$USE_XDIALOG" ] && height=$(( $height + 3 ))
+	[ $height -le $max_height ] || height=$max_height
+
+	#
+	# Bump width for initial text (if not already at maximum width).
+	# NOTE: Something neither dialog(1)/Xdialog(1) do, but worth it!
+	#
+	if [ $width -lt $max_width ]; then
+		n=$(( ${#init} + 7 ))
+
+		# Add 16.6% width for Xdialog(1)
+		[ "$USE_XDIALOG" ] && n=$(( $n + $n / 6 ))
+
+		if [ $n -gt $width -a $n -gt $min_width ]; then
+			if [ $n -lt $max_width ]; then
+				width=$n
+			else
+				width=$max_width
+			fi
+		fi
+	fi
+
+	# Return both
+	echo "$height $width"
+}
+
+# dialog_menu_size $title $prompt $tag1 $item1 $tag2 $item2 ...
+#
+# Not all versions of dialog(1) perform auto-sizing of the width and height of
+# `--menu' boxes sensibly.
+#
+# This function helps solve this issue by taking as arguments (in order of
+# appearance) the title, prompt, and list of tag/item pairs, returning the
+# optimal width and height for the menu (not exceeding the actual terminal
+# width or height).
+#
+# Output is in the format of "height width rows".
+#
+dialog_menu_size()
+{
+	local title="$1" prompt="$2" n=0
+	local min_width min_rows max_size
+
+	if [ "$USE_XDIALOG" ]; then
+		min_width=35
+		min_rows=1
+		max_size="$XDIALOG_MAX_SIZE" # see CONFIGURATION
+	else
+		min_width=24
+		min_rows=0
+		max_size="$( stty size )" # usually "24 80"
+	fi
+
+	local max_width="${max_size##*[$IFS]}"
+	local max_height="${max_size%%[$IFS]*}"
+	local box_size="$( dialog_infobox_size "$title" "$prompt" )"
+	local box_height="${box_size%%[$IFS]*}"
+	local box_width="${box_size##*[$IFS]}"
+	local max_rows=$(( $max_height - 8 ))
+	local height width=$box_width rows=$min_rows
+
+	shift 2 # title/prompt
+
+	#
+	# The sum total between the longest tag-length and longest item-length
+	# should be used for the menu width (not to exceed terminal width).
+	#
+	# Also, calculate the number of rows (not to exceed terminal height).
+	#
+	local longest_tag=0 longest_item=0
+	while [ $# -ge 2 ]; do
+		local tag="$1" item="$2"
+		shift 2 # tag/item
+
+		[ ${#tag} -gt $longest_tag ] && longest_tag=${#tag}
+		[ ${#item} -gt $longest_item ] && longest_item=${#item}
+		[ $rows -lt $max_rows ] && rows=$(( $rows + 1 ))
+	done
+
+	# Update width
+	n=$(( $longest_tag + $longest_item + 10 ))
+	[ "$USE_XDIALOG" ] && n=$(( $n + $n / 6 )) # Add 16.6% for Xdialog(1)
+	if [ $n -gt $width -a $n -gt $min_width ]; then
+		if [ $n -lt $max_width ]; then
+			width=$n
+		else
+			width=$max_width
+		fi
+	fi
+
+	# Fix rows and set height
+	[ $rows -gt 0 ] || rows=1
+	if [ "$USE_XDIALOG" ]; then
+		height=$(( $rows + $box_height + 7 ))
+	else
+		height=$(( $rows + $box_height + 4 ))
+	fi
+	[ $height -le $max_height ] || height=$max_height
+
+	# Return all three
+	echo "$height $width $rows"
+}
+
+###############################################################################
+########################## DIALOG INFOBOX FUNCTIONS ###########################
+###############################################################################
+
+# dialog_info $info_text ...
+#
+# Throw up a dialog(1) infobox. The infobox remains until another dialog is
+# displayed or `dialog --clear' (or dialog_clear) is called.
+#
+dialog_info()
+{
+	local info_text="$*"
+	local size="$( dialog_infobox_size "$DIALOG_TITLE" "$info_text" )"
+
+	eval $DIALOG --title \"\$DIALOG_TITLE\"   \
+	             ${USE_XDIALOG:+--ignore-eof} \
+	             ${USE_XDIALOG:+--no-buttons} \
+	             --infobox \"\$info_text\"    \
+	             $size
+}
+
+# dialog_clear
+#
+# Clears any/all previous dialog(1) displays.
+#
+dialog_clear()
+{
+	$DIALOG --clear
+}
+
+# xdialog_info $info_text ...
+#
+# Throw up an Xdialog(1) infobox and do not dismiss it until stdin produces
+# EOF. This implies that you must execute this either as an rvalue to a pipe,
+# lvalue to indirection or in a sub-shell that provides data on stdin.
+#
+xdialog_info()
+{
+	local info_text="$*"
+	local size="$( dialog_infobox_size "$DIALOG_TITLE" "$info_text" )"
+
+	eval $DIALOG --title \"\$DIALOG_TITLE\" \
+	             --no-close --no-buttons    \
+	             --infobox \"\$info_text\"  \
+	             $size -1 # timeout of -1 means abort when EOF on stdin
+}
+
+# dialog_resolv_conf_update $hostname
+#
+# Updates the search/domain directives in resolv.conf(5) given a valid fully-
+# qualified hostname.
+#
+# This function is a two-parter. Below is the awk(1) portion of the function,
+# afterward is the sh(1) function which utilizes the below awk script.
+#
+dialog_resolv_conf_update_awk='
+# Variables that should be defined on the invocation line:
+# 	-v domain="domain"
+# 	-v search_all="0|1"
+# 	-v search_ndots="1+"
+#
+BEGIN {
+	domain_found = search_found = 0
+
+	if ( search_all ) {
+		search = ""
+		subdomain = domain
+		if ( search_ndots < 1 )
+			search_ndots = 1
+
+		ndots = split(subdomain, labels, ".") - 1
+		while ( ndots-- >= search_ndots ) {
+			if ( length(search) ) search = search " "
+			search = search subdomain
+			sub(/[^.]*\./, "", subdomain)
+		}
+	}
+	else search = domain
+}
+{
+	if ( domain_found && search_found ) { print; next }
+
+	tl0 = tolower($0)
+	if ( ! domain_found && \
+	     match(tl0, /^[[:space:]]*domain[[:space:]]+/) ) \
+	{
+		if ( length(domain) ) {
+			printf "%s%s\n", substr($0, 0, RLENGTH), domain
+			domain_found = 1
+		}
+	}
+	else if ( ! search_found && \
+	          match(tl0, /^[[:space:]]*search[[:space:]]+/) ) \
+	{
+		if ( length(search) ) {
+			printf "%s%s\n", substr($0, 0, RLENGTH), search
+			search_found = 1
+		}
+	}
+	else print
+}
+END {
+	if ( ! search_found && length(search) )
+		printf "search\t%s\n", search
+	if ( ! domain_found && length(domain) )
+		printf "domain\t%s\n", domain
+}
+'
+dialog_resolv_conf_update()
+{
+	local hostname="$1"
+
+	#
+	# Extrapolate the desired domain search parameter for resolv.conf(5)
+	#
+	local search ndots domain="${hostname#*.}"
+	if [ "$RESOLVER_SEARCH_DOMAINS_ALL" = "1" ]; then
+		search=""
+		ndots=$( IFS=.; set -- $domain; echo $(( $# - 1 )) )
+		while [ $ndots -ge ${RESOLVER_SEARCH_NDOTS:-1} ]; do
+			search="$search${search:+ }$domain"
+			domain="${domain#*.}"
+			ndots=$(( $ndots - 1 ))
+		done
+		domain="${hostname#*.}"
+	else
+		search="$domain"
+	fi
+
+	#
+	# Save domain/search information only if different from resolv.conf(5)
+	#
+	if [ "$domain" != "$( resolv_conf_domain )" -o \
+	     "$search" != "$( resolv_conf_search )" ]
+	then
+		dialog_info "Saving new domain/search settings" \
+		            "to resolv.conf(5)..."
+
+		#
+		# Create a new temporary file to write our resolv.conf(5)
+		# update with our new `domain' and `search' directives.
+		#
+		local tmpfile="$( mktemp -t "$progname" )"
+		[ "$tmpfile" ] || return $FAILURE
+
+		#
+		# Fixup permissions and ownership (mktemp(1) creates the
+		# temporary file with 0600 permissions -- change the
+		# permissions and ownership to match resolv.conf(5) before
+		# we write it out and mv(1) it into place).
+		#
+		local mode="$( stat -f '%#Lp' "$RESOLV_CONF" 2> /dev/null )"
+		local owner="$( stat -f '%u:%g' "$RESOLV_CONF" 2> /dev/null )"
+		quietly chmod "${mode:-0644}" "$tmpfile"
+		quietly chown "${owner:-root:wheel}" "$tmpfile"
+
+		#
+		# Operate on resolv.conf(5), replacing only the last
+		# occurrences of `domain' and `search' directives (or add
+		# them to the top if not found), in strict-adherence to the
+		# following entry in resolver(5):
+		#
+		# 	The domain and search keywords are mutually exclusive.
+		# 	If more than one instance of these keywords is present,
+		# 	the last instance will override.
+		#
+		# NOTE: If RESOLVER_SEARCH_DOMAINS_ALL is set to `1' in the
+		# environment, all sub-domains will be added to the `search'
+		# directive, not just the FQDN.
+		#
+		local domain="${hostname#*.}" new_contents
+		[ "$domain" = "$hostname" ] && domain=
+		new_contents=$( tail -r "$RESOLV_CONF" 2> /dev/null )
+		new_contents=$( echo "$new_contents" | awk \
+			-v domain="$domain" \
+			-v search_all="${RESOLVER_SEARCH_DOMAINS_ALL:-1}" \
+			-v search_ndots="${RESOLVER_SEARCH_NDOTS:-1}" \
+			"$dialog_resolv_conf_update_awk" )
+
+		#
+		# Write the temporary file contents and move the temporary
+		# file into place.
+		#
+		echo "$new_contents" | tail -r > "$tmpfile" || return $FAILURE
+		quietly mv "$tmpfile" "$RESOLV_CONF"
+
+	fi
+}
+
+###############################################################################
+########################### DIALOG MSGBOX FUNCTIONS ###########################
+###############################################################################
+
+# dialog_msgbox $msg_text ...
+#
+# Throw up a dialog(1) msgbox. The msgbox remains until the user presses ENTER
+# or ESC, acknowledging the modal dialog.
+#
+# If the user presses ENTER, the exit status is zero (success), otherwise if
+# the user presses ESC the exit status is 255.
+#
+dialog_msgbox()
+{
+	local msg_text="$*"
+	local size="$( dialog_buttonbox_size "$DIALOG_TITLE" "$msg_text" )"
+
+	eval $DIALOG --title \"\$DIALOG_TITLE\" \
+	             --msgbox \"\$msg_text\"    \
+	             $size
+}
+
+# dialog_validate_hostname $hostname
+#
+# Returns zero if the given argument (a fully-qualified hostname) is compliant
+# with standards set-forth in RFC's 952 and 1123 of the Network Working Group:
+#
+# RFC 952 - DoD Internet host table specification
+# http://tools.ietf.org/html/rfc952
+#
+# RFC 1123 - Requirements for Internet Hosts - Application and Support
+# http://tools.ietf.org/html/rfc1123
+#
+# See http://en.wikipedia.org/wiki/Hostname for a brief overview.
+#
+# The return status for invalid hostnames is one of:
+# 	255	Entire hostname exceeds the maximum length of 255 characters.
+# 	 63	One or more individual labels within the hostname (separated by
+# 	   	dots) exceeds the maximum of 63 characters.
+# 	  1	One or more individual labels within the hostname contains one
+# 	   	or more invalid characters.
+# 	  2	One or more individual labels within the hostname starts or
+# 	   	ends with a hyphen (hyphens are allowed, but a label cannot
+# 	   	begin or end with a hyphen).
+# 	  3	One or more individual labels within the hostname are null.
+#
+# If the hostname is determined to be invalid, the appropriate error will be
+# displayed using the above dialog_msgbox function.
+#
+dialog_validate_hostname()
+{
+	local fqhn="$1"
+
+	( # Operate within a sub-shell to protect the parent environment
+
+		# Return error if the hostname exceeds 255 characters
+		[ ${#fqhn} -gt 255 ] && exit 255
+
+		IFS="." # Split on `dot'
+		for label in $fqhn; do
+
+			# Return error if the label exceeds 63 characters
+			[ ${#label} -gt 63 ] && exit 63
+
+			# Return error if the label is null
+			[ "$label" ] || exit 3
+
+			# Return error if label begins/ends with dash
+			case "$label" in
+			-*|*-) exit 2
+			esac
+
+			# Return error if the label contains any invalid chars
+			echo "$label" | grep -q '^[[:alnum:]-]*$' || exit 1
+
+		done
+	)
+
+	#
+	# Produce an appropriate error message if necessary.
+	#
+	local retval=$?
+	case $retval in
+	1)   dialog_msgbox \
+	     "ERROR! One or more individual labels within the hostname\n"     \
+	     "(separated by dots) contains one or more invalid characters.\n" \
+	     "Labels are case-insensitive and must contain only 0-9, a-z,\n"  \
+	     "or dash (though must not begin with or end with a dash).\n"     \
+	     "\nInvalid Hostname: $fqhn"
+	     ;;
+	2)   dialog_msgbox \
+	     "ERROR! One or more individual labels within the hostname\n"     \
+	     "(separated by dots) starts or ends with a hyphen (hyphens\n"    \
+	     "are allowed, but a label cannot begin or end with a hyphen).\n" \
+	     "\nInvalid Hostname: $fqhn"
+	     ;;
+	3)   dialog_msgbox \
+	     "ERROR! One or more individual labels within the hostname\n" \
+	     "(separated by dots) are null.\n"                            \
+	     "\nInvalid Hostname: $fqhn"
+	     ;;
+	63)  dialog_msgbox \
+	     "ERROR! One or more individual labels within the hostname\n"  \
+	     "(separated by dots) exceeds the maximum of 63 characters.\n" \
+	     "\nInvalid Hostname: $fqhn"
+	     ;;
+	255) dialog_msgbox \
+	     "ERROR! The hostname entered exceeds the maximum length of\n" \
+	     "255 characters.\n"                                           \
+	     "\nInvalid Hostname: $fqhn"
+	     ;;
+	esac
+
+	return $retval
+}
+
+# dialog_validate_ipaddr $ipaddr
+#
+# Returns zero if the given argument (an IP address) is of the proper format.
+#
+# The return status for invalid IP address is one of:
+# 	1	One or more individual octets within the IP address (separated
+# 	 	by dots) contains one or more invalid characters.
+# 	2	One or more individual octets within the IP address are null
+# 	 	and/or missing.
+# 	3	One or more individual octets within the IP address exceeds the
+# 	 	maximum of 255 (or 2^8, being an octet comprised of 8 bits).
+# 	4	The IP address has either too few or too many octets.
+#
+# If the IP address is determined to be invalid, the appropriate error will be
+# displayed using the above dialog_msgbox function.
+#
+dialog_validate_ipaddr()
+{
+	local ip="$1"
+
+	( # Operate within a sub-shell to protect the parent environment
+
+		# Track number of octets for error checking
+		noctets=0
+
+		IFS="." # Split on `dot'
+		for octet in $ip; do
+
+			# Return error if the octet is null
+			[ "$octet" ] || exit 2
+
+			# Return error if not a whole integer
+			isinteger "$octet" || exit 1
+
+			# Return error if not a positive integer
+			[ $octet -ge 0 ] || exit 1
+
+			# Return error if the octet exceeds 255
+			[ $octet -gt 255 ] && exit 3
+
+			noctets=$(( $noctets + 1 ))
+
+		done
+
+		[ $noctets -eq 4 ] || exit 4
+	)
+
+	#
+	# Produce an appropriate error message if necessary.
+	#
+	local retval=$?
+	case $retval in
+	1) dialog_msgbox \
+	   "ERROR! One or more individual octets within the IP address\n"   \
+	   "(separated by dots) contains one or more invalid characters.\n" \
+	   "Octets must contain only the characters 0-9.\n"                 \
+	   "\nInvalid IP Address: $ip"
+	   ;;
+	2) dialog_msgbox \
+	   "ERROR! One or more individual octets within the IP address\n" \
+	   "(separated by dots) are null and/or missing.\n"               \
+	   "\nInvalid IP Address: $ip"
+	   ;;
+	3) dialog_msgbox \
+	   "ERROR! One or more individual octets within the IP address\n" \
+	   "(separated by dots) exceeds the maximum of 255.\n"            \
+	   "\nInvalid IP Address: $ip"
+	   ;;
+	4) dialog_msgbox \
+	   "ERROR! The IP address entered has either too few or too many\n" \
+	   "octets.\n"                                                      \
+	   "\nInvalid IP Address: $ip"
+	   ;;
+	esac
+
+	return $retval
+}
+
+# dialog_validate_netmask $netmask
+#
+# Returns zero if the given argument (a subnet mask) is of the proper format.
+#
+# The return status for invalid IP address is one of:
+# 	1	One or more individual fields within the subnet mask (separated
+# 	 	by dots) contains one or more invalid characters.
+# 	2	One or more individual fields within the subnet mask are null
+# 	 	and/or missing.
+# 	3	One or more individual fields within the subnet mask exceeds
+# 	 	the maximum of 255 (a full 8-bit register).
+# 	4	The subnet mask has either too few or too many fields.
+# 	5	One or more individual fields within the subnet mask is an
+# 	 	invalid integer (only 0,128,192,224,240,248,252,254,255 are
+# 	 	valid integers).
+#
+# If the subnet mask is determined to be invalid, the appropriate error will be
+# displayed using the above dialog_msgbox function.
+#
+dialog_validate_netmask()
+{
+	local mask="$1"
+
+	( # Operate within a sub-shell to protect the parent environment
+
+		# Track number of fields for error checking
+		nfields=0
+
+		IFS="." # Split on `dot'
+		for field in $mask; do
+
+			# Return error if the field is null
+			[ "$field" ] || exit 2
+
+			# Return error if not a whole positive integer
+			isinteger "$field" || exit 1
+
+			# Return error if the field exceeds 255
+			[ $field -gt 255 ] && exit 3
+
+			# Return error if the field is an invalid integer
+			case "$field" in
+			0|128|192|224|240|248|252|254|255) :;;
+			*) exit 5;;
+			esac
+
+			nfields=$(( $nfields + 1 ))
+
+		done
+
+		[ $nfields -eq 4 ] || exit 4
+	)
+
+	#
+	# Produce an appropriate error message if necessary.
+	#
+	local retval=$?
+	case $retval in
+	1) dialog_msgbox \
+	   "ERROR! One or more individual fields within the subnet mask\n"  \
+	   "(separated by dots) contains one or more invalid characters.\n" \
+	   "Fields must contain only the characters 0-9.\n"                 \
+	   "\nInvalid Subnet Mask: $mask"
+	   ;;
+	2) dialog_msgbox \
+	   "ERROR! One or more individual fields within the subnet mask\n" \
+	   "(separated by dots) are null and/or missing.\n"                \
+	   "\nInvalid Subnet Mask: $mask"
+	   ;;
+	3) dialog_msgbox \
+	   "ERROR! One or more individual fields within the subnet mask\n" \
+	   "(separated by dots) exceeds the maximum of 255.\n"             \
+	   "\nInvalid Subnet Mask: $mask"
+	   ;;
+	4) dialog_msgbox \
+	   "ERROR! The subnet mask entered has either too few or too many\n" \
+	   "fields.\n"                                                       \
+	   "\nInvalid Subnet Mask: $mask"
+	   ;;
+	5) dialog_msgbox \
+	   "ERROR! One or more individual fields within the subnet mask\n" \
+	   "(separated by dots) contains one or more invalid integers.\n"  \
+	   "Fields must be one of 0/128/192/224/240/248/252/254/255.\n"    \
+	   "\nInvalid Subnet Mask: $mask"
+	   ;;
+	esac
+
+	return $retval
+}
+
+###############################################################################
+########################### DIALOG YESNO FUNCTIONS ############################
+###############################################################################
+
+# dialog_yesno $msg_text ...
+#
+# Display a dialog(1) Yes/No prompt to allow the user to make some decision.
+# The yesno prompt remains until the user presses ENTER or ESC, acknowledging
+# the modal dialog.
+#
+# If the user chooses YES the exit status is zero, or chooses NO the exit
+# status is one, or presses ESC the exit status is 255.
+#
+dialog_yesno()
+{
+	local msg_text="$*"
+	local size="$( dialog_buttonbox_size "$DIALOG_TITLE" "$msg_text" )"
+	local hline=
+
+	[ "$DIALOG_ENABLE_HLINE" ] && \
+		hline="Press arrows, TAB or ENTER"
+
+	eval $DIALOG --title \"\$DIALOG_TITLE\"             \
+	             ${hline:+--hline} ${hline:+"'$hline'"} \
+	             --yesno \"\$msg_text\"                 \
+	             $size
+}
+
+###############################################################################
+########################## DIALOG INPUTBOX FUNCTIONS ##########################
+###############################################################################
+
+# dialog_inputstr
+#
+# Obtain the inputstr entered by the user from the most recently displayed
+# dialog(1) inputbox and clean up any temporary files.
+#
+dialog_inputstr()
+{
+	local tmpfile="$DIALOG_TMPDIR/dialog.inputbox.$$"
+
+	[ -f "$tmpfile" ] || return $FAILURE
+
+	# Trim leading/trailing whitespace from user input
+	sed -e 's/^[[:space:]]*//;s/[[:space:]]*$//' < "$tmpfile" 2> /dev/null
+
+	quietly rm -f "$tmpfile"
+
+	return $SUCCESS
+}
+
+# dialog_input_hostname
+#
+# Edits the current hostname.
+#
+dialog_input_hostname()
+{
+	local hostname="$( sysrc_get 'hostname:-$(hostname)' )"
+	local hostname_orig="$hostname" # for change-tracking
+
+	local msg
+	msg="Please enter your fully qualified hostname (e.g. foo.bar.com)."
+	[ "$USE_XDIALOG" ] && msg="$msg\n"
+	msg="$msg The domain"
+	[ ! "$USE_XDIALOG" ] && msg="$msg\n"
+	msg="${msg}portion of the hostname will be configured in"
+	msg="$msg resolv.conf(5)."
+
+	local hline=
+	[ "$DIALOG_ENABLE_HLINE" ] && \
+		hline="Use alpha-numeric, punctuation, TAB or ENTER"
+
+	#
+	# Loop until the user provides taint-free input.
+	#
+	local size height width
+	while :; do
+
+		size="$( dialog_inputbox_size "$DIALOG_TITLE" \
+		                              "$msg" "$hostname" )"
+		eval $DIALOG \
+			--title \"\$DIALOG_TITLE\"             \
+			${hline:+--hline} ${hline:+"'$hline'"} \
+			--inputbox \"\$msg\" $size             \
+			\"\$hostname\"                         \
+			2> "$DIALOG_TMPDIR/dialog.inputbox.$$"
+
+		local retval=$?
+		hostname="$( dialog_inputstr )"
+
+		[ $retval -eq $SUCCESS ] || return $retval
+
+		# Taint-check the user's input
+		dialog_validate_hostname "$hostname" && break
+
+	done
+
+	#
+	# Save hostname only if the user changed the hostname.
+	#
+	if [ "$hostname" != "$hostname_orig" ]; then
+		dialog_info "Saving new hostname/domain settings..."
+		sysrc_set hostname "$hostname"
+	fi
+
+	#
+	# Update resolv.conf(5) search/domain directives
+	#
+	dialog_resolv_conf_update "$hostname"
+
+	#
+	# Only ask to apply setting if the current hostname is different than
+	# the stored configuration (in rc.conf(5)).
+	#
+	if [ "$( hostname )" != "$( sysrc_get hostname )" ]; then
+		[ ! "$USE_XDIALOG" ] && dialog_clear
+
+		#
+		# If connected via ssh(1) and performing X11-Forwarding, don't
+		# allow the hostname to be changed to prevent the fatal error
+		# "X11 connection rejected because of wrong authentication."
+		#
+		if [ "$USE_XDIALOG" -a "$SSH_CONNECTION" ]; then
+			dialog_msgbox \
+			"WARNING! Activating the new hostname during an"   \
+			"X11-Forwarded\n ssh(1) session will cause an X11" \
+			"authentication error.\n\n     Current Hostname:"  \
+			"$( hostname )\n         New Hostname:"            \
+			"$hostname\n\nNOTE: Settings will become active"   \
+			"upon reboot or if you\n relaunch this utility"    \
+			"either locally or on the console."
+		else
+			dialog_yesno \
+			"Would you like to activate the new hostname right" \
+			"now?\nIf you choose NO or press ESC, changes will" \
+			"be applied\nduring the next boot.\n\n     Current" \
+			"Hostname: $( hostname )\n         New Hostname:"   \
+			"$hostname\n\nNOTE: Your shell prompt may still"    \
+			"reflect the original\nhostname until your next"    \
+			"login." && hostname "$hostname"
+		fi
+	fi
+
+	return $SUCCESS
+}
+
+# dialog_input_defaultrouter
+#
+# Edits the default router.
+#
+dialog_input_defaultrouter()
+{
+	#
+	# Get the defaultrouter. When this is not configured, the default is
+	# "NO", however we don't ever want to present this default to the user
+	# in the following dialog. If the current value is "NO", then try to
+	# obtain the value from the running system using route(8).
+	#
+	# NOTE: Our `route_get_default' function will return NULL if the
+	# system does not have an active default router set (which is what we
+	# want).
+	#
+	local defaultrouter="$( sysrc_get 'defaultrouter:-NO' )"
+	local defaultrouter_orig="$defaultrouter" # for change-tracking
+	case "$defaultrouter" in
+	[Nn][Oo])
+		defaultrouter="$( route_get_default )"
+		;;
+	esac
+
+	#
+	# Return with-error when there are NFS-mounts currently active. If the
+	# default router/gateway is changed while NFS-exported directories are
+	# mounted, the system will hang.
+	#
+	if nfs_mounted && ! jailed; then
+		dialog_msgbox                                                \
+		"WARNING! Changing this setting while NFS directories are\n" \
+		"mounted may cause the system to hang. Please exit this\n"   \
+		"utility and dismount any/all remaining NFS-mounts before\n" \
+		"attempting to change this setting.\n"                       \
+		"\nCurrent Default Route/Gateway: $defaultrouter"
+
+		return $FAILURE
+	fi
+
+	local msg
+	msg="Please enter the TCP/IP address of your default\n"
+	msg="${msg}router/gateway.  The address entered will be\n"
+	msg="${msg}applied as the default gateway for all interfaces\n"
+	msg="${msg}using route(4)."
+
+	local hline=
+	[ "$DIALOG_ENABLE_HLINE" ] && \
+		hline="Use numbers, punctuation, TAB or ENTER"
+
+	#
+	# Loop until the user provides taint-free input.
+	#
+	local size="$( dialog_inputbox_size "$DIALOG_TITLE" \
+	                                    "$msg" "$defaultrouter" )"
+	while :; do
+
+		eval $DIALOG \
+			--title \"\$DIALOG_TITLE\"             \
+			${hline:+--hline} ${hline:+"'$hline'"} \
+			--inputbox \"\$msg\" $size             \
+			\"\$defaultrouter\"                    \
+			2> "$DIALOG_TMPDIR/dialog.inputbox.$$"
+
+		local retval=$?
+		defaultrouter="$( dialog_inputstr )"
+
+		[ "$defaultrouter" ] || return $SUCCESS
+		[ $retval -eq $SUCCESS ] || return $retval
+
+		# Taint-check the user's input
+		dialog_validate_ipaddr "$defaultrouter" && break
+
+	done
+
+	#
+	# Save only if the user changed the default router/gateway.
+	#
+	if [ "$defaultrouter" != "$defaultrouter_orig" ]; then
+		dialog_info "Saving new default router/gateway settings..."
+
+		# Save the default router/gateway
+		sysrc_set defaultrouter "$defaultrouter"
+	fi
+
+	#
+	# Only ask to apply setting if the current defaultrouter is different
+	# than the stored configuration (in rc.conf(5)).
+	#
+	if [ "$( route_get_default )" != "$defaultrouter" ]; then
+		dialog_clear
+		dialog_yesno \
+		"Would you like to activate the new defaultrouter right now?" \
+		"\nIf you choose NO or press ESC, changes will be applied"    \
+		"\nduring the next boot.\n"                                   \
+		"\n     Current Default Router: $( route_get_default )"       \
+		"\n         New Default Router: $defaultrouter\n"
+
+		if [ $? -eq $SUCCESS ]; then
+			local err
+
+			# Apply the default router/gateway
+			quietly route delete default
+			err=$( route add default "$defaultrouter" 2>&1 )
+			if [ $? -ne $SUCCESS ]; then
+				dialog_msgbox "$err"
+				return $FAILURE
+			fi
+		fi
+	fi
+}
+
+# dialog_input_ipaddr $interface $ipaddr
+#
+# Allows the user to edit a given IP address. If the user does not cancel or
+# press ESC, the $ipaddr environment variable will hold the newly-configured
+# value upon return.
+#
+# Optionally, the user can enter the format "IP_ADDRESS/NBITS" to set the
+# netmask at the same time as the IP address. If such a format is entered by
+# the user, the $netmask environment variable will hold the newly-configured
+# netmask upon return.
+#
+dialog_input_ipaddr()
+{
+	local interface="$1" _ipaddr="$2" _input
+
+	#
+	# Return with-error when there are NFS-mounts currently active. If the
+	# IP address is changed while NFS-exported directories are mounted, the
+	# system may hang (if any NFS mounts are using that interface).
+	#
+	if nfs_mounted && ! jailed; then
+		dialog_msgbox                                                \
+		"WARNING! Changing this setting while NFS directories are\n" \
+		"mounted may cause the system to hang. Please exit this\n"   \
+		"utility and dismount any/all remaining NFS-mounts before\n" \
+		"attempting to change this setting.\n"                       \
+		"\nCurrent IP Address for $interface: $_ipaddr"
+
+		return $FAILURE
+	fi
+
+	local msg
+	msg="Please enter the new TCP/IP address"
+	msg="$msg of the $interface interface:"
+
+	local hline=
+	[ "$DIALOG_ENABLE_HLINE" ] && \
+		hline="Use numbers, punctuation, TAB or ENTER"
+
+	#
+	# Loop until the user provides taint-free input.
+	#
+	local size="$( dialog_inputbox_size "$DIALOG_TITLE" \
+	                                    "$msg" "$_ipaddr" )"
+	while :; do
+
+		eval $DIALOG \
+			--title \"\$DIALOG_TITLE\"             \
+			${hline:+--hline} ${hline:+"'$hline'"} \
+			--inputbox \"\$msg\" $size             \
+			\"\$_ipaddr\"                          \
+			2> "$DIALOG_TMPDIR/dialog.inputbox.$$"
+
+		local retval=$?
+		_input="$( dialog_inputstr )"
+
+		#
+		# Return error status if:
+		# - User has not made any changes to the given value
+		# - User has either pressed ESC or chosen Cancel/No
+		#
+		[ "$_ipaddr" = "$_input" ] && return $FAILURE
+		[ $retval -eq $SUCCESS ] || return $retval
+
+		# Return success if NULL value was entered
+		[ "$_input" ] || return $SUCCESS
+
+		# Take only the first "word" of the user's input
+		_ipaddr="$_input"
+		_ipaddr="${_ipaddr%%[$IFS]*}"
+
+		# Taint-check the user's input
+		dialog_validate_ipaddr "${_ipaddr%%/*}" && break
+
+	done
+
+	#
+	# Support the syntax: IP_ADDRESS/NBITS
+	#
+	local _netmask=""
+	case "$_ipaddr" in
+	*/*)
+		local nbits="${_ipaddr#*/}" n=0
+		_ipaddr="${_ipaddr%%/*}"
+
+		#
+		# Taint-check $nbits to be (a) a positive whole-integer,
+		# and (b) to be less than or equal to 32. Otherwise, set
+		# $n so that the below loop never executes.
+		#
+		( isinteger "$nbits" && [ $nbits -ge 0 -a $nbits -le 32 ] ) \
+			|| n=4
+
+		while [ $n -lt 4 ]; do
+			_netmask="$_netmask${_netmask:+.}$((
+				(65280 >> ($nbits - 8 * $n) & 255)
+				* ((8*$n) < $nbits & $nbits <= (8*($n+1)))
+				+ 255 * ($nbits > (8*($n+1)))
+			))"
+			n=$(( $n + 1 ))
+		done
+		;;
+	esac
+
+	ipaddr="$_ipaddr"
+	[ "$_netmask" ] && netmask="$_netmask"
+
+	return $SUCCESS
+}
+
+# dialog_input_netmask $interface $netmask
+#
+# Edits the IP netmask of the given interface.
+#
+dialog_input_netmask()
+{
+	local interface="$1" _netmask="$2" _input
+
+	#
+	# Return with-error when there are NFS-mounts currently active. If the
+	# subnet mask is changed while NFS-exported directories are mounted,
+	# the system may hang (if any NFS mounts are using that interface).
+	#
+	if nfs_mounted && ! jailed; then
+		dialog_msgbox                                                \
+		"WARNING! Changing this setting while NFS directories are\n" \
+		"mounted may cause the system to hang. Please exit this\n"   \
+		"utility and dismount any/all remaining NFS-mounts before\n" \
+		"attempting to change this setting.\n"                       \
+		"\nCurrent Subnet Mask for $interface: $_netmask"
+
+		return $FAILURE
+	fi
+
+	local msg
+	msg="Please enter the new network subnet mask"
+	msg="$msg for the $interface interface:"
+
+	local hline=
+	[ "$DIALOG_ENABLE_HLINE" ] && \
+		hline="Use numbers, punctuation, TAB or ENTER"
+
+	#
+	# Loop until the user provides taint-free input.
+	#
+	local size="$( dialog_inputbox_size "$DIALOG_TITLE" \
+	                                    "$msg" "$_netmask" )"
+	while :; do
+
+		eval $DIALOG \
+			--title \"\$DIALOG_TITLE\"             \
+			${hline:+--hline} ${hline:+"'$hline'"} \
+			--inputbox \"\$msg\" $size             \
+			\"\$_netmask\"                         \
+			2> "$DIALOG_TMPDIR/dialog.inputbox.$$"
+
+		local retval=$?
+		_input="$( dialog_inputstr )"
+
+		#
+		# Return error status if:
+		# - User has not made any changes to the given value
+		# - User has either pressed ESC or chosen Cancel/No
+		#
+		[ "$_netmask" = "$_input" ] && return $FAILURE
+		[ $retval -eq $SUCCESS ] || return $retval
+
+		# Return success if NULL value was entered
+		[ "$_input" ] || return $SUCCESS
+
+		# Take only the first "word" of the user's input
+		_netmask="$_input"
+		_netmask="${_netmask%%[$IFS]*}"
+
+		# Taint-check the user's input
+		dialog_validate_netmask "$_netmask" && break
+
+	done
+
+	netmask="$_netmask"
+}
+
+# dialog_input_options $interface
+#
+# Input custom interface options.
+#
+dialog_input_options()
+{
+	local interface="$1"
+
+	#
+	# Return with-error when there are NFS-mounts currently active. If the
+	# options are changed while NFS-exported directories are mounted,
+	# the system may hang (if any NFS mounts are using that interface).
+	#
+	if nfs_mounted && ! jailed; then
+		dialog_msgbox                                                \
+		"WARNING! Changing this setting while NFS directories are\n" \
+		"mounted may cause the system to hang. Please exit this\n"   \
+		"utility and dismount any/all remaining NFS-mounts before\n" \
+		"attempting to change this setting.\n"                       \
+		"\nCurrent Options for $interface: $options"
+
+		return $FAILURE
+	fi
+
+	local msg
+	msg="Please enter additional network media options to be"
+	msg="$msg passed to ifconfig(8) for the $interface interface:"
+
+	local hline=
+	[ "$DIALOG_ENABLE_HLINE" ] && \
+		hline="Use numbers, punctuation, TAB or ENTER"
+
+	$DIALOG --title "$DIALOG_TITLE"              \
+	        ${hline:+--hline} ${hline:+"$hline"} \
+	        --inputbox "$msg" 9 70               \
+	        "$options"                           \
+	        2> "$DIALOG_TMPDIR/dialog.inputbox.$$"
+
+	local retval=$?
+	local _options="$( dialog_inputstr )"
+
+	[ $retval -eq $SUCCESS ] && options="$_options"
+
+	return $retval
+}
+
+# dialog_input_nameserver $nameserver
+#
+# Allows the user to edit a given nameserver. The first argument is the
+# resolv.conf(5) nameserver ``instance'' integer. For example, this will be one
+# if editing the first nameserver instance, two if editing the second, three if
+# the third, ad nauseum. If this argument is zero, null, or missing, the value
+# entered by the user (if non-null) will be added to resolv.conf(5) as a new
+# `nameserver' entry. The second argument is the IPv4 address of the nameserver
+# to be edited -- this will be displayed as the initial value during the edit.
+#
+# Taint-checking is performed when editing an existing entry (when the second
+# argument is one or higher) in that the first argument must match the current
+# value of the Nth `nameserver' instance in resolv.conf(5) else an error is
+# generated discarding any/all changes.
+#
+# This function is a two-parter. Below is the awk(1) portion of the function,
+# afterward is the sh(1) function which utilizes the below awk script.
+#
+dialog_input_nameserver_edit_awk='
+# Variables that should be defined on the invocation line:
+# 	-v nsindex="1+"
+# 	-v old_value="..."
+# 	-v new_value="..."
+#
+BEGIN {
+	if ( nsindex < 1 ) exit 1
+	found = n = 0
+}
+{
+	if ( found ) { print; next }
+
+	if ( match(tolower($0), /^[[:space:]]*nameserver[[:space:]]+/)) {
+		if ( ++n == nsindex ) {
+			if ( $2 != old_value ) exit 2
+			if ( new_value != "" ) printf "%s%s\n", \
+				substr($0, 0, RLENGTH), new_value
+			found = 1
+		}
+		else print
+	}
+	else print
+}
+END { if ( ! found ) exit 3 }
+'
+dialog_input_nameserver()
+{
+	local index="${1:-0}" old_ns="$2" new_ns
+	local ns="$old_ns"
+
+	#
+	# Perform sanity checks
+	#
+	isinteger "$index" || return $FAILURE
+	[ $index -ge 0 ] || return $FAILURE
+
+	local msg
+	msg="Please enter the new TCP/IP address of the DNS nameserver"
+	if [ $index -gt 0 ]; then
+		msg="$msg\n(set to the NULL string"
+		[ ! "$USE_XDIALOG" ] && msg="$msg [Ctrl-U]"
+		msg="$msg to remove entry)"
+	fi
+	msg="$msg:"
+
+	local hline=
+	[ "$DIALOG_ENABLE_HLINE" ] && \
+		hline="Use numbers, punctuation, TAB or ENTER"
+
+	#
+	# Loop until the user provides taint-free input.
+	#
+	local size="$( dialog_inputbox_size "$DIALOG_TITLE" "$msg" "$ns" )"
+	while :; do
+
+		eval $DIALOG \
+			--title \"\$DIALOG_TITLE\"             \
+			${hline:+--hline} ${hline:+"'$hline'"} \
+			--inputbox \"\$msg\" $size             \
+			\"\$ns\"                               \
+			2> "$DIALOG_TMPDIR/dialog.inputbox.$$"
+
+		local retval=$?
+		new_ns="$( dialog_inputstr )"
+
+		[ $retval -eq $SUCCESS ] || return $retval
+
+		# Take only the first "word" of the user's input
+		new_ns="${new_ns%%[$IFS]*}"
+
+		# Taint-check the user's input
+		[ "$new_ns" ] || break
+		dialog_validate_ipaddr "$new_ns" && break
+
+		# Update prompt to allow user to re-edit previous entry
+		ns="$new_ns"
+
+	done
+
+	#
+	# Save only if the user changed the nameserver.
+	#
+	if [ $index -eq "0" -a "$new_ns" ]; then
+		dialog_info "Saving new DNS nameserver to resolv.conf(5)..."
+		printf "nameserver\t%s\n" "$new_ns" >> "$RESOLV_CONF"
+		return $SUCCESS
+	elif [ $index -gt 0 -a "$old_ns" != "$new_ns" ]; then
+		if [ "$new_ns" ]; then
+			msg="Editing DNS nameserver in resolv.conf(5)..."
+		else
+			msg="Removing DNS nameserver from resolv.conf(5)..."
+		fi
+		dialog_info "$msg"
+
+		#
+		# Create a new temporary file to write our new resolv.conf(5)
+		#
+		local tmpfile="$( mktemp -t "$progname" )"
+		[ "$tmpfile" ] || return $FAILURE
+
+		#
+		# Quietly fixup permissions and ownership
+		#
+		local mode owner
+		mode=$( stat -f '%#Lp' "$RESOLV_CONF" 2> /dev/null )
+		owner=$( stat -f '%u:%g' "$RESOLV_CONF" 2> /dev/null )
+		quietly chmod "${mode:-0644}" "$tmpfile"
+		quietly chown "${owner:-root:wheel}" "$tmpfile"
+
+		#
+		# Operate on resolv.conf(5)
+		#
+		local new_contents
+		new_contents=$( awk -v nsindex="$index"    \
+		                    -v old_value="$old_ns" \
+		                    -v new_value="$new_ns" \
+		                    "$dialog_input_nameserver_edit_awk" \
+		                    "$RESOLV_CONF" )
+
+		#
+		# Produce an appropriate error message if necessary.
+		#
+		local retval=$?
+		case $retval in
+		1) dialog_msgbox \
+		   "FATAL! dialog_input_nameserver_edit_awk: variable\n" \
+		   "nsindex must be a whole positive integer greater-\n" \
+		   "than or equal-to zero.\n"                            \
+		   "\nInvalid nsindex: $index"
+		   die "Fatal Error."
+		   ;;
+		2) dialog_msgbox \
+		   "ERROR! resolv.conf(5) has changed while editing this\n" \
+		   "value. Please try again after waiting a few seconds."
+		   return $retval
+		   ;;
+		3) dialog_msgbox \
+		   "ERROR! The entry you are trying to edit no longer\n" \
+		   "exists in resolv.conf(5). Please try again after\n"  \
+		   "waiting a few seconds.\n"                            \
+		   "\nInvalid Subnet Mask: $mask"
+		   return $retval
+		   ;;
+		esac
+
+		#
+		# Write the temporary file contents and move the temporary
+		# file into place.
+		#
+		echo "$new_contents" > "$tmpfile" || return $FAILURE
+		quietly mv "$tmpfile" "$RESOLV_CONF"
+	fi
+}
+
+###############################################################################
+############################ DIALOG MENU FUNCTIONS ############################
+###############################################################################
+
+# dialog_menutag
+#
+# Obtain the menutag chosen by the user from the most recently displayed
+# dialog(1) menu and clean up any temporary files.
+#
+dialog_menutag()
+{
+	local tmpfile="$DIALOG_TMPDIR/dialog.menu.$$"
+
+	[ -f "$tmpfile" ] || return $FAILURE
+
+	cat "$tmpfile" 2> /dev/null
+	quietly rm -f "$tmpfile"
+
+	return $SUCCESS
+}
+
+# dialog_menutag2item $tag_chosen $tag1 $item1 $tag2 $item2 ...
+#
+# To use the `--menu' option of dialog(1) you must pass an ordered list of
+# tag/item pairs on the command-line. When the user selects a menu option the
+# tag for that item is printed to stderr.
+#
+# This function allows you to dereference the tag chosen by the user back into
+# the item associated with said tag.
+#
+# Pass the tag chosen by the user as the first argument, followed by the
+# ordered list of tag/item pairs (HINT: use the same tag/item list as was
+# passed to dialog(1) for consistency).
+#
+# If the tag cannot be found, NULL is returned.
+#
+dialog_menutag2item()
+{
+	local tag="$1" tagn item
+	shift 1
+
+	while [ $# -gt 0 ]; do
+		tagn="$1"
+		item="$2"
+		shift 2
+
+		if [ "$tag" = "$tagn" ]; then
+			echo "$item"
+			return $SUCCESS
+		fi
+	done
+	return $FAILURE
+}
+
+# dialog_menutag2index $tag_chosen $tag1 $item1 $tag2 $item2 ...
+#
+# To use the `--menu' option of dialog(1) you must pass an ordered list of
+# tag/item pairs on the command-line. When the user selects a menu option the
+# tag for that item is printed to stderr.
+#
+# This function allows you to dereference the tag chosen by the user back into
+# the index associated with said tag. The index is the one-based tag/item pair
+# array position within the ordered list of tag/item pairs passed to dialog(1).
+#
+# Pass the tag chosen by the user as the first argument, followed by the
+# ordered list of tag/item pairs (HINT: use the same tag/item list as was
+# passed to dialog(1) for consistency).
+#
+# If the tag cannot be found, NULL is returned.
+#
+dialog_menutag2index()
+{
+	local tag="$1" tagn n=1
+	shift 1
+
+	while [ $# -gt 0 ]; do
+		tagn="$1"
+		shift 2
+
+		if [ "$tag" = "$tagn" ]; then
+			echo $n
+			return $SUCCESS
+		fi
+		n=$(( $n + 1 ))
+	done
+	return $FAILURE
+}
+
+# dialog_menu_root
+#
+# Display the dialog(1)-based application root menu.
+#
+dialog_menu_root()
+{
+	local msg
+	if [ "$USE_XDIALOG" ]; then
+		msg="Welcome to $brand${brand:+ }${progname:-${0##*/}}"
+		msg="$msg${revision:+ (v}$revision${revision:+)}.\\n"
+		msg="${msg}Please select from the below list of options:"
+	else
+		msg="Welcome to $brand${brand:+ }${progname:-${0##*/}}."
+		msg="$msg Please select from the below\\nlist of options:"
+	fi
+
+	local menu_list size height width rows
+
+	case "$UNAME_S" in
+	Linux)
+		menu_list="
+			'1' 'Configure Time Zone (Currently: $(date +%Z))'
+			'5' 'Configure DNS nameservers'
+			'X' 'Exit Utility'
+		" # END-QUOTE
+		;;
+
+	FreeBSD)
+		menu_list="
+			'1' 'Configure Time Zone (Currently: $(date +%Z))'
+			'2' 'Configure Hostname/Domain'
+			'3' 'Configure Network Interfaces'
+			'4' 'Configure Default Router/Gateway'
+			'5' 'Configure DNS nameservers'
+			'X' 'Exit Utility'
+		" # END-QUOTE
+		;;
+
+	*)
+		menu_list="
+			'1' 'Configure Time Zone (Currently: $(date +%Z))'
+			'5' 'Configure DNS nameservers'
+			'X' 'Exit Utility'
+		" # END-QUOTE
+	esac
+
+	local hline=
+	[ "$DIALOG_ENABLE_HLINE" ] && \
+		hline="Press arrows, TAB or ENTER"
+
+	size=$( eval dialog_menu_size \"\$DIALOG_TITLE\" \
+	                              \"\$msg\" $menu_list )
+
+	#
+	# Enforce some minimums
+	#
+	height=${size%%[$IFS]*}
+	width=${size#*[$IFS]}
+	width=${width%%[$IFS]*}
+	rows=${size##*[$IFS]}
+	if [ $rows -lt 9 ]; then
+		height=$(( $height + (9 - $rows)))
+		rows=9
+	fi
+
+	eval $DIALOG \
+		--clear --title \"\$DIALOG_TITLE\"     \
+		${hline:+--hline} ${hline:+"'$hline'"} \
+		--menu \"\$msg\" $height $width $rows  \
+		$menu_list                             \
+		2> "$DIALOG_TMPDIR/dialog.menu.$$"
+}
+
+# dialog_menu_netdev
+#
+# Display a list of network devices with descriptions.
+#
+dialog_menu_netdev()
+{
+	#
+	# Display a message to let the user know we're working...
+	# (message will remain until we throw up the next dialog)
+	#
+	dialog_info "Probing network interface devices..."
+
+	#
+	# Get list of usable network interfaces
+	#
+	local d='[[:digit:]]+:'
+	local iflist="`echo "$(ifconfig -l):" | sed -E -e "
+		# Convert all spaces to colons
+		y/ /:/
+
+		# Prune unsavory interfaces
+		s/lo$d//g
+		s/ppp$d//g
+		s/sl$d//g
+		s/lp$d//g
+		s/fwe$d//g
+		s/faith$d//g
+		s/plip$d//g
+
+		# Convert all colons back into spaces
+		y/:/ /
+	"`"
+
+	#
+	# Optionally kick interfaces in the head to get them to accurately
+	# track the carrier status in realtime (required on FreeBSD).
+	#
+	if [ "$DIALOG_MENU_NETDEV_KICK_INTERFACES" ]; then
+		DIALOG_MENU_NETDEV_KICK_INTERFACES=
+
+		local ifn
+		for ifn in $iflist; do
+			quietly ifconfig $ifn up
+		done
+
+		if [ "$DIALOG_MENU_NETDEV_SLEEP_AFTER_KICK" ]; then
+			# interfaces need time to update carrier status
+			sleep $DIALOG_MENU_NETDEV_SLEEP_AFTER_KICK
+		fi
+	fi
+
+	#
+	# Mark any "active" interfaces with an asterisk (*)
+	# to the right of the device name.
+	#
+	interfaces="$(
+		for ifn in $iflist; do
+			active=$( ifconfig $ifn | awk \
+			'
+				( $1 == "status:" ) \
+				{
+					if ( $2 == "active" ) { print 1; exit }
+				}
+			' )
+			printf "'%s%s' '%s'\n" \
+				"$ifn" "${active:+*}" "$(device_desc "$ifn")"
+		done
+	)"
+	[ "$interfaces" ] \
+		|| die "No TCP/IP network interfaces detected."
+
+	local hline=
+	[ "$DIALOG_ENABLE_HLINE" ] && \
+		hline="Press arrows, TAB or ENTER"
+
+	#
+	# Ask user to select an interface
+	#
+	local prompt size
+	prompt="Select a TCP/IP network interface to configure.\n\n"
+	prompt="$prompt* Interface is marked as \"active\""
+	size=$( eval dialog_menu_size \"\$DIALOG_TITLE\" \
+	                              \"\$prompt\" $interfaces )
+	eval $DIALOG \
+		--clear --title \"\$DIALOG_TITLE\"     \
+		${hline:+--hline} ${hline:+"'$hline'"} \
+		--menu \"\$prompt\" $size              \
+		$interfaces                            \
+		2> "$DIALOG_TMPDIR/dialog.menu.$$"
+}
+
+# dialog_menu_netdev_edit $interface $ipaddr $netmask $options $dhcp
+#
+# Allow a user to edit network interface settings. Current values are not
+# probed but rather taken from the positional arguments.
+#
+dialog_menu_netdev_edit()
+{
+	local interface="$1" ipaddr="$2" netmask="$3" options="$4" dhcp="$5"
+	local prompt menu_list size
+
+	#
+	# Create a duplicate set of variables for change-tracking...
+	#
+	local ipaddr_orig="$2"  \
+	      netmask_orig="$3" \
+	      options_orig="$4" \
+	      dhcp_orig="$5"
+
+	local hline=
+	[ "$DIALOG_ENABLE_HLINE" ] && \
+		hline="Press arrows, TAB or ENTER"
+
+	prompt="$interface Network Configuration:\n"
+	prompt="${prompt}Choose Save/Exit when finished or Cancel."
+
+	#
+	# Loop forever until the user has finished configuring the different
+	# components of the network interface.
+	#
+	# To apply the settings, we need to know each of the following:
+	# 	- IP Address
+	# 	- Network subnet mask
+	# 	- Additional ifconfig(8) options
+	#
+	# It is only when we have all of the above values that we can make the
+	# changes effective because all three options must be specified at-once
+	# to ifconfig(8).
+	#
+	while :; do
+		local dhcp_status=Disabled
+		[ "$dhcp" ] && dhcp_status=Enabled
+
+		#
+		# Display configuration-edit menu
+		#
+		menu_list="
+			'X Save/Exit' 'Return to previous menu'
+			'2 DHCP'      '$dhcp_status'
+			'3 ipaddr'    '$ipaddr'
+			'4 netmask'   '$netmask'
+			'5 options'   '$options'
+		"
+		size=$( eval dialog_menu_size \"\$DIALOG_TITLE\" \
+		                              \"\$prompt\" $menu_list )
+		eval $DIALOG \
+			--clear --title \"\$DIALOG_TITLE\"     \
+			${hline:+--hline} ${hline:+"'$hline'"} \
+			--menu \"\$prompt\" $size              \
+			$menu_list                             \
+			2> "$DIALOG_TMPDIR/dialog.menu.$$"
+
+		local retval=$?
+		local tag="$( dialog_menutag )"
+
+		# Return if "Cancel" was chosen (-1) or ESC was pressed (255)
+		[ $retval -eq $SUCCESS ] || return $retval
+
+		#
+		# Call the below ``modifier functions'' whose job it is to take
+		# input from the user and assign the newly-acquired values back
+		# to the ipaddr, netmask, and options variables for us to re-
+		# read and display in the summary dialog.
+		#
+		case "$tag" in
+		X\ *) break;;
+		2\ *) #
+		      # Do not proceed if/when there are NFS-mounts currently
+		      # active. If the network is changed while NFS-exported
+		      # directories are mounted, the system may hang (if any
+		      # NFS mounts are using that interface).
+		      #
+		      if nfs_mounted && ! jailed; then
+		      	dialog_msgbox                                        \
+		      	"WARNING! Changing this setting while NFS"           \
+		      	"directories are\nmounted may cause the system to"   \
+		      	"hang. Please exit this\nutility and dismount"       \
+		      	"any/all remaining NFS-mounts before\nattempting to" \
+		      	"change this setting.\n"                             \
+		      	"\nCurrent DHCP status for $interface: $dhcp_status"
+
+		      	continue
+		      fi
+
+		      #
+		      # Toggle DHCP status
+		      #
+		      if [ "$dhcp_status" = "Enabled" ]; then
+		      	dhcp=
+		      else
+		      	trap - SIGINT
+		      	( # Execute within sub-shell to allow/catch Ctrl-C
+		      	  trap 'exit $FAILURE' SIGINT
+		      	  msg="Scanning for DHCP servers"
+		      	  msg="$msg on $interface interface..."
+		      	  if [ "$USE_XDIALOG" ]; then
+		      	  	(
+		      	  	  quietly ifconfig $interface delete
+		      	  	  [ "$UNAME_S" = "FreeBSD" -a \
+		      	  	    "${UNAME_R%%.*}" = "4" ] && \
+		      	  	  	quietly dhclient -r
+		      	  	  quietly dhclient $interface
+		      	  	) |
+		      	  	  xdialog_info "$msg"
+		      	  else
+		      	  	dialog_info "$msg"
+		      	  	quietly ifconfig $interface delete
+		      	  	[ "$UNAME_S" = "FreeBSD" -a \
+		      	  	  "${UNAME_R%%.*}" = "4" ] && \
+		      	  		quietly dhclient -r
+		      	  	quietly dhclient $interface
+		      	  fi
+		      	)
+		      	retval=$?
+		      	trap 'interrupt' SIGINT
+		      	if [ $retval -eq $SUCCESS ]; then
+		      		dhcp=1
+		      		ipaddr=$( ifconfig_inet $interface )
+		      		netmask=$( ifconfig_netmask $interface )
+		      		options=
+
+		      		# Fixup search/domain in resolv.conf(5)
+		      		hostname=$( sysrc_get 'hostname:-$(hostname)' )
+		      		dialog_resolv_conf_update "$hostname"
+		      	fi
+		      fi
+		      ;;
+		3\ *) dialog_input_ipaddr "$interface" "$ipaddr"
+		      [ $? -eq $SUCCESS ] && dhcp=;;
+		4\ *) dialog_input_netmask "$interface" "$netmask"
+		      [ $? -eq $SUCCESS -a "$_netmask" ] && dhcp=;;
+		5\ *) dialog_menu_netdev_options "$interface" "$options"
+		      [ $? -eq $SUCCESS ] && dhcp=;;
+		esac
+	done
+
+	#
+	# Save only if the user changed at least one feature of the interface
+	#
+	if [ "$ipaddr"  != "$ipaddr_orig"  -o \
+	     "$netmask" != "$netmask_orig" -o \
+	     "$options" != "$options_orig" -o \
+	     "$dhcp"    != "$dhcp_orig" ]
+	then
+		dialog_info "Saving $interface network interface settings..."
+
+		local value=
+		if [ "$dhcp" ]; then
+			sysrc_delete defaultrouter
+			value=DHCP
+		else
+			value="inet $ipaddr netmask $netmask"
+			value="$value${options:+ }$options"
+		fi
+
+		sysrc_set ifconfig_$interface "$value"
+	fi
+
+	#
+	# Re/Apply the settings if desired
+	#
+	if [ ! "$dhcp" ]; then
+		dialog_yesno "Would you like to bring the $interface" \
+		             "interface up right now?"
+		if [ $? -eq $SUCCESS ]; then
+			dialog_info "Applying $interface network interface" \
+			            "settings..."
+
+			local dr="$( sysrc_get defaultrouter )" err
+			if [ "$dr" = "NO" -o ! "$dr" ]; then
+				dr=$( route_get_default )
+				[ "$dr" ] && sysrc_set defaultrouter "$dr"
+			fi
+			#
+			# Make a backup of resolv.conf(5) before using
+			# ifconfig(8) and then restore it afterward. This
+			# allows preservation of nameservers acquired via
+			# DHCP on FreeBSD-8.x (normally lost as ifconfig(8)
+			# usage causes dhclient(8) to exit which scrubs
+			# resolv.conf(5) by-default upon termination).
+			#
+			quietly cp -fp "$RESOLV_CONF" "$RESOLV_CONF.$$"
+			err=$( ifconfig $interface inet $ipaddr \
+			       	netmask $netmask $options 2>&1 )
+			if [ $? -eq $SUCCESS ]; then
+				if [ "$dr" -a "$dr" != "NO" ]; then
+					err=$( route add default "$dr" 2>&1 )
+					[ $? -eq $SUCCESS ] || \
+						dialog_msgbox "$err"
+				fi
+			else
+				dialog_msgbox "$err"
+			fi
+			if cmp -s "$RESOLV_CONF" "$RESOLV_CONF.$$"; then
+				quietly rm -f "$RESOLV_CONF.$$"
+			else
+				quietly mv -f "$RESOLV_CONF.$$" "$RESOLV_CONF"
+			fi
+		fi
+	fi
+
+	return $SUCCESS
+}
+
+# dialog_menu_nameservers
+#
+# Edit the nameservers in resolv.conf(5).
+#
+dialog_menu_nameservers()
+{
+	local opt_exit="Return to previous menu"
+	local opt_add="Add a new nameserver"
+	local prompt size
+
+	local hline=
+	[ "$DIALOG_ENABLE_HLINE" ] && \
+		hline="Press arrows, TAB or ENTER"
+
+	#
+	# Loop forever until the user has finished configuring nameservers
+	#
+	prompt="DNS Nameserver Configuration:\n"
+	prompt="${prompt}Choose Exit when finished else Cancel."
+	while :; do
+		#
+		# Re/Build list of nameservers
+		#
+		local nameservers="$( resolv_conf_nameservers )"
+		local menu_list="$(
+			index=1
+
+			echo "'X Exit' '$opt_exit'" 
+			index=$(( $index + 1 ))
+
+			echo "'A Add'  '$opt_add'" 
+			index=$(( $index + 1 ))
+
+			for ns in $nameservers; do
+				[ $index -lt ${#DIALOG_MENU_TAGS} ] || break
+				tag=$( substr "$DIALOG_MENU_TAGS" $index 1 )
+				echo "'$tag nameserver' '$ns'"
+				index=$(( $index + 1 ))
+			done
+		)"
+
+		#
+		# Display configuration-edit menu
+		#
+		size=$( eval dialog_menu_size \"\$DIALOG_TITLE\" \
+		                              \"\$prompt\" $menu_list )
+		eval $DIALOG \
+			--clear --title \"\$DIALOG_TITLE\"     \
+			${hline:+--hline} ${hline:+"'$hline'"} \
+			--menu \"\$prompt\" $size              \
+			$menu_list                             \
+			2> "$DIALOG_TMPDIR/dialog.menu.$$"
+
+		local retval=$?
+		local tag="$( dialog_menutag )" ns=""
+
+		# Return if "Cancel" was chosen (-1) or ESC was pressed (255)
+		[ $retval -eq $SUCCESS ] || return $retval
+
+		case "$tag" in
+		X\ Exit) break;;
+		A\ Add)
+			dialog_input_nameserver
+			;;
+		*)
+			n=$( eval dialog_menutag2index \"\$tag\" $menu_list )
+			ns=$( eval dialog_menutag2item \"\$tag\" $menu_list )
+			dialog_input_nameserver $(( $n - 2 )) "$ns"
+			;;
+		esac
+	done
+}
+
+# dialog_menu_netdev_options $interface
+#
+# Display a menu of additional media options for the given network interface.
+#
+dialog_menu_netdev_options()
+{
+	local interface="$1" _options="$2"
+	#
+	# Not all network interfaces support additional media options, but
+	# when available we should prompt the user to select from a list
+	# of available options (or none, as is the first/default option).
+	#
+
+	#
+	# Return with-error when there are NFS-mounts currently active. If the
+	# media options are changed while NFS-exported directories are mounted,
+	# the system may hang (if any NFS mounts are using that interface).
+	#
+	if nfs_mounted && ! jailed; then
+		dialog_msgbox                                                \
+		"WARNING! Changing this setting while NFS directories are\n" \
+		"mounted may cause the system to hang. Please exit this\n"   \
+		"utility and dismount any/all remaining NFS-mounts before\n" \
+		"attempting to change this setting.\n"                       \
+		"\nCurrent Options for $interface: $_options"
+
+		return $FAILURE
+	fi
+
+	#
+	# Build list of additional media options
+	#
+	local opt_none="No options (Default)"
+	local opt_cust="Custom (Manual)"
+	local supported_media="$(
+		ifconfig_media $interface | \
+		( index=1
+
+		  echo "'$( substr "$DIALOG_MENU_TAGS" $index 1 )'"
+		  echo "'$opt_none'" 
+		  index=$(( $index + 1 ))
+
+		  echo "'$( substr "$DIALOG_MENU_TAGS" $index 1 )'"
+		  echo "'$opt_cust'" 
+		  index=$(( $index + 1 ))
+
+		  while read media_options; do
+		  	[ $index -lt ${#DIALOG_MENU_TAGS} ] || break
+		  	echo "'$( substr "$DIALOG_MENU_TAGS" $index 1 )'"
+		  	echo "'$media_options'"
+		  	index=$(( $index + 1 ))
+		  done
+		)
+	)"
+
+	local msg
+	msg="Below is a list of supported media options for "
+	msg="$msg the $interface interface. Please select the "
+	msg="$msg options that you would like to set for the "
+	msg="$msg $interface network inetface."
+
+	local hline=
+	[ "$DIALOG_ENABLE_HLINE" ] && \
+		hline="Press arrows, TAB or ENTER"
+
+	eval $DIALOG \
+		--clear --title \"\$DIALOG_TITLE\"     \
+		${hline:+--hline} ${hline:+"'$hline'"} \
+		--menu \"\$msg\" 21 60 12              \
+		$supported_media                       \
+		2> "$DIALOG_TMPDIR/dialog.menu.$$"
+
+	local retval=$?
+	if [ $retval -eq $SUCCESS ]; then
+		local tag="$( dialog_menutag )"
+		options=$( eval dialog_menutag2item \"\$tag\" \
+		                                    $supported_media )
+		[ "$options" = "$opt_none" ] && options=
+
+		if [ "$options" = "$opt_cust" ]; then
+			options="$_options"
+			dialog_input_options "$interface"
+			retval=$?
+		fi
+	fi
+
+	return $retval
+}
+
+###############################################################################
+################################# MAIN SOURCE #################################
+###############################################################################
+
+#
+# Process command-line options
+#
+while getopts hXs flag; do
+	case "$flag" in
+	h) usage;;
+	X) USE_XDIALOG=1;;
+	s) SECURE=1;;
+	\?) usage;;
+	esac
+done
+shift $(( $OPTIND - 1 ))
+
+#
+# Process `-X' command-line option
+#
+[ "$USE_XDIALOG" ] && DIALOG=Xdialog
+
+#
+# Sanity check
+#
+have $DIALOG || die "%s: %s: No such file or directory" "$progname" "$DIALOG"
+
+#
+# DIALOG fixup (FreeBSD-9.0 dialog(1) no longer supports `--hline')
+#
+if [ "$CHECK_DIALOG_FOR_HLINE" -a ! "$USE_XDIALOG" ]; then
+	DIALOG=$( which $DIALOG )
+	data=$( strings "$DIALOG" ) || die
+
+	if echo "$data" | grep -q -- --hline; then
+		DIALOG_ENABLE_HLINE=1
+	else
+		DIALOG_ENABLE_HLINE=
+	fi
+fi
+
+#
+# Probe Xdialog(1) for maximum height/width constraints
+#
+if [ "$USE_XDIALOG" ]; then
+	maxsize=$( $DIALOG --print-maxsize 2>&1 ) \
+	&& XDIALOG_MAX_SIZE=$(
+		set -- ${maxsize##*:}
+
+		height=${1%,}
+		width=$2
+
+		echo $height $width
+	)
+	unset maxsize
+fi
+
+#
+# If not running as root, either prompt for credentials (if using Xdialog(1))
+# or die an unceremonious death (if _not_ using Xdialog(1)).
+#
+if [ "`id -u`" != "0" -a ! "$SECURE" ]; then
+	[ "$USE_XDIALOG" ] || die "Must run as root"
+
+	#
+	# User has requested Xdialog(1). Check sudo(8) credentials before
+	# prompting for password.
+	#
+	:| sudo -S -v 2> /dev/null
+	if [ $? -ne $SUCCESS ]; then
+		#
+		# sudo(8) access denied. Prompt for their password.
+		#
+		msg="Please enter your password for sudo(8):"
+		size=$( dialog_inputbox_size "$DIALOG_TITLE" "$msg" )
+
+		hline=
+		[ "$DIALOG_ENABLE_HLINE" ] && \
+			hline="Use alpha-numeric, punctuation, TAB or ENTER"
+
+		#
+		# Continue prompting until they either Cancel or succeed.
+		#
+		while :; do
+			password=$( $DIALOG \
+				--title "$DIALOG_TITLE"              \
+				${hline:+--hline} ${hline:+"$hline"} \
+				--password --inputbox "$msg" $size   \
+				2>&1 > /dev/null )
+			retval=$?
+
+			# Exit if the user cancelled.
+			[ $retval -eq $SUCCESS ] || exit $retval
+
+			#
+			# Validate sudo(8) credentials
+			#
+			sudo -S -v 2> /dev/null <<-EOF
+			$password
+			EOF
+			if [ $? -eq $SUCCESS ]; then
+				# Access granted...
+				break
+			else
+				# Scrub memory and introduce a delay.
+				unset password
+				sleep 1
+			fi
+		done
+
+		# Clean-up
+		unset msg
+		unset size
+		unset hline
+		unset retval
+	fi
+
+	# Re-execute ourselves with sudo(8)
+	exec /bin/sh -c "unset password; exec sudo -S $0 -X" <<-EOF
+	$password
+	EOF
+	unset password
+	exit $? # Never reached unless error
+
+elif [ "$SECURE" ]; then
+
+	#
+	# Secure-mode has been requested. Prompt for sudo(8) credentials.
+	#
+
+	[ "$USE_XDIALOG" ] || die "Secure-mode requires X11 (use \`-X')!"
+	if [ "`id -u`" != "0" ]; then
+		dialog_msgbox "ERROR: Secure-mode requires root-access!"
+		exit $FAILURE
+	fi
+
+	msg="Please enter a username and password for sudo(8):"
+	size=$( dialog_inputbox_size "$DIALOG_TITLE" "$msg" )
+	width="${size##*[$IFS]}"
+	height="${size%%[$IFS]*}"
+	height=$(( $height + 8 )) # Add height for second inputbox
+
+	hline=
+	[ "$DIALOG_ENABLE_HLINE" ] && \
+		hline="Use alpha-numeric, punctuation, TAB or ENTER"
+
+	#
+	# Continue prompting until they either Cancel or succeed.
+	#
+	while :; do
+		user_pass=$( $DIALOG \
+			--title "$DIALOG_TITLE"              \
+			${hline:+--hline} ${hline:+"$hline"} \
+			--password --2inputsbox "$msg"       \
+			$height $width                       \
+			"Username:" "" "Password:" ""        \
+			2>&1 > /dev/null )
+		retval=$?
+
+		# Exit if the user cancelled.
+		[ $retval -eq $SUCCESS ] || exit $retval
+
+		#
+		# Make sure the user exists and is non-root
+		#
+		user="${user_pass%%/*}"
+		password="${user_pass#*/}"
+		unset user_pass
+		if [ ! "$user" ]; then
+			sleep 1
+			continue
+		fi
+		case "$user" in
+		root|toor)
+			sleep 1
+			continue
+		esac
+		if ! quietly id "$user"; then
+			sleep 1
+			continue
+		fi
+
+		#
+		# Validate sudo(8) credentials for given user
+		#
+		su -m "$user" <<-EOF
+			sh <<EOS
+				sudo -k
+				sudo -S -v 2> /dev/null <<EOP
+				$password
+				EOP
+			EOS
+		EOF
+		retval=$?
+		unset user
+		unset password
+
+		if [ $retval -eq $SUCCESS ]; then
+			break # access granted
+		else
+			sleep 1 # introduce short delay
+		fi
+	done
+
+	# Clean-up
+	unset msg
+	unset size
+	unset width
+	unset height
+	unset hline
+	unset retval
+fi
+
+#
+# Determine canonical release directory name (based on above host info)
+#
+case "$UNAME_R" in
+4.8-*)
+	REL="480";;
+*)
+	if [ "$UNAME_P" = "i386" -o ! "$UNAME_P" ]; then
+		REL="$UNAME_S-${UNAME_R%%-*}" # i.e. FreeBSD-4.11, FreeBSD-8.1
+	else
+		REL="$UNAME_S-${UNAME_R%%-*}-$UNAME_P" # i.e. FreeBSD-8.1-amd64
+	fi
+esac
+
+#
+# Release distribution (lives within canonical release directory)
+#
+RELEASE="${UNAME_R%%-*}-RELEASE"
+[ "$UNAME_P" -a "$UNAME_P" != "i386" ] && RELEASE="$RELEASE-$UNAME_P"
+
+#
+# Trap signals so we can recover gracefully
+#
+trap 'interrupt' SIGINT
+trap 'die' SIGTERM SIGPIPE SIGXCPU SIGXFSZ \
+           SIGFPE SIGTRAP SIGABRT SIGSEGV
+[ "$SHELL" = "$0" ] \
+	&& trap 'die' SIGSTOP SIGTSTP SIGTTIN SIGTTOU
+trap '' SIGALRM SIGPROF SIGUSR1 SIGUSR2 SIGHUP SIGVTALRM
+
+# Initialize
+syslogd_console off
+
+#
+# Launch application root menu
+#
+while :; do
+	dialog_menu_root
+	retval=$?
+	mtag="$( dialog_menutag )"
+
+	[ $retval -eq 0 ] || die "User cancelled.%s" \
+		"${USE_XDIALOG:+ (or unable to open display \"$DISPLAY\")}"
+
+	case "$mtag" in
+	1) # Configure Time Zone
+	   run_in_xterm=
+	   tzsetup_program=
+	   tzsetup_flags=
+	   if have tzdialog; then
+	   	#
+	   	# Prefer our homebrew tzdialog(8) -- which works on Linux and
+	   	# also supports Xdialog(1)
+	   	#
+	   	tzsetup_program="tzdialog"
+	   	tzsetup_flags="-s${USE_XDIALOG:+X}"
+	   	quietly rm -f /etc/wall_cmos_clock
+	   elif have tzsetup; then
+	   	tzsetup_program="tzsetup"
+	   	if [ "$UNAME_S" = "FreeBSD" ]; then
+	   		#
+	   		# Starting with FreeBSD-7.3 and 8.0, tzsetup(8)
+	   		# supports `-s' to suppress UTC check.
+	   		#
+	   		case "$UNAME_R" in
+	   		[123456].*|7.[12]-*)
+	   			tzsetup_flags=""
+	   			;;
+	   		*)
+	   			tzsetup_flags="-s"
+	   			quietly rm -f /etc/wall_cmos_clock
+	   			;;
+	   		esac
+	   	fi
+	   	run_in_xterm=${USE_XDIALOG:+1}
+	   fi
+	   if have "$tzsetup_program"; then
+	   	if [ "$run_in_xterm" ]; then
+	   		xterm -e sudo $tzsetup_program $tzsetup_flags
+	   	else
+	   		$tzsetup_program $tzsetup_flags
+	   	fi
+	   	[ $? -eq $SUCCESS ] || \
+	   		dialog_msgbox "ERROR: $tzsetup_program:" \
+	   		              "An unknown error occurred"
+	   else
+	   	if [ "$tzsetup_program" ]; then
+	   		dialog_msgbox "ERROR: $tzsetup_program:" \
+	   		              "command not found"
+	   	else
+	   		dialog_msgbox "ERROR: Unable to configure timezone" \
+	   		              "(system utility not installed)."
+	   	fi
+	   fi
+	   ;;
+
+	2) # Configure Hostname/Domain
+	   dialog_input_hostname
+	   ;;
+
+	3) # Configure Network Interfaces
+	   while :; do
+	   	dialog_menu_netdev
+	   	retval=$?
+	   	interface="$( dialog_menutag )"
+
+	   	[ $retval -eq 0 ] || break
+
+	   	#
+	   	# dialog_menu_netdev adds an asterisk (*) to the right of the
+	   	# device name if the interface is active. Remove the asterisk
+	   	# from the device name if present.
+	   	#
+	   	case "$interface" in
+	   	*\*) interface="${interface%?}";;
+	   	esac
+
+	   	#
+	   	# Obtain initial interface settings to be configured. These
+	   	# will be passed to the dialog_menu_netdev_edit function below
+	   	# which will block until the user has either cancelled or
+	   	# finished editing the values.
+	   	#
+	   	# First, attempt to read stored configuration from rc.conf(5)
+	   	# and fallback to reading the active configuration if not
+	   	# configured in the rc.conf(5) file(s).
+	   	#
+	   	_ipaddr=
+	   	_netmask=
+	   	_ifconfig=$( sysrc_get ifconfig_$interface )
+	   	if [ "$_ifconfig" ]; then
+	   		# If DHCP get IP address/netmask later from ifconfig(8)
+	   		glob="[Dd][Hh][Cc][Pp]"
+	   		case "$_ifconfig" in
+	   		$glob) dhcp=1;;
+	   		[Ss][Yy][Nn][Cc]$glob|[Nn][Oo][Ss][Yy][Nn][Cc]$glob)
+	   			case "${UNAME_R%%.*}" in # Major OS revision
+	   			1|2|3|4|5) : [NO]SYNCDHCP unsupported ;;
+	   			6) case "${UNAME_R%%-*}" in # Minor OS revision
+	   			   6.0|6.1) : [NO]SYNCDHCP unsupported ;;
+	   			   6.[2-9]) dhcp=1
+	   			   esac;;
+	   			*?*) dhcp=1
+	   			esac;;
+	   		*)
+	   			#
+	   			# Get IP address/netmask from rc.conf(5)
+	   			# configuration
+	   			#
+	   			dhcp=
+	   			eval "$( exec 2> /dev/null
+	   			         set -- $_ifconfig
+	   			         while [ $# -gt 0 ]; do
+	   			         	case "$1" in
+	   			         	inet)
+	   			         		shift 1
+	   			         		echo "_ipaddr='$1'"
+	   			         		;;
+	   			         	netmask)
+	   			         		shift 1
+	   			         		echo "_netmask='$1'"
+	   			         		;;
+	   			         	esac
+	   			         	shift 1
+	   			         done
+	   			       )"
+	   			;;
+	   		esac
+	   	fi
+
+	   	#
+	   	# Fill in IP address/netmask from active settings if no
+	   	# configuration could be extrapolated from rc.conf(5)
+	   	#
+	   	[ "$_ipaddr"  ] || _ipaddr=$( ifconfig_inet $interface )
+	   	[ "$_netmask" ] || _netmask=$( ifconfig_netmask $interface )
+
+	   	# Get the extra options (this always comes from rc.conf(5))
+	   	_options=$( ifconfig_options $interface )
+
+	   	# Block on user-configuration of the probed settings
+	   	dialog_menu_netdev_edit \
+	   		$interface $_ipaddr $_netmask "$_options" $dhcp
+
+	   	# Return to root menu if above returns success
+	   	[ $? -eq $SUCCESS ] && break
+
+	   done
+	   ;;
+
+	4) # Configure Default Router/Gateway
+	   dialog_input_defaultrouter
+	   ;;
+
+	5) # Configure DNS nameservers
+	   dialog_menu_nameservers
+	   ;;
+
+	X) # Exit Utility
+	   break
+
+	esac
+
+done
+
+#
+# Ending routines
+#
+syslogd_console on
+clean_up
+reset_shell # never returns if invoked as login shell
+
+exit $SUCCESS
+
+################################################################################
+# END
+################################################################################
+#
+# $Header: /cvsroot/druidbsd/druidbsd/druid83/dep/host-setup,v 1.1 2012/10/10 23:29:56 devinteske Exp $
+#
+# $Copyright: 2006-2012. Devin Teske. All Rights Reserved. $
+#
+# $Log: host-setup,v $
+# Revision 1.1  2012/10/10 23:29:56  devinteske
+# Commit initial public beta release of 8.3 series (beta 57; on-par with
+# the 9.0 series released recently, also beta 57).
+#
+#
+#
+################################################################################

@@ -1,0 +1,187 @@
+#	   user: kensmith
+#	machine: mason.cse.buffalo.edu
+#	   tree: /R/stage/trees/games
+#	   date: Mon Apr  9 21:28:03 2012
+
+# .
+/set type=file uname=root gname=wheel mode=0755 nlink=1
+.               type=dir nlink=3 size=512
+
+# ./usr
+    usr             type=dir nlink=4 size=512
+
+# ./usr/games
+/set type=file uname=root gname=wheel mode=0555 nlink=1
+        games           type=dir mode=0755 nlink=2 size=512
+            bcd             size=8512 \
+                            md5digest=294e149a7ed733c2adfc70b2bff79dc7
+            caesar          size=8168 \
+                            md5digest=b20f27ae81cc514dee0dc70857482a5c
+            factor          size=63096 \
+                            md5digest=84ff454c1f6ebdcdad6de5cc3829598e
+            fortune         size=21088 \
+                            md5digest=3d349b5fce6410dff06f495550fdc5f9
+            grdc            size=11456 \
+                            md5digest=aed29cb2002ef212ae8fa7d24aa61f02
+            morse           size=13376 \
+                            md5digest=c5081f09e7493670c3694c506fd29d19
+            number          size=8800 \
+                            md5digest=0b1fc12684154e808c91f564fe6749a4
+            pom             size=7912 \
+                            md5digest=4d80aef76b29603bcaa6e3120be5fa8d
+            ppt             size=5968 \
+                            md5digest=c63e1f9bb481a38ce223c617f8a5b90b
+            primes          size=75520 \
+                            md5digest=7c21e1d424e32be4d95a72319b2aaf62
+            random          size=11616 \
+                            md5digest=3d92804a4b88186feb4770bdf2379d2a
+            rot13           size=1882 \
+                            md5digest=e2b8b557f07e41cf334f07d9d79fe6ff
+            strfile         size=12544 \
+                            md5digest=df9ae2c24b76f199b0f0dd45297fe0f6
+            unstr           size=7200 \
+                            md5digest=5d4bccef596c8646d8dfdbadaa97cd02
+        # ./usr/games
+        ..
+
+
+# ./usr/share
+/set type=file uname=root gname=wheel mode=0755 nlink=1
+        share           type=dir nlink=4 size=512
+
+# ./usr/share/games
+            games           type=dir nlink=3 size=512
+
+# ./usr/share/games/fortune
+/set type=file uname=root gname=wheel mode=0444 nlink=1
+                fortune         type=dir mode=0755 nlink=2 size=512
+                    fortunes        size=2170104 \
+                                    md5digest=5b3745870b7fc7ad73b1aa6cb934b9c6
+                    fortunes-o      size=649133 \
+                                    md5digest=d034d8ea08edfc05f13d502f3e6f6fe6
+                    fortunes-o.dat  size=19760 \
+                                    md5digest=efeca94f251c8bd47d03abd4773fe250
+                    fortunes.dat    size=99064 \
+                                    md5digest=f09e4a07e4a403d42c0aeccfd733787d
+                    freebsd-tips    size=16633 \
+                                    md5digest=4a34c487ae0125cbce8eafe4302fa198
+                    freebsd-tips.dat \
+                                    size=848 \
+                                    md5digest=147e1fe2b2af3202217a9e295448f0fa
+                    gerrold.limerick \
+                                    size=25341 \
+                                    md5digest=96f8b0a9caab640e0cc25c49fed48dd0
+                    gerrold.limerick.dat \
+                                    size=680 \
+                                    md5digest=75018ac8c48e09f7de870ce2a62bc420
+                    limerick        size=129590 \
+                                    md5digest=e882a7a6f5373914377b004fd542c5ed
+                    limerick.dat    size=6200 \
+                                    md5digest=32f4199bc38bef1a07929b01f20f428e
+                    murphy          size=60085 \
+                                    md5digest=bc6359e578dea27b0d875fd9f4beb2a6
+                    murphy-o        size=770 \
+                                    md5digest=0deb98a3d8d669522838dcee7685cf2b
+                    murphy-o.dat    size=112 \
+                                    md5digest=e8f3a8cd551937c978de5341343028d7
+                    murphy.dat      size=6248 \
+                                    md5digest=248907a6324d87f718001426c4b4a036
+                    startrek        size=27694 \
+                                    md5digest=2f16410ac5cf500d38a9cb969d84832e
+                    startrek.dat    size=1656 \
+                                    md5digest=284e65c70844eb8e699ca7a4a05d39d8
+                    zippy           size=38863 \
+                                    md5digest=2825544e28e01b76f1b7a31d4204ceb7
+                    zippy.dat       size=4424 \
+                                    md5digest=6ce65ecc724a65b2918d38c1abcbf3b9
+                # ./usr/share/games/fortune
+                ..
+
+            # ./usr/share/games
+            ..
+
+
+# ./usr/share/man
+/set type=file uname=man gname=wheel mode=0755 nlink=1
+            man             type=dir uname=root nlink=4 size=512
+
+# ./usr/share/man/cat6
+/set type=file uname=root gname=wheel mode=0444 nlink=1
+                cat6            type=dir uname=man mode=0755 nlink=2 \
+                                size=512
+                    banner.6.gz     size=737 \
+                                    md5digest=7e9a156fde30490ce69a820ab0ae5350
+                    bcd.6.gz        nlink=2 size=335 \
+                                    md5digest=7707685956ffcbcb1dca76c20f788342
+                    caesar.6.gz     nlink=2 size=685 \
+                                    md5digest=4c6e16e4147103c9ed728511ab3b4523
+                    factor.6.gz     nlink=2 size=1094 \
+                                    md5digest=08a9b75438370e21f4523707609901de
+                    fortune.6.gz    size=2192 \
+                                    md5digest=29412345423875830e770bce4dce02fb
+                    grdc.6.gz       size=478 \
+                                    md5digest=cd03b9142b042264c29307b6d53e4d86
+                    intro.6.gz      size=389 \
+                                    md5digest=e1c7112ef4e13b073924c1e5a59de687
+                    morse.6.gz      size=1733 \
+                                    md5digest=6f6b8a0e2d87a2ee641c2aa1851150f4
+                    number.6.gz     size=435 \
+                                    md5digest=ce3b9a375de63710b444bdbc40ee61ad
+                    pom.6.gz        size=506 \
+                                    md5digest=53d0a0dee023af42725eb053be65acc3
+                    ppt.6.gz        nlink=2 size=335 \
+                                    md5digest=7707685956ffcbcb1dca76c20f788342
+                    primes.6.gz     nlink=2 size=1094 \
+                                    md5digest=08a9b75438370e21f4523707609901de
+                    random.6.gz     size=1169 \
+                                    md5digest=bb1eb49d632b93dce6c54d1e5cf36c2d
+                    rot13.6.gz      nlink=2 size=685 \
+                                    md5digest=4c6e16e4147103c9ed728511ab3b4523
+                # ./usr/share/man/cat6
+                ..
+
+
+# ./usr/share/man/man6
+                man6            type=dir mode=0755 nlink=2 size=512
+                    banner.6.gz     size=1627 \
+                                    md5digest=41803f0454ebe1cf1c94b55ec272ec54
+                    bcd.6.gz        nlink=2 size=1239 \
+                                    md5digest=2675a3d21d85a2393ab349a275373373
+                    caesar.6.gz     nlink=2 size=1577 \
+                                    md5digest=e2c8990ec3cd4a611df4f1e07aebd1f8
+                    factor.6.gz     nlink=2 size=1951 \
+                                    md5digest=10e6430d3dafdd5066b786389f5cce5f
+                    fortune.6.gz    size=2917 \
+                                    md5digest=ea35ccf1e0c30df5712de91c94ef91ad
+                    grdc.6.gz       size=472 \
+                                    md5digest=ca57aa02b0c00ebf4885be8dcb7b1611
+                    intro.6.gz      size=1301 \
+                                    md5digest=20dac5c9503ae272cbcc544c9bc82bbc
+                    morse.6.gz      size=2579 \
+                                    md5digest=c78154845c8cf0c1a7d432db49407f38
+                    number.6.gz     size=1341 \
+                                    md5digest=d2f744c9e8c4d8b3b6df34370694d617
+                    pom.6.gz        size=1385 \
+                                    md5digest=90030fc6cf9bec7730675e5476c7c977
+                    ppt.6.gz        nlink=2 size=1239 \
+                                    md5digest=2675a3d21d85a2393ab349a275373373
+                    primes.6.gz     nlink=2 size=1951 \
+                                    md5digest=10e6430d3dafdd5066b786389f5cce5f
+                    random.6.gz     size=1996 \
+                                    md5digest=77d3085515c673582ae43a04c22bf7ed
+                    rot13.6.gz      nlink=2 size=1577 \
+                                    md5digest=e2c8990ec3cd4a611df4f1e07aebd1f8
+                # ./usr/share/man/man6
+                ..
+
+            # ./usr/share/man
+            ..
+
+        # ./usr/share
+        ..
+
+    # ./usr
+    ..
+
+..
+

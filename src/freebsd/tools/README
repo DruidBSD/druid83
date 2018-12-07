@@ -1,0 +1,57 @@
+The scripts in this directory are to be used by field engineers and system
+administrators for various purposes. Detailed descriptions of each scripts'
+purpose and syntax/usage are as follows:
+
+jail_build [OPTIONS]
+
+	Use this script to build a new jailed guest-OS on the host-OS. The
+	jail_build script must be run on FreeBSD 8.x or earlier from within
+	this [tools] directory.
+
+	OPTIONS:
+		-h    Print this message to stderr and exit.
+		-v    Verbose. Enables verbose output during build.
+		-q    Quiet. Disables verbose output.
+
+	ENVIRONMENT:
+	  JAIL_BUILD_REPOS      Location of FreeBSD repository where binary
+	                        distributions are held (default:`/usr/repos').
+	  JAIL_BUILD_DESTDIR    Default directory to build new jails in
+	                        (default: `/usr/jail').
+	  JAIL_BUILD_VERBOSE    Verbosity. Must be zero or one (default: `0').
+	  DIALOG_TMPDIR         Directory to store dialog(1) temporary files
+	                        (default: `/tmp').
+
+host_rebuild [OPTIONS] [-r RELEASE] [DESTDIR]
+
+	OPTIONS:
+		-h    Print this message to stderr and exit.
+		-v    Verbose. Enables verbose output during build.
+		-q    Quiet. Disables verbose output.
+		-n    Don't actually do anything but show what will be done.
+
+	ARGUMENTS:
+          -r RELEASE   Specifies the FreeBSD release to rebuild. For example,
+                       "8.1-RELEASE". If not specified, the user will be
+	               prompted to select the release from a list of available
+	               options.
+          DESTDIR      Directory to unpack chosen-release to (defaults is `/').
+
+	ENVIRONMENT:
+          HOST_REBUILD_VERBOSE   Verbosity. Must be zero or one (default: `0').
+          DIALOG_TMPDIR          Directory to store dialog(1) temporary files
+                                 (default: `/tmp').
+
+	EXAMPLES:
+
+		host_rebuild
+		    Prompts the user to select a release from a list and then
+		    rebuilds the base host using the chosen release. Releases
+		    are located in `../repos', relative to script-location.
+        
+		host_rebuild -r 8.1-RELEASE
+		    Rebuilds the base host as FreeBSD-8.1.
+        
+		host_rebuild -r 8.1-RELEASE /usr/vm/kws7p
+		    Rebuilds the jailed host (/usr/vm/kws7p) as FreeBSD-8.1.
+

@@ -1,0 +1,801 @@
+#	   user: kensmith
+#	machine: mason.cse.buffalo.edu
+#	   tree: /R/stage/trees/doc
+#	   date: Mon Apr  9 21:28:20 2012
+
+# .
+/set type=file uname=root gname=wheel mode=0755 nlink=1
+.               type=dir nlink=3 size=512
+
+# ./usr
+    usr             type=dir nlink=3 size=512
+
+# ./usr/share
+        share           type=dir nlink=3 size=512
+
+# ./usr/share/doc
+            doc             type=dir nlink=12 size=512
+
+# ./usr/share/doc/IPv6
+/set type=file uname=root gname=wheel mode=0444 nlink=1
+                IPv6            type=dir mode=0755 nlink=2 size=512
+                    IMPLEMENTATION  size=107628 \
+                                    md5digest=ac8e2acb1a0eacb13ae8d6f3fb8dce87
+                # ./usr/share/doc/IPv6
+                ..
+
+
+# ./usr/share/doc/atm
+                atm             type=dir mode=0755 nlink=2 size=512
+                    atmconfig.help  size=7511 \
+                                    md5digest=12b6f2756d0a181e226ff1def141e985
+                    atmconfig_device.help \
+                                    size=2488 \
+                                    md5digest=ae6c72843a5e44318ec06ff25ecbbaa9
+                # ./usr/share/doc/atm
+                ..
+
+
+# ./usr/share/doc/bind9
+                bind9           type=dir mode=0755 nlink=4 size=512
+                    CHANGES         size=302168 \
+                                    md5digest=3be2bd074f47219f79e5b4c5d49bb5b9
+                    COPYRIGHT       size=26026 \
+                                    md5digest=6b2bb68547a766a46a70c3abe0f3ddc7
+                    FAQ             size=33607 \
+                                    md5digest=c6d83fc18a1e73831e7a50f9626afc7c
+                    KNOWN-DEFECTS   size=846 \
+                                    md5digest=16bacb6712443640376844efb166febd
+                    NSEC3-NOTES     size=5348 \
+                                    md5digest=dcc265a3b4711903317c0b1b98face45
+                    README          size=20296 \
+                                    md5digest=933c81cf0c2b83b907e343b1004d7eb7
+                    README.idnkit   size=3785 \
+                                    md5digest=b113d15a3c11459250c1cb039fec0ea6
+                    README.pkcs11   size=1888 \
+                                    md5digest=7364ab708c21cc26e3c74107659c3a89
+                    RELEASE-NOTES-BIND-9.6-ESV.html \
+                                    size=14388 \
+                                    md5digest=316d11973d64d3af4f71ff838afa23c4
+                    RELEASE-NOTES-BIND-9.6-ESV.pdf \
+                                    size=70743 \
+                                    md5digest=209708ca1cdc0f578e0ae82f2024af0d
+                    RELEASE-NOTES-BIND-9.6-ESV.txt \
+                                    size=10421 \
+                                    md5digest=d121be4963a5b366d09a1f42c446d43f
+                    release-notes.css \
+                                    size=785 \
+                                    md5digest=992235b32f5e6a3c3df327de7cf682ec
+
+# ./usr/share/doc/bind9/arm
+                    arm             type=dir mode=0755 nlink=2 size=1024
+                        Bv9ARM.ch01.html \
+                                        size=25613 \
+                                        md5digest=f3964f3313745dca789f8650cf25bee3
+                        Bv9ARM.ch02.html \
+                                        size=7705 \
+                                        md5digest=638cbc8e0b32c62dd7aa097d69cf1875
+                        Bv9ARM.ch03.html \
+                                        size=38936 \
+                                        md5digest=7ed6dfc421bf211f4c3421e951d5b82f
+                        Bv9ARM.ch04.html \
+                                        size=51563 \
+                                        md5digest=45f6ddb86625cccb27e7407d4d9e33c5
+                        Bv9ARM.ch05.html \
+                                        size=6462 \
+                                        md5digest=e7e255e4fc52f251083cb29913516edc
+                        Bv9ARM.ch06.html \
+                                        size=449869 \
+                                        md5digest=94c74fc2d6bf4e1bc423742a7b484429
+                        Bv9ARM.ch07.html \
+                                        size=12586 \
+                                        md5digest=4fb811ad1fb3159c24fdf022a5f21b1f
+                        Bv9ARM.ch08.html \
+                                        size=6746 \
+                                        md5digest=4eaf51ed5c023df1b91accf563a745ab
+                        Bv9ARM.ch09.html \
+                                        size=50205 \
+                                        md5digest=f45f66cc1d42592c25ee3b2dd9b8fe31
+                        Bv9ARM.ch10.html \
+                                        size=5083 \
+                                        md5digest=e601a801c10f2c156e21a2296c295630
+                        Bv9ARM.html     size=19407 \
+                                        md5digest=37fd8aa6339e04bde9edb0dd2bb5c509
+                        man.dig.html    size=32164 \
+                                        md5digest=f06ea7a17d8efd0c2d9395e56d40f12c
+                        man.dnssec-dsfromkey.html \
+                                        size=7501 \
+                                        md5digest=36727f04fb48c08e9f00640564e4df9e
+                        man.dnssec-keyfromlabel.html \
+                                        size=9601 \
+                                        md5digest=60c28231099329cdd9082af4fff15735
+                        man.dnssec-keygen.html \
+                                        size=12737 \
+                                        md5digest=e469d6207986eecbaa39e438a43e8e23
+                        man.dnssec-signzone.html \
+                                        size=19300 \
+                                        md5digest=0461eed99f118d46ba8f78ffb8920305
+                        man.host.html   size=12428 \
+                                        md5digest=a45d925275d27962a0e6064eadc387b1
+                        man.named-checkconf.html \
+                                        size=5512 \
+                                        md5digest=007758c203168ec25ef50ee629a2ace4
+                        man.named-checkzone.html \
+                                        size=16645 \
+                                        md5digest=5c55939aea025d921549ec10f986b611
+                        man.named.html  size=14869 \
+                                        md5digest=33f1737e63b10f3f111c2cd8bb1521e3
+                        man.nsupdate.html \
+                                        size=25651 \
+                                        md5digest=c4229cc4ea26ea64a68bf6f8169e22ae
+                        man.rndc-confgen.html \
+                                        size=11158 \
+                                        md5digest=7b3acbb0f1afc46569e66555ff953462
+                        man.rndc.conf.html \
+                                        size=10677 \
+                                        md5digest=93fc46931141e651b83b254729ae3e86
+                        man.rndc.html   size=9741 \
+                                        md5digest=8aa3d5e5c1284c1535ad654114c9b7f4
+                    # ./usr/share/doc/bind9/arm
+                    ..
+
+
+# ./usr/share/doc/bind9/misc
+                    misc            type=dir mode=0755 nlink=2 size=512
+                        dnssec          size=3091 \
+                                        md5digest=ac404553342687aa47443d3cbe021af5
+                        format-options.pl \
+                                        size=1504 \
+                                        md5digest=9cc67cd8983d2a3efe6bbb24274b0bef
+                        ipv6            size=4546 \
+                                        md5digest=2be1b8fb242a5910eecf28d37d2a05bf
+                        migration       size=11337 \
+                                        md5digest=733a012198bbb95f781b8926171290b2
+                        migration-4to9  size=2062 \
+                                        md5digest=d28e55eff9f2c1c23588450b799183b1
+                        options         size=23550 \
+                                        md5digest=e5dc79e0482afb24e13ac78aa05b4a7e
+                        rfc-compliance  size=1704 \
+                                        md5digest=0f0565bc74c947229391f11516aa6050
+                        roadmap         size=2037 \
+                                        md5digest=e7c684dc4be43e5022c83b995cbb1c4e
+                        sdb             size=6550 \
+                                        md5digest=cef388361939a41f2665a77b578dd3ba
+                        sort-options.pl size=1380 \
+                                        md5digest=85a2dacb07ff62452a0ae51608a4b9ff
+                    # ./usr/share/doc/bind9/misc
+                    ..
+
+                # ./usr/share/doc/bind9
+                ..
+
+
+# ./usr/share/doc/legal
+/set type=file uname=root gname=wheel mode=0755 nlink=1
+                legal           type=dir nlink=5 size=512
+
+# ./usr/share/doc/legal/intel_ipw
+/set type=file uname=root gname=wheel mode=0444 nlink=1
+                    intel_ipw       type=dir mode=0755 nlink=2 size=512
+                        LICENSE         size=11880 \
+                                        md5digest=9a4d5eace73629ace8724d7179ec19a9
+                    # ./usr/share/doc/legal/intel_ipw
+                    ..
+
+
+# ./usr/share/doc/legal/intel_iwi
+                    intel_iwi       type=dir mode=0755 nlink=2 size=512
+                        LICENSE         size=12007 \
+                                        md5digest=11963afae1fb1117b86fde8187152b9a
+                    # ./usr/share/doc/legal/intel_iwi
+                    ..
+
+
+# ./usr/share/doc/legal/intel_wpi
+                    intel_wpi       type=dir mode=0755 nlink=2 size=512
+                        LICENSE         size=2109 \
+                                        md5digest=563a583f14eb1a1277f6267ab977c3c6
+                    # ./usr/share/doc/legal/intel_wpi
+                    ..
+
+                # ./usr/share/doc/legal
+                ..
+
+
+# ./usr/share/doc/ncurses
+                ncurses         type=dir mode=0755 nlink=2 size=512
+                    hackguide.html  size=35683 \
+                                    md5digest=56f622c3425f9615a31a82a17e773735
+                    ncurses-intro.html \
+                                    size=121646 \
+                                    md5digest=f3481500bbc0ece719e58c05e8098a74
+                # ./usr/share/doc/ncurses
+                ..
+
+
+# ./usr/share/doc/ntp
+                ntp             type=dir mode=0755 nlink=2 size=1536
+                    accopt.html     size=9653 \
+                                    md5digest=8ace27b633c39aab22ef2109c44570e1
+                    assoc.html      size=13857 \
+                                    md5digest=10c05ca1d71a3175079ff7475f953c84
+                    audio.html      size=12741 \
+                                    md5digest=78be1a606c977f098d6dbb2fcdf91eba
+                    authopt.html    size=25372 \
+                                    md5digest=43e599e5e19cf70a154b189181923cfc
+                    build.html      size=11359 \
+                                    md5digest=9bc6dcad6c5ef4f755c9416bafcd0325
+                    clockopt.html   size=9991 \
+                                    md5digest=58baf5a30af0fca1c0ec074b9e93470e
+                    config.html     size=9155 \
+                                    md5digest=c6e4101ed3fef580ac1dddb495e1785f
+                    confopt.html    size=13643 \
+                                    md5digest=9234e335ad9125dbfc05aa132f6d39a7
+                    copyright.html  size=10456 \
+                                    md5digest=40b094d58f000fb3a73e6da49523b617
+                    debug.html      size=34141 \
+                                    md5digest=9393fa1df23cc1cb2bc92b8087ea861a
+                    driver1.html    size=8339 \
+                                    md5digest=dd2b690e57c2ce5ae3f11bb845cad230
+                    driver10.html   size=3810 \
+                                    md5digest=f628c47b84c8898e4587a7f3924818aa
+                    driver11.html   size=5448 \
+                                    md5digest=26b08d8777aada50bbb1022ae4e25ad7
+                    driver12.html   size=2824 \
+                                    md5digest=4257f47ef60196148961aacc65147667
+                    driver16.html   size=1526 \
+                                    md5digest=c52ddcbe70baf4fc18e428c99bc5f7cf
+                    driver18.html   size=8075 \
+                                    md5digest=1a19dfb16425df4ef2991596d9d861b9
+                    driver19.html   size=4095 \
+                                    md5digest=f340020da35111965ba29d74c62b0a7a
+                    driver2.html    size=4656 \
+                                    md5digest=713003338be9bb1ead83445767973b42
+                    driver20.html   size=5793 \
+                                    md5digest=794da658c862b9c90c5d3ed58869ca4c
+                    driver22.html   size=6724 \
+                                    md5digest=d1f8482a0864bc433ac2b57da39c3b54
+                    driver26.html   size=3998 \
+                                    md5digest=0ca0505d7f711d56a62b5bb4a6bf1489
+                    driver27.html   size=20024 \
+                                    md5digest=13cdc283da6e55d9c3e9d72316d9ec1b
+                    driver28.html   size=5054 \
+                                    md5digest=9dcd539b453fea4faafba67194e9cc4b
+                    driver29.html   size=28519 \
+                                    md5digest=1f48115bfa20e85e8b499a8c822707a6
+                    driver3.html    size=4067 \
+                                    md5digest=3861f728f6ee8a969c9806341478e5c8
+                    driver30.html   size=6286 \
+                                    md5digest=ba33cc804c22f2d748b95cbfcaea0169
+                    driver32.html   size=1566 \
+                                    md5digest=a54fe1b74e1b2b96fa0d0bd36e552b5f
+                    driver33.html   size=1338 \
+                                    md5digest=7b1349cbc50915ad41810028924ea7b3
+                    driver34.html   size=4625 \
+                                    md5digest=95f2207fb290b7aeeb4cebc69993c40f
+                    driver35.html   size=2666 \
+                                    md5digest=a032ddc2edc8596118491787e9cb2491
+                    driver36.html   size=30222 \
+                                    md5digest=a6f80c3539877e09f612fa4f703d220c
+                    driver37.html   size=2220 \
+                                    md5digest=bc1b3cc10e36ed7295287042e671c69d
+                    driver4.html    size=5071 \
+                                    md5digest=c761ebbc5196642d0b2335f6500c4f9b
+                    driver5.html    size=5362 \
+                                    md5digest=d57e52151cb5b963474417c27448b4d9
+                    driver6.html    size=13586 \
+                                    md5digest=c9604c5fbe10f4fb49cac58320b5e114
+                    driver7.html    size=25146 \
+                                    md5digest=aa4e0889fd5d01552528607b4f3dbe10
+                    driver8.html    size=20064 \
+                                    md5digest=4f88e9828c69c5f95c0daa97a45ff143
+                    driver9.html    size=4122 \
+                                    md5digest=4ff9349d9c2c6c286f63ee1eec649f6a
+                    extern.html     size=5960 \
+                                    md5digest=5f80d123158aca0f96cf88ffa5476049
+                    hints.html      size=1929 \
+                                    md5digest=6066acc88c0888672f09a0a7bd6e92b5
+                    howto.html      size=18702 \
+                                    md5digest=0f6a7da55751dada0876f7871894baff
+                    index.html      size=15703 \
+                                    md5digest=b4f5c83edafadeeae541eb5b1a2d71f7
+                    kern.html       size=4399 \
+                                    md5digest=2fd785f56e81af8b5153d869e4c5dcec
+                    ldisc.html      size=7705 \
+                                    md5digest=a68e54f6e4c88a3ce7662df921d81c42
+                    measure.html    size=3140 \
+                                    md5digest=0682f295d2b23f3437cef1fa442babd2
+                    miscopt.html    size=13428 \
+                                    md5digest=95a3945df0080014078b97fb71e22c3e
+                    monopt.html     size=14231 \
+                                    md5digest=417de536546b4305232cc510a4a34225
+                    mx4200data.html size=26107 \
+                                    md5digest=6599f528381e2c51b4195b0471fff47b
+                    notes.html      size=68846 \
+                                    md5digest=ea136623ef648dfec15713bb19cc77e5
+                    ntpd.html       size=24481 \
+                                    md5digest=063eb6d4959612a890805f398d08296a
+                    ntpdate.html    size=8086 \
+                                    md5digest=92157456a15a0518049f07af0cbabb2f
+                    ntpdc.html      size=22905 \
+                                    md5digest=7804f1beff6301bc4eafe7f7465bfa07
+                    ntpq.html       size=27048 \
+                                    md5digest=04f4cd87f32796af3a1652482e02926b
+                    ntptime.html    size=2310 \
+                                    md5digest=ce31643ecef885ef600caae74fd6b4d8
+                    ntptrace.html   size=2934 \
+                                    md5digest=a9e7272cc33ebacc389713bf277b4568
+                    parsedata.html  size=16462 \
+                                    md5digest=36a154e4b36373275f9084409f361176
+                    parsenew.html   size=9632 \
+                                    md5digest=b65b71828a47d9c80405aa30b031727d
+                    patches.html    size=3491 \
+                                    md5digest=1be5c41d562089c6249d3e2937061ee1
+                    porting.html    size=3849 \
+                                    md5digest=2091328889262a20a419034632a6f345
+                    pps.html        size=6481 \
+                                    md5digest=c2991959602604a0c883aa99b99e98a4
+                    prefer.html     size=20704 \
+                                    md5digest=288af8b0d1e99e012b34393f8499db7d
+                    quick.html      size=4964 \
+                                    md5digest=48e3509ad89cec85ef4a0a7eed38804e
+                    rdebug.html     size=5733 \
+                                    md5digest=9de212ff5a2a70d22ce17709345d5204
+                    refclock.html   size=13825 \
+                                    md5digest=87eea3bbad084cb991b0a9e58972eb98
+                    release.html    size=17980 \
+                                    md5digest=b484e951bdb2502d86baae98bbe4dbe2
+                    tickadj.html    size=3837 \
+                                    md5digest=b9259a7e20d9ef9af30ee765a0fe2ca5
+                # ./usr/share/doc/ntp
+                ..
+
+
+# ./usr/share/doc/papers
+                papers          type=dir mode=0755 nlink=2 size=512
+                    beyond43.ascii.gz \
+                                    size=9522 \
+                                    md5digest=826d89dd0259084e493614cf854ab314
+                    bio.ascii.gz    size=12567 \
+                                    md5digest=b50a44a775783e72c0b16c5f71dd8800
+                    contents.ascii.gz \
+                                    size=1631 \
+                                    md5digest=456bb85a01758222ccdd779daba40cd4
+                    devfs.ascii.gz  size=20321 \
+                                    md5digest=168c2eeb3ce85b1148f68b545085f27d
+                    diskperf.ascii.gz \
+                                    size=11902 \
+                                    md5digest=f7302a1ff6defe1db60c9e485a59ebdd
+                    fsinterface.ascii.gz \
+                                    size=18988 \
+                                    md5digest=d7820be93bce4a5aa64c09d09b639624
+                    hwpmc.ascii.gz  size=171 \
+                                    md5digest=f0ecae0c4f4f27c2d51f62564465b8f2
+                    jail.ascii.gz   size=17146 \
+                                    md5digest=3ad85a1473274643c6fef9a937e606dc
+                    kernmalloc.ascii.gz \
+                                    size=13726 \
+                                    md5digest=5cb819a45f9e496d782d9cae81e9c4ae
+                    kerntune.ascii.gz \
+                                    size=9015 \
+                                    md5digest=81167e98b2c21eec4f955474437bde57
+                    malloc.ascii.gz size=11576 \
+                                    md5digest=d277d509c9eb92b83b0e8d71e34436cb
+                    newvm.ascii.gz  size=10888 \
+                                    md5digest=2e7a0f95c09632a09c9ded233cbd2b45
+                    releng.ascii.gz size=9203 \
+                                    md5digest=205572184704942a7e8db0c76a136455
+                    sysperf.ascii.gz \
+                                    size=42125 \
+                                    md5digest=0ad5a31dee748cd7c6b94350976ec57c
+                    timecounter.ascii.gz \
+                                    size=16730 \
+                                    md5digest=6f95dfb75b35d43640b7158d6e1172af
+                # ./usr/share/doc/papers
+                ..
+
+
+# ./usr/share/doc/psd
+/set type=file uname=root gname=wheel mode=0755 nlink=1
+                psd             type=dir nlink=23 size=512
+                    Title.ascii.gz  mode=0444 size=1981 \
+                                    md5digest=3bd66730f54d396903a53939b64446e8
+                    contents.ascii.gz \
+                                    mode=0444 size=2748 \
+                                    md5digest=95c0d4aa148cf877bcd28cc1ae8f64d3
+
+# ./usr/share/doc/psd/01.cacm
+/set type=file uname=root gname=wheel mode=0444 nlink=1
+                    01.cacm         type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=23642 \
+                                        md5digest=0cc381390619fd2914fa1442535bc2c6
+                    # ./usr/share/doc/psd/01.cacm
+                    ..
+
+
+# ./usr/share/doc/psd/02.implement
+                    02.implement    type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=14783 \
+                                        md5digest=d96bc6c600ede061f4fde609285b717b
+                    # ./usr/share/doc/psd/02.implement
+                    ..
+
+
+# ./usr/share/doc/psd/03.iosys
+                    03.iosys        type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=11681 \
+                                        md5digest=9fbe2e524fa51c3269f5581a6f8f59e0
+                    # ./usr/share/doc/psd/03.iosys
+                    ..
+
+
+# ./usr/share/doc/psd/04.uprog
+                    04.uprog        type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=23148 \
+                                        md5digest=d4654dd00fb94377da5b3c3b681ff131
+                    # ./usr/share/doc/psd/04.uprog
+                    ..
+
+
+# ./usr/share/doc/psd/05.sysman
+                    05.sysman       type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=34967 \
+                                        md5digest=ddf70f1b8a2872e19fcb00d1cf5b1bb4
+                    # ./usr/share/doc/psd/05.sysman
+                    ..
+
+
+# ./usr/share/doc/psd/06.Clang
+                    06.Clang        type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=34075 \
+                                        md5digest=317babb85060fb3044872d16808348ba
+                    # ./usr/share/doc/psd/06.Clang
+                    ..
+
+
+# ./usr/share/doc/psd/12.make
+                    12.make         type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=44893 \
+                                        md5digest=453b3e0ec159677be8cb7813101a28cd
+                    # ./usr/share/doc/psd/12.make
+                    ..
+
+
+# ./usr/share/doc/psd/13.rcs
+                    13.rcs          type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=22286 \
+                                        md5digest=e646644a25cc613f99f8b9bf48917db9
+                        rcs_func.ascii.gz \
+                                        size=1836 \
+                                        md5digest=ad7d08acc4638d70a69544077ba74590
+                    # ./usr/share/doc/psd/13.rcs
+                    ..
+
+
+# ./usr/share/doc/psd/15.yacc
+                    15.yacc         type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=30110 \
+                                        md5digest=0137cb17316254aed64d6762aa50f0e2
+                    # ./usr/share/doc/psd/15.yacc
+                    ..
+
+
+# ./usr/share/doc/psd/16.lex
+                    16.lex          type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=23275 \
+                                        md5digest=915d6c68f5c63b21bb3a415dd86ada27
+                    # ./usr/share/doc/psd/16.lex
+                    ..
+
+
+# ./usr/share/doc/psd/17.m4
+                    17.m4           type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=8105 \
+                                        md5digest=d5315e75e2e42ee5d65f50ecf8994367
+                    # ./usr/share/doc/psd/17.m4
+                    ..
+
+
+# ./usr/share/doc/psd/18.gprof
+                    18.gprof        type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=13360 \
+                                        md5digest=433c276acc18ee7660dfe5fff35ab5f7
+                    # ./usr/share/doc/psd/18.gprof
+                    ..
+
+
+# ./usr/share/doc/psd/20.ipctut
+                    20.ipctut       type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=18768 \
+                                        md5digest=432b6bd42351cd120bc3907e57ef258a
+                    # ./usr/share/doc/psd/20.ipctut
+                    ..
+
+
+# ./usr/share/doc/psd/21.ipc
+                    21.ipc          type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=44783 \
+                                        md5digest=6a73222ee5a6a823928e1adaf1cec23b
+                    # ./usr/share/doc/psd/21.ipc
+                    ..
+
+
+# ./usr/share/doc/psd/22.rpcgen
+                    22.rpcgen       type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=12230 \
+                                        md5digest=31e7f4edde33f0623a04edf15d8f785b
+                    # ./usr/share/doc/psd/22.rpcgen
+                    ..
+
+
+# ./usr/share/doc/psd/23.rpc
+                    23.rpc          type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=25454 \
+                                        md5digest=6bfc8190835fc802708ee00bc7cb79bf
+                    # ./usr/share/doc/psd/23.rpc
+                    ..
+
+
+# ./usr/share/doc/psd/24.xdr
+                    24.xdr          type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=18314 \
+                                        md5digest=39cae3d018bd0f00b83f7f998e3356e6
+                    # ./usr/share/doc/psd/24.xdr
+                    ..
+
+
+# ./usr/share/doc/psd/25.xdrrfc
+                    25.xdrrfc       type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=12051 \
+                                        md5digest=0bdd1195e5976f337356b40399dcb999
+                    # ./usr/share/doc/psd/25.xdrrfc
+                    ..
+
+
+# ./usr/share/doc/psd/26.rpcrfc
+                    26.rpcrfc       type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=18283 \
+                                        md5digest=b1a2c6e07e55f48967e2150f3b7cfd3e
+                    # ./usr/share/doc/psd/26.rpcrfc
+                    ..
+
+
+# ./usr/share/doc/psd/27.nfsrfc
+                    27.nfsrfc       type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=15056 \
+                                        md5digest=0d07d226b666947fba45b799432f7264
+                    # ./usr/share/doc/psd/27.nfsrfc
+                    ..
+
+
+# ./usr/share/doc/psd/28.cvs
+                    28.cvs          type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=14116 \
+                                        md5digest=1c63bbae28aafd8d71b489f6a2409c0b
+                    # ./usr/share/doc/psd/28.cvs
+                    ..
+
+                # ./usr/share/doc/psd
+                ..
+
+
+# ./usr/share/doc/smm
+/set type=file uname=root gname=wheel mode=0755 nlink=1
+                smm             type=dir nlink=13 size=512
+                    Title.ascii.gz  mode=0444 size=2345 \
+                                    md5digest=3e71c3e84dcf9ea658cd470d15f1810f
+                    contents.ascii.gz \
+                                    mode=0444 size=1537 \
+                                    md5digest=55f3ab4d65370cc53bacde9948f06580
+
+# ./usr/share/doc/smm/01.setup
+/set type=file uname=root gname=wheel mode=0444 nlink=1
+                    01.setup        type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=77475 \
+                                        md5digest=db5830c91701225cc12e3853045ae8ef
+                    # ./usr/share/doc/smm/01.setup
+                    ..
+
+
+# ./usr/share/doc/smm/02.config
+                    02.config       type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=27282 \
+                                        md5digest=47a463db10821f5c675b0cbf7bf68a69
+                    # ./usr/share/doc/smm/02.config
+                    ..
+
+
+# ./usr/share/doc/smm/03.fsck
+                    03.fsck         type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=20250 \
+                                        md5digest=36eacd3fc8b09e24d5e66da391b7ba99
+                    # ./usr/share/doc/smm/03.fsck
+                    ..
+
+
+# ./usr/share/doc/smm/04.quotas
+                    04.quotas       type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=4723 \
+                                        md5digest=a97d1bd1334366039dab3203b5fecb33
+                    # ./usr/share/doc/smm/04.quotas
+                    ..
+
+
+# ./usr/share/doc/smm/05.fastfs
+                    05.fastfs       type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=23442 \
+                                        md5digest=a6cbd5774ff15c4d354ca86ad4e673bb
+                    # ./usr/share/doc/smm/05.fastfs
+                    ..
+
+
+# ./usr/share/doc/smm/06.nfs
+                    06.nfs          type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=19801 \
+                                        md5digest=f7c006142a305bd28bcdd7ad9ce42a55
+                    # ./usr/share/doc/smm/06.nfs
+                    ..
+
+
+# ./usr/share/doc/smm/07.lpd
+                    07.lpd          type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=9279 \
+                                        md5digest=c6bf979d21758081caed76414282d0c8
+                    # ./usr/share/doc/smm/07.lpd
+                    ..
+
+
+# ./usr/share/doc/smm/08.sendmailop
+                    08.sendmailop   type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=133958 \
+                                        md5digest=5b21d559f2888bf70607a5a78d2ab150
+                    # ./usr/share/doc/smm/08.sendmailop
+                    ..
+
+
+# ./usr/share/doc/smm/11.timedop
+                    11.timedop      type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=4683 \
+                                        md5digest=c688e035bb8e1c03c4f55eead448345f
+                    # ./usr/share/doc/smm/11.timedop
+                    ..
+
+
+# ./usr/share/doc/smm/12.timed
+                    12.timed        type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=6200 \
+                                        md5digest=dd6778d0bcef9b64fc2e2e7cfd8b5a9d
+                    # ./usr/share/doc/smm/12.timed
+                    ..
+
+
+# ./usr/share/doc/smm/18.net
+                    18.net          type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=33556 \
+                                        md5digest=637147e6bfb6648ddf4a3da1a869d4c1
+                    # ./usr/share/doc/smm/18.net
+                    ..
+
+                # ./usr/share/doc/smm
+                ..
+
+
+# ./usr/share/doc/usd
+/set type=file uname=root gname=wheel mode=0755 nlink=1
+                usd             type=dir nlink=13 size=512
+                    Title.ascii.gz  mode=0444 size=1798 \
+                                    md5digest=51be65ab36cd218510e5034cdee73093
+                    contents.ascii.gz \
+                                    mode=0444 size=2535 \
+                                    md5digest=e9df36767f349c4f2282f4e7ef510435
+
+# ./usr/share/doc/usd/04.csh
+/set type=file uname=root gname=wheel mode=0444 nlink=1
+                    04.csh          type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=49743 \
+                                        md5digest=219607f282c1e02c6d05a2b80aa789f6
+                    # ./usr/share/doc/usd/04.csh
+                    ..
+
+
+# ./usr/share/doc/usd/07.mail
+                    07.mail         type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=26040 \
+                                        md5digest=977ae7d20316c871fb6bb91937cf7be7
+                    # ./usr/share/doc/usd/07.mail
+                    ..
+
+
+# ./usr/share/doc/usd/10.exref
+                    10.exref        type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=22075 \
+                                        md5digest=c2f0a5df93928b2213ad2f6326001527
+                        summary.ascii.gz \
+                                        size=6533 \
+                                        md5digest=d102a326a2c2557fdf7e5bef1dbfc276
+                    # ./usr/share/doc/usd/10.exref
+                    ..
+
+
+# ./usr/share/doc/usd/11.edit
+                    11.edit         type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=23510 \
+                                        md5digest=7ea7281c5bb74b4e04baa6841e2f7239
+                    # ./usr/share/doc/usd/11.edit
+                    ..
+
+
+# ./usr/share/doc/usd/12.vi
+                    12.vi           type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=38719 \
+                                        md5digest=cefc4416337308a6caecb4b601c4b629
+                        summary.ascii.gz \
+                                        size=4788 \
+                                        md5digest=84e751e34390910a38429a565941a5b4
+                        viapwh.ascii.gz size=15381 \
+                                        md5digest=1cb58b9c7df929eedf6431a18185d02f
+                    # ./usr/share/doc/usd/12.vi
+                    ..
+
+
+# ./usr/share/doc/usd/13.viref
+                    13.viref        type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=61701 \
+                                        md5digest=aed5390cdcb92c2b2f078a9e4d1d8448
+                    # ./usr/share/doc/usd/13.viref
+                    ..
+
+
+# ./usr/share/doc/usd/18.msdiffs
+                    18.msdiffs      type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=4393 \
+                                        md5digest=a39c847f519b11b5a3d1b5c1b6dd272f
+                    # ./usr/share/doc/usd/18.msdiffs
+                    ..
+
+
+# ./usr/share/doc/usd/19.memacros
+                    19.memacros     type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=16593 \
+                                        md5digest=3c120d47d769d460bd1250c0bb574403
+                    # ./usr/share/doc/usd/19.memacros
+                    ..
+
+
+# ./usr/share/doc/usd/20.meref
+                    20.meref        type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=14768 \
+                                        md5digest=6603a4d15af0cfabfa71ab68560f3a86
+                    # ./usr/share/doc/usd/20.meref
+                    ..
+
+
+# ./usr/share/doc/usd/21.troff
+                    21.troff        type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=48659 \
+                                        md5digest=e0aea61d4d98386d37b58d7bd07cd3cd
+                    # ./usr/share/doc/usd/21.troff
+                    ..
+
+
+# ./usr/share/doc/usd/22.trofftut
+                    22.trofftut     type=dir mode=0755 nlink=2 size=512
+                        paper.ascii.gz  size=24432 \
+                                        md5digest=dec1f577efc61a817a9b18a05cdb127e
+                    # ./usr/share/doc/usd/22.trofftut
+                    ..
+
+                # ./usr/share/doc/usd
+                ..
+
+            # ./usr/share/doc
+            ..
+
+        # ./usr/share
+        ..
+
+    # ./usr
+    ..
+
+..
+

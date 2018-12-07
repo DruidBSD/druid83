@@ -1,0 +1,1399 @@
+# -*- tab-width:  4 -*- ;; Emacs
+# vi: set tabstop=4     :: Vi/ViM
+
+################################################################################
+################################# CONFIGURATION ################################
+################################################################################
+
+# Disc label(s)
+DRUID_BASENAME   = Druid
+FREEBSD_BASENAME = FreeBSD-8.3
+
+#
+# Version Information
+#
+# See the file `druid/doc/VERSIONING' for additional information.
+#
+VERSION_ALL     = 0.0
+VERSION_DEV     = 1.1d1
+VERSION_FREEBSD = 1.0b60
+VERSION_TOOLS   = 1.0
+VERSION_REPOS   = 1.0b60
+
+# Default ISO9660 tags
+PUBLISHER = DruidBSD.sf.net
+PREPARER  = dteske@FreeBSD.org
+SYSTEM_ID = x86
+
+# Target-specific preparer
+freebsd: override PREPARER = dteske@FreeBSD.org
+tools:   override PREPARER = dteske@FreeBSD.org
+dev:     override PREPARER = dteske@FreeBSD.org
+
+# Paths to required components
+SRCDIR = @srcdir@/src
+DEPDIR = @srcdir@/dep
+MDROOT = @srcdir@/mdroot
+
+# Installation paths
+DRUID_REPOS_DIR = /repos/druid
+
+################################################################################
+############################### GLOBAL VARIABLES ###############################
+################################################################################
+
+#
+# ISO filename definitions
+#
+ALL_ISO     = $(DRUID_BASENAME)-$(VERSION_ALL).iso
+DEV_ISO     = Dev_$(DRUID_BASENAME)-$(VERSION_DEV).iso
+FREEBSD_ISO = $(FREEBSD_BASENAME)_$(DRUID_BASENAME)-$(VERSION_FREEBSD).iso
+TOOLS_ISO   = $(DRUID_BASENAME)_Tools-$(VERSION_TOOLS).iso
+
+#
+# Internal ISO9660 Volume ID (referenced by various incumbant
+# selectable options in re-mounting/identifying the boot media).
+#
+# DO NOT CHANGE THIS!
+#
+BOOT_VOLID = druid
+
+#
+# Standard MKISOFS options (for building a [bootable] ISO)
+#
+ISO9660_OPTS = -U -J -r
+BOOTFILE     = boot/isolinux/isolinux.bin
+BCATALOG     = boot/isolinux/boot.catalog
+ISOBOOT_OPTS = -V $(BOOT_VOLID)  \
+               -b $(BOOTFILE)    \
+               -no-emul-boot     \
+               -c $(BCATALOG)    \
+               -boot-load-size 4 \
+               -boot-info-table
+MKISOFS_OPTS = -publisher "$(PUBLISHER)"               \
+               -p "$(PREPARER)"                        \
+               -sysid "$(SYSTEM_ID)"                   \
+               -m CVS -m .keep -m '*.dev' -m '*.nodev' \
+               -uid 0 -gid 0
+
+#
+# Standard utility pathnames
+#
+MKISOFS = @MKISOFS@
+AWK     = @AWK@
+CP      = @CP@
+FIND    = @FIND@
+LN      = @LN@
+MKDIR   = @MKDIR@
+MV      = @MV@
+RM      = @RM@
+SED     = @SED@
+SH      = @SH@
+TOUCH   = @TOUCH@
+
+#
+# If enabled, the completed ISO file will be post-processed using SYSLINUXs
+# isohybrid utility, allowing the ISO to be written to bootable USB storage
+# (such as a flash drive).
+#
+ISOHYBRID = @ISOHYBRID@
+
+#
+# Dependency pathnames (configurable via `--with-OPTION=path')
+#
+ISOHYBRID_PATH = @WITH_ISOHYBRID@
+
+#
+# Default options to pass to isohybrid (when enabled)
+# Override by specifying ISOHYBRID_OPTS="..." on the make(1) command-line
+#
+ISOHYBRID_OPTS = -offset 1 -h 255 -s 63
+
+################################################################################
+################################### FUNCTIONS ##################################
+################################################################################
+
+#
+# $(call appid,...)
+#
+# Convert ISO pathname into suitable ISO9660 Application ID.
+#
+appid = $(shell echo $(1) | $(SED) -e 's/.*\///;s/\.iso$$//;s/-[^-]*$$//')
+
+################################################################################
+################################ TARGET OBJECTS ################################
+################################################################################
+
+#
+# Paths to common elementes (for building MKISOFS graft-points, below)
+#
+ISOLINUX_BIN   = $(BOOTFILE)
+ISOLINUX_CFG   = boot/isolinux/isolinux.cfg
+MENU_CFG       = boot/isolinux/menu.cfg
+MEMDISK        = boot/isolinux/memdisk
+VESAMENU_C32   = boot/isolinux/vesamenu.c32
+HDT_C32        = boot/isolinux/hdt.c32
+MODULES_PCIMAP = boot/isolinux/modules.pcimap
+PCI_IDS        = boot/isolinux/pci.ids
+BOOT_FREEBSD   = boot/freebsd
+BOOT_INCLUDE   = boot/include
+BOOT_OTHER     = boot/other
+BOOT_TOOLS     = boot/tools
+ISO_TOOLS      = tools
+FREEBSD_DOC    = doc/FreeBSD_Druid_User_Guide.pdf
+VERSION_INF    = version.inf
+FREEBSD_ROOT   = freebsd
+
+#
+# Pathname shorthand variables
+#
+FREEBSD_REPOS = $(SRCDIR)/$(FREEBSD_ROOT)/repos
+HOST_SETUP    = sys_custom/usr/local/sbin/host-setup
+
+#
+# Common graft-points (for all builds)
+#
+ISO_OBJECTS = /$(ISOLINUX_BIN)=$(ISOLINUX_BIN)     \
+              /$(ISOLINUX_CFG)=$(ISOLINUX_CFG)     \
+              /$(BOOT_INCLUDE)=$(BOOT_INCLUDE)     \
+              /$(BOOT_OTHER)=$(BOOT_OTHER)         \
+              /$(MEMDISK)=$(MEMDISK)               \
+              /$(VESAMENU_C32)=$(VESAMENU_C32)     \
+              /$(HDT_C32)=$(HDT_C32)               \
+              /$(MODULES_PCIMAP)=$(MODULES_PCIMAP) \
+              /$(PCI_IDS)=$(PCI_IDS)               \
+              /$(VERSION_INF)=$(VERSION_INF)       \
+              /$(ISO_TOOLS)=$(ISO_TOOLS)
+
+#
+# FreeBSD-specific graft-points
+#
+freebsd: override OBJECTS = -graft-points \
+         /$(FREEBSD_ROOT)=$(FREEBSD_ROOT) \
+         /$(BOOT_FREEBSD)=$(BOOT_FREEBSD) \
+         /$(MENU_CFG)=$(MENU_CFG).freebsd \
+         /$(FREEBSD_DOC)=$(FREEBSD_DOC)   \
+         /$(BOOT_TOOLS)=$(BOOT_TOOLS)     \
+         $(ISO_OBJECTS)
+
+#
+# Graft-points specific to the "Tools Only" diagnostic disc
+#
+tools: override OBJECTS = -graft-points \
+       /$(BOOT_TOOLS)=$(BOOT_TOOLS)     \
+       /$(MENU_CFG)=$(MENU_CFG).tools   \
+       $(ISO_OBJECTS)
+
+
+ifndef OBJECTS
+	#
+	# If a target-specific set of objects has not been defined,
+	# omit the use of graft-points and include everything
+	#
+	OBJECTS = .
+endif
+
+################################################################################
+############################# TARGET  DEPENDENCIES #############################
+################################################################################
+
+#
+# Standard utilities
+#
+DEPEND_DEP = $(MKISOFS) \
+             $(AWK)     \
+             $(CP)      \
+             $(FIND)    \
+             $(LN)      \
+             $(MKDIR)   \
+             $(MV)      \
+             $(RM)      \
+             $(SED)     \
+             $(SH)      \
+             $(TOUCH)
+
+#
+# Makefile dependencies
+#
+MAKEFILE_DEP = configure      \
+               config.status  \
+               GNUmakefile.in
+
+#
+# Druid repository dependencies
+#
+DRUID_REPOS_DEP = \
+    $(SRCDIR)/$(VERSION_INF)                                                   \
+    $(DEPDIR)/.freebsd_package_symlinks                                        \
+    $(DEPDIR)/.freebsd_menu_druid_dist                                         \
+    $(DEPDIR)/.freebsd_repos_druid_dist                                        \
+    $(SRCDIR)/$(FREEBSD_DOC)                                                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/menu/bin/swapsz                                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/menu/bin/x86_64                                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/menu/etc/install830.conf                         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/menu/etc/install830-amd64.conf                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/base/base.??                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/base/base.inf                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/base/base.mtree                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/base/CHECKSUM.MD5              \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/base/CHECKSUM.SHA256           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/base/install.sh                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/cdrom.inf                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/dict/CHECKSUM.MD5              \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/dict/CHECKSUM.SHA256           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/dict/dict.??                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/dict/dict.inf                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/dict/dict.mtree                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/dict/install.sh                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/doc/CHECKSUM.MD5               \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/doc/CHECKSUM.SHA256            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/doc/doc.??                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/doc/doc.inf                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/doc/doc.mtree                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/doc/install.sh                 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/druid/etc/sh.subr              \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/druid/restart                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/druid/run_once                 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/druid/shutdown                 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/druid/syscustom                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/games/CHECKSUM.MD5             \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/games/CHECKSUM.SHA256          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/games/games.??                 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/games/games.inf                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/games/games.mtree              \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/games/install.sh               \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/info/CHECKSUM.MD5              \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/info/CHECKSUM.SHA256           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/info/info.??                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/info/info.inf                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/info/info.mtree                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/info/install.sh                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/kernels/CHECKSUM.MD5           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/kernels/CHECKSUM.SHA256        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/kernels/generic.??             \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/kernels/generic.inf            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/kernels/generic.mtree          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/kernels/install.sh             \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/local/CHECKSUM.MD5             \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/local/CHECKSUM.SHA256          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/local/install.sh               \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/local/local.??                 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/local/local.inf                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/local/local.mtree              \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/manpages/CHECKSUM.MD5          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/manpages/CHECKSUM.SHA256       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/manpages/install.sh            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/manpages/manpages.??           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/manpages/manpages.inf          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/manpages/manpages.mtree        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/packages/INDEX                 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/perl/CHECKSUM.MD5              \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/perl/CHECKSUM.SHA256           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/perl/install.sh                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/perl/perl.??                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/perl/perl.inf                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/perl/perl.mtree                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/post_install.cfg               \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/proflibs/CHECKSUM.MD5          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/proflibs/CHECKSUM.SHA256       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/proflibs/install.sh            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/proflibs/proflibs.??           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/proflibs/proflibs.inf          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/proflibs/proflibs.mtree        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/run_once/cleanup.sh            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/run_once/netwait_setup.sh      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/run_once/perl_setup.sh         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/run_once/root_passwd.sh        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/run_once/rootshell_setup.sh    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/run_once/rsync_setup.sh        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/run_once/sshd_setup.sh         \
+    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/$(HOST_SETUP)                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/base/base.??             \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/base/base.inf            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/base/base.mtree          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/base/CHECKSUM.MD5        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/base/CHECKSUM.SHA256     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/base/install.sh          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/cdrom.inf                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/dict/CHECKSUM.MD5        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/dict/CHECKSUM.SHA256     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/dict/dict.??             \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/dict/dict.inf            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/dict/dict.mtree          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/dict/install.sh          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/doc/CHECKSUM.MD5         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/doc/CHECKSUM.SHA256      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/doc/doc.??               \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/doc/doc.inf              \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/doc/doc.mtree            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/doc/install.sh           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/druid/etc/sh.subr        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/druid/restart            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/druid/run_once           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/druid/shutdown           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/druid/syscustom          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/games/CHECKSUM.MD5       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/games/CHECKSUM.SHA256    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/games/games.??           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/games/games.inf          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/games/games.mtree        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/games/install.sh         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/info/CHECKSUM.MD5        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/info/CHECKSUM.SHA256     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/info/info.??             \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/info/info.inf            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/info/info.mtree          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/info/install.sh          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/kernels/CHECKSUM.MD5     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/kernels/CHECKSUM.SHA256  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/kernels/generic.??       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/kernels/generic.inf      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/kernels/generic.mtree    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/kernels/install.sh       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/lib32/CHECKSUM.MD5       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/lib32/CHECKSUM.SHA256    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/lib32/install.sh         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/lib32/lib32.??           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/lib32/lib32.inf          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/lib32/lib32.mtree        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/local/CHECKSUM.MD5       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/local/CHECKSUM.SHA256    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/local/install.sh         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/local/local.??           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/local/local.inf          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/local/local.mtree        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/manpages/CHECKSUM.MD5    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/manpages/CHECKSUM.SHA256 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/manpages/install.sh      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/manpages/manpages.??     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/manpages/manpages.inf    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/manpages/manpages.mtree  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/packages/INDEX           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/perl/CHECKSUM.MD5        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/perl/CHECKSUM.SHA256     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/perl/install.sh          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/perl/perl.??             \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/perl/perl.inf            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/perl/perl.mtree          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/post_install.cfg         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/proflibs/CHECKSUM.MD5    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/proflibs/CHECKSUM.SHA256 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/proflibs/install.sh      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/proflibs/proflibs.??     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/proflibs/proflibs.inf    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/proflibs/proflibs.mtree  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/run_once/cleanup.sh      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/run_once/netwait_setup.sh \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/run_once/perl_setup.sh   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/run_once/root_passwd.sh  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/run_once/rootshell_setup.sh \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/run_once/rsync_setup.sh  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/run_once/sshd_setup.sh   \
+    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/$(HOST_SETUP)            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/tools/README                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/tools/crunch/rebuild_crunch4                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/tools/crunch/rebuild_crunch8                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/tools/etc/REMOVE_LIST-X.Y                        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/tools/etc/X.Y-RELEASE.conf                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/tools/host_rebuild                               \
+    $(SRCDIR)/$(FREEBSD_ROOT)/tools/jail_build                                 \
+    $(SRCDIR)/$(ISO_TOOLS)/README.txt                                          \
+    $(SRCDIR)/$(ISO_TOOLS)/README-BSD.txt                                      \
+    $(SRCDIR)/$(ISO_TOOLS)/README-LINUX.txt                                    \
+    $(SRCDIR)/$(ISO_TOOLS)/README-MAC.txt                                      \
+    $(SRCDIR)/$(ISO_TOOLS)/README-MS.txt                                       \
+    $(SRCDIR)/$(ISO_TOOLS)/dd.exe                                              \
+    $(SRCDIR)/$(ISO_TOOLS)/iso2cd.sh                                           \
+    $(SRCDIR)/$(ISO_TOOLS)/iso2dvd.sh                                          \
+    $(SRCDIR)/$(ISO_TOOLS)/iso2usb.sh                                          \
+    $(SRCDIR)/$(ISO_TOOLS)/mount_iso.sh                                        \
+    $(SRCDIR)/$(ISO_TOOLS)/umount_iso.sh                                       \
+    $(SRCDIR)/$(ISO_TOOLS)/win32diskimager-binary/GPL-2                        \
+    $(SRCDIR)/$(ISO_TOOLS)/win32diskimager-binary/LGPL-2.1                     \
+    $(SRCDIR)/$(ISO_TOOLS)/win32diskimager-binary/libgcc_s_dw2-1.dll           \
+    $(SRCDIR)/$(ISO_TOOLS)/win32diskimager-binary/libstdc++-6.dll              \
+    $(SRCDIR)/$(ISO_TOOLS)/win32diskimager-binary/mingwm10.dll                 \
+    $(SRCDIR)/$(ISO_TOOLS)/win32diskimager-binary/QtCore4.dll                  \
+    $(SRCDIR)/$(ISO_TOOLS)/win32diskimager-binary/QtGui4.dll                   \
+    $(SRCDIR)/$(ISO_TOOLS)/win32diskimager-binary/README.txt                   \
+    $(SRCDIR)/$(ISO_TOOLS)/win32diskimager-binary/Win32DiskImager.exe
+
+#
+# Core dependencies for all ISOs
+#
+ISO_DEP = $(SRCDIR)/$(BOOTFILE)                                             \
+          $(SRCDIR)/$(VERSION_INF)                                          \
+          $(SRCDIR)/$(BOOT_INCLUDE)/boot.msg                                \
+          $(SRCDIR)/$(BOOT_INCLUDE)/isolinux-menu.cfg                       \
+          $(SRCDIR)/$(BOOT_INCLUDE)/vesamenu.jpg                            \
+          $(SRCDIR)/$(HDT_C32)                                              \
+          $(SRCDIR)/$(ISOLINUX_CFG)                                         \
+          $(SRCDIR)/$(MEMDISK)                                              \
+          $(SRCDIR)/$(MODULES_PCIMAP)                                       \
+          $(SRCDIR)/$(PCI_IDS)                                              \
+          $(SRCDIR)/$(VESAMENU_C32)                                         \
+          $(SRCDIR)/$(BOOT_OTHER)/isolinux.cfg                              \
+          $(SRCDIR)/$(ISO_TOOLS)/README.txt                                 \
+          $(SRCDIR)/$(ISO_TOOLS)/README-BSD.txt                             \
+          $(SRCDIR)/$(ISO_TOOLS)/README-LINUX.txt                           \
+          $(SRCDIR)/$(ISO_TOOLS)/README-MAC.txt                             \
+          $(SRCDIR)/$(ISO_TOOLS)/README-MS.txt                              \
+          $(SRCDIR)/$(ISO_TOOLS)/dd.exe                                     \
+          $(SRCDIR)/$(ISO_TOOLS)/iso2cd.sh                                  \
+          $(SRCDIR)/$(ISO_TOOLS)/iso2dvd.sh                                 \
+          $(SRCDIR)/$(ISO_TOOLS)/iso2usb.sh                                 \
+          $(SRCDIR)/$(ISO_TOOLS)/mount_iso.sh                               \
+          $(SRCDIR)/$(ISO_TOOLS)/umount_iso.sh                              \
+          $(SRCDIR)/$(ISO_TOOLS)/win32diskimager-binary/GPL-2               \
+          $(SRCDIR)/$(ISO_TOOLS)/win32diskimager-binary/LGPL-2.1            \
+          $(SRCDIR)/$(ISO_TOOLS)/win32diskimager-binary/libgcc_s_dw2-1.dll  \
+          $(SRCDIR)/$(ISO_TOOLS)/win32diskimager-binary/libstdc++-6.dll     \
+          $(SRCDIR)/$(ISO_TOOLS)/win32diskimager-binary/mingwm10.dll        \
+          $(SRCDIR)/$(ISO_TOOLS)/win32diskimager-binary/QtCore4.dll         \
+          $(SRCDIR)/$(ISO_TOOLS)/win32diskimager-binary/QtGui4.dll          \
+          $(SRCDIR)/$(ISO_TOOLS)/win32diskimager-binary/README.txt          \
+          $(SRCDIR)/$(ISO_TOOLS)/win32diskimager-binary/Win32DiskImager.exe
+
+#
+# Dev ISO dependencies
+#
+DEV_DEP = 
+
+#
+# FreeBSD ISO dependencies
+#
+MDROOT_ISO  = $(BOOT_FREEBSD)/mdroot.iso
+FREEBSD_DEP = \
+    $(DEPDIR)/.freebsd_package_symlinks                                        \
+    $(DEPDIR)/.freebsd_rescue_symlinks                                         \
+    $(DEPDIR)/.freebsd_menu_druid_dist                                         \
+    $(DEPDIR)/.freebsd_repos_druid_dist                                        \
+    $(SRCDIR)/$(MDROOT_ISO)                                                    \
+    $(SRCDIR)/$(FREEBSD_DOC)                                                   \
+    $(SRCDIR)/$(BOOT_FREEBSD)/isolinux.cfg                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/menu/bin/swapsz                                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/menu/bin/x86_64                                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/menu/etc/all_install                             \
+    $(SRCDIR)/$(FREEBSD_ROOT)/menu/etc/common.cfg                              \
+    $(SRCDIR)/$(FREEBSD_ROOT)/menu/etc/install830.conf                         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/menu/etc/install830-amd64.conf                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/menu/etc/sh.subr                                 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/menu/menu                                        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/menu/menu.conf                                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/menu/scripts/repair                              \
+    $(SRCDIR)/$(FREEBSD_ROOT)/menu/scripts/standard830                         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/menu/scripts/standard830-amd64                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/base/base.??                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/base/base.inf                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/base/base.mtree                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/base/CHECKSUM.MD5              \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/base/CHECKSUM.SHA256           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/base/install.sh                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/cdrom.inf                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/dict/CHECKSUM.MD5              \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/dict/CHECKSUM.SHA256           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/dict/dict.??                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/dict/dict.inf                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/dict/dict.mtree                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/dict/install.sh                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/doc/CHECKSUM.MD5               \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/doc/CHECKSUM.SHA256            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/doc/doc.??                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/doc/doc.inf                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/doc/doc.mtree                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/doc/install.sh                 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/druid/etc/sh.subr              \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/druid/restart                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/druid/run_once                 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/druid/shutdown                 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/druid/syscustom                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/games/CHECKSUM.MD5             \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/games/CHECKSUM.SHA256          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/games/games.??                 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/games/games.inf                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/games/games.mtree              \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/games/install.sh               \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/info/CHECKSUM.MD5              \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/info/CHECKSUM.SHA256           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/info/info.??                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/info/info.inf                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/info/info.mtree                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/info/install.sh                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/kernels/CHECKSUM.MD5           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/kernels/CHECKSUM.SHA256        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/kernels/generic.??             \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/kernels/generic.inf            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/kernels/generic.mtree          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/kernels/install.sh             \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/local/CHECKSUM.MD5             \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/local/CHECKSUM.SHA256          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/local/install.sh               \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/local/local.??                 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/local/local.inf                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/local/local.mtree              \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/manpages/CHECKSUM.MD5          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/manpages/CHECKSUM.SHA256       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/manpages/install.sh            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/manpages/manpages.??           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/manpages/manpages.inf          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/manpages/manpages.mtree        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/packages/INDEX                 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/perl/CHECKSUM.MD5              \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/perl/CHECKSUM.SHA256           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/perl/install.sh                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/perl/perl.??                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/perl/perl.inf                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/perl/perl.mtree                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/post_install.cfg               \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/proflibs/CHECKSUM.MD5          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/proflibs/CHECKSUM.SHA256       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/proflibs/install.sh            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/proflibs/proflibs.??           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/proflibs/proflibs.inf          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/proflibs/proflibs.mtree        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/run_once/cleanup.sh            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/run_once/netwait_setup.sh      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/run_once/perl_setup.sh         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/run_once/root_passwd.sh        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/run_once/rootshell_setup.sh    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/run_once/rsync_setup.sh        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/run_once/sshd_setup.sh         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE/$(HOST_SETUP)                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/base/base.??             \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/base/base.inf            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/base/base.mtree          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/base/CHECKSUM.MD5        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/base/CHECKSUM.SHA256     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/base/install.sh          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/cdrom.inf                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/dict/CHECKSUM.MD5        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/dict/CHECKSUM.SHA256     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/dict/dict.??             \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/dict/dict.inf            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/dict/dict.mtree          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/dict/install.sh          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/doc/CHECKSUM.MD5         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/doc/CHECKSUM.SHA256      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/doc/doc.??               \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/doc/doc.inf              \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/doc/doc.mtree            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/doc/install.sh           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/druid/etc/sh.subr        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/druid/restart            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/druid/run_once           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/druid/shutdown           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/druid/syscustom          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/games/CHECKSUM.MD5       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/games/CHECKSUM.SHA256    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/games/games.??           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/games/games.inf          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/games/games.mtree        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/games/install.sh         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/info/CHECKSUM.MD5        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/info/CHECKSUM.SHA256     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/info/info.??             \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/info/info.inf            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/info/info.mtree          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/info/install.sh          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/kernels/CHECKSUM.MD5     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/kernels/CHECKSUM.SHA256  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/kernels/generic.??       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/kernels/generic.inf      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/kernels/generic.mtree    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/kernels/install.sh       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/lib32/CHECKSUM.MD5       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/lib32/CHECKSUM.SHA256    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/lib32/install.sh         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/lib32/lib32.??           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/lib32/lib32.inf          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/lib32/lib32.mtree        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/local/CHECKSUM.MD5       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/local/CHECKSUM.SHA256    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/local/install.sh         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/local/local.??           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/local/local.inf          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/local/local.mtree        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/manpages/CHECKSUM.MD5    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/manpages/CHECKSUM.SHA256 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/manpages/install.sh      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/manpages/manpages.??     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/manpages/manpages.inf    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/manpages/manpages.mtree  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/packages/INDEX           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/perl/CHECKSUM.MD5        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/perl/CHECKSUM.SHA256     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/perl/install.sh          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/perl/perl.??             \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/perl/perl.inf            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/perl/perl.mtree          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/post_install.cfg         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/proflibs/CHECKSUM.MD5    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/proflibs/CHECKSUM.SHA256 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/proflibs/install.sh      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/proflibs/proflibs.??     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/proflibs/proflibs.inf    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/proflibs/proflibs.mtree  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/run_once/cleanup.sh      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/run_once/netwait_setup.sh \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/run_once/perl_setup.sh   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/run_once/root_passwd.sh  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/run_once/rootshell_setup.sh \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/run_once/rsync_setup.sh  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/run_once/sshd_setup.sh   \
+    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/repos/8.3-RELEASE-amd64/$(HOST_SETUP)            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/alias                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/basename                                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/bash                                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/bc                                        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/bg                                        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/biosdecode                                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/bonnie                                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/boot0cfg                                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/btxld                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/cap_mkdb                                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/cdcontrol                                 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/chkgrp                                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/chkprintcap                               \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/chsh                                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/ckdist                                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/cksum                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/clear                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/cmp                                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/comcontrol                                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/cut                                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/diff                                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/dig                                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/dmidecode                                 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/du                                        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/etc/inetd.conf                            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/etc/magic                                 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/etc/profile                               \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/etc/remote                                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/etc/termcap                               \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/etc/units.lib                             \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/fdcontrol                                 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/fdformat                                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/fdwrite                                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/fetch                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/ffsinfo                                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/fg                                        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/file                                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/fixmount                                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/fstat                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/ftp                                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/fwcontrol                                 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/growfs                                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/gstat                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/host                                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/htt                                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/ident                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/idprio                                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/iostat                                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/jail                                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/jobs                                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/kdump                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/kermit                                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/kgzip                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/killall                                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/ktrace                                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/last                                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/ldd                                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/less                                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libasn1.so.10                         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libbsdxml.so.4                        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libbsm.so.3                           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libbz2.so.4                           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libc.so.7                             \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libcom_err.so.5                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libcrypt.so.5                         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libcrypto.so.6                        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libdevstat.so.7                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libedit.so.7                          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libfetch.so.6                         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libgeom.so.5                          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libgnuregex.so.5                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libgssapi.so.10                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libgssapi_krb5.so.10                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libhx509.so.10                        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libiconv.so.3                         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libintl.so.9                          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libipsec.so.4                         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libipx.so.5                           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libjail.so.1                          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libkiconv.so.4                        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libkrb5.so.10                         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libkvm.so.5                           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libm.so.5                             \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libmagic.so.4                         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libmd.so.5                            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libmemstat.so.3                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libmp.so.7                            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libncp.so.4                           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libncurses.so.8                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libncursesw.so.8                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libnetgraph.so.4                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libpam.so.5                           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libpcap.so.7                          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libreadline.so.8                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libroken.so.10                        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/librpcsvc.so.5                        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libsbuf.so.5                          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libsmb.so.4                           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libssh.so.5                           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libssl.so.6                           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libthr.so.3                           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libufs.so.5                           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libusbhid.so.4                        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libutil.so.8                          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libwrap.so.6                          \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libypclnt.so.4                        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/libz.so.5                             \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/pam_login_access.so                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/pam_nologin.so                        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/pam_permit.so                         \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/lib/pam_unix.so                           \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/libexec/ld-elf.so.1                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/limits                                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/merge                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/mlxcontrol                                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/more                                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/mount_mfs                                 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/mount_newnfs                              \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/mount_nwfs                                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/mount_portalfs                            \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/mount_smbfs                               \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/mountd                                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/mptable                                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/netstat                                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/nfsd                                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/nfsiod                                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/nfsstat                                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/nice                                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/nm                                        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/nohup                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/nslookup                                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/openssl                                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/pagesize                                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/patch                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/pciconf                                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/pkg_add                                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/pkg_create                                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/pkg_delete                                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/pkg_info                                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/pkg_updating                              \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/pkg_version                               \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/pnpinfo                                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/procstat                                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/pstat                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/pstree                                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/ranlib                                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/read                                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/renice                                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/rescue                                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/reset                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/rlogin                                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/rsh                                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/rsync                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/rtprio                                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/scp                                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/script                                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/sftp                                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/showmount                                 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/size                                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/slogin                                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/split                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/ssh                                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/ssh-keygen                                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/sshd                                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/strings                                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/swapinfo                                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/systat                                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/tcpdump                                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/telnet                                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/tip                                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/top                                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/touch                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/tput                                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/tr                                        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/traceroute                                \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/truss                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/tty                                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/umask                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/unalias                                   \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/uname                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/units                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/unvis                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/usbhidctl                                 \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/vim                                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/vipw                                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/vis                                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/vmstat                                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/wc                                        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/what                                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/which                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/whois                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/xargs                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/xxd                                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/zdump                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/zgrep                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/rescue/zic                                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/tools/.keep                                      \
+    $(SRCDIR)/$(FREEBSD_ROOT)/tools/README                                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/tools/crunch/rebuild_crunch4                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/tools/crunch/rebuild_crunch8                     \
+    $(SRCDIR)/$(FREEBSD_ROOT)/tools/distmtree                                  \
+    $(SRCDIR)/$(FREEBSD_ROOT)/tools/distsum                                    \
+    $(SRCDIR)/$(FREEBSD_ROOT)/tools/etc/REMOVE_LIST-X.Y                        \
+    $(SRCDIR)/$(FREEBSD_ROOT)/tools/etc/X.Y-RELEASE.conf                       \
+    $(SRCDIR)/$(FREEBSD_ROOT)/tools/host_rebuild                               \
+    $(SRCDIR)/$(FREEBSD_ROOT)/tools/jail_build
+
+#
+# FreeBSD `rescue' links
+#
+FREEBSD_RESCUE_LINKS = -csh          \
+                       -sh           \
+                       -tcsh         \
+                       \[            \
+                       atacontrol    \
+                       atmconfig     \
+                       badsect       \
+                       bsdlabel      \
+                       bunzip2       \
+                       bzcat         \
+                       bzip2         \
+                       camcontrol    \
+                       cat           \
+                       ccdconfig     \
+                       chflags       \
+                       chgrp         \
+                       chio          \
+                       chmod         \
+                       chown         \
+                       chroot        \
+                       clri          \
+                       cp            \
+                       csh           \
+                       date          \
+                       dd            \
+                       devfs         \
+                       df            \
+                       dhclient      \
+                       disklabel     \
+                       dmesg         \
+                       dump          \
+                       dumpfs        \
+                       dumpon        \
+                       echo          \
+                       ed            \
+                       ex            \
+                       expr          \
+                       fastboot      \
+                       fasthalt      \
+                       fdisk         \
+                       fsck          \
+                       fsck_4.2bsd   \
+                       fsck_ffs      \
+                       fsck_msdosfs  \
+                       fsck_ufs      \
+                       fsdb          \
+                       fsirand       \
+                       gbde          \
+                       geom          \
+                       getfacl       \
+                       glabel        \
+                       gpart         \
+                       groups        \
+                       gunzip        \
+                       gzcat         \
+                       gzip          \
+                       halt          \
+                       head          \
+                       hostname      \
+                       id            \
+                       ifconfig      \
+                       init          \
+                       ipf           \
+                       kenv          \
+                       kill          \
+                       kldconfig     \
+                       kldload       \
+                       kldstat       \
+                       kldunload     \
+                       ldconfig      \
+                       link          \
+                       ln            \
+                       ls            \
+                       lzcat         \
+                       lzma          \
+                       md5           \
+                       mdconfig      \
+                       mdmfs         \
+                       mkdir         \
+                       mknod         \
+                       mount         \
+                       mount_cd9660  \
+                       mount_msdosfs \
+                       mount_nfs     \
+                       mount_ntfs    \
+                       mount_nullfs  \
+                       mount_udf     \
+                       mount_unionfs \
+                       mt            \
+                       mv            \
+                       nc            \
+                       newfs         \
+                       newfs_msdos   \
+                       nos-tun       \
+                       pgrep         \
+                       ping          \
+                       ping6         \
+                       pkill         \
+                       ps            \
+                       pwd           \
+                       rcorder       \
+                       rcp           \
+                       rdump         \
+                       realpath      \
+                       reboot        \
+                       red           \
+                       restore       \
+                       rm            \
+                       rmdir         \
+                       route         \
+                       routed        \
+                       rrestore      \
+                       rtquery       \
+                       rtsol         \
+                       savecore      \
+                       sconfig       \
+                       sed           \
+                       setfacl       \
+                       sh            \
+                       spppcontrol   \
+                       stty          \
+                       swapon        \
+                       sync          \
+                       sysctl        \
+                       tail          \
+                       tar           \
+                       tcsh          \
+                       tee           \
+                       test          \
+                       tunefs        \
+                       umount        \
+                       unlink        \
+                       unlzma        \
+                       unxz          \
+                       vi            \
+                       whoami        \
+                       xz            \
+                       xzcat         \
+                       zcat          \
+                       zfs           \
+                       zpool
+
+#
+# FreeBSD `druid' dependencies
+#
+FREEBSD_DRUID_MENU_DEP  = $(DEPDIR)/freebsd/druid/etc/sh.subr
+FREEBSD_DRUID_REPOS_DEP = $(DEPDIR)/freebsd/druid/etc/sh.subr \
+                          $(DEPDIR)/freebsd/druid/restart     \
+                          $(DEPDIR)/freebsd/druid/run_once    \
+                          $(DEPDIR)/freebsd/druid/shutdown    \
+                          $(DEPDIR)/freebsd/druid/syscustom
+
+#
+# FreeeBSD `mdroot.iso' dependencies
+#
+MDROOT_LOADER = boot/cdboot
+MDROOT_DEP    = $(MDROOT)/$(MDROOT_LOADER)                \
+                $(MDROOT)/boot/loader                     \
+                $(MDROOT)/boot/include/beastie.4th        \
+                $(MDROOT)/boot/include/brand.4th          \
+                $(MDROOT)/boot/include/check-password.4th \
+                $(MDROOT)/boot/include/color.4th          \
+                $(MDROOT)/boot/include/delay.4th          \
+                $(MDROOT)/boot/include/frames.4th         \
+                $(MDROOT)/boot/include/menu.4th           \
+                $(MDROOT)/boot/include/menu-commands.4th  \
+                $(MDROOT)/boot/include/screen.4th         \
+                $(MDROOT)/boot/include/shortcuts.4th      \
+                $(MDROOT)/boot/include/version.4th        \
+                $(MDROOT)/boot/loader.rc                  \
+                $(MDROOT)/boot/menu.rc                    \
+                $(MDROOT)/boot/modules/acpi.ko            \
+                $(MDROOT)/boot/modules/acpi.ko.symbols    \
+                $(MDROOT)/boot/mfsroot8.gz                \
+                $(MDROOT)/boot/rescue_mfsroot8.gz         \
+                $(MDROOT)/kernels/GENERIC-i386-8.3.kgz
+
+#
+# Graft-points for the "Tools Only" diagnostic disc
+#
+TOOLS_DEP = $(SRCDIR)/$(BOOT_TOOLS)/dban/dban                 \
+            $(SRCDIR)/$(BOOT_TOOLS)/dban/f1-warning.txt       \
+            $(SRCDIR)/$(BOOT_TOOLS)/dban/f2-about.txt         \
+            $(SRCDIR)/$(BOOT_TOOLS)/dban/f3-quick.txt         \
+            $(SRCDIR)/$(BOOT_TOOLS)/dban/f4-trouble.txt       \
+            $(SRCDIR)/$(BOOT_TOOLS)/dban/f5-raid.txt          \
+            $(SRCDIR)/$(BOOT_TOOLS)/dban/isolinux.cfg         \
+            $(SRCDIR)/$(BOOT_TOOLS)/isolinux.cfg              \
+            $(SRCDIR)/$(BOOT_TOOLS)/killdisk/isolinux.cfg     \
+            $(SRCDIR)/$(BOOT_TOOLS)/killdisk/killdisk.gz      \
+            $(SRCDIR)/$(BOOT_TOOLS)/memtest/isolinux.cfg      \
+            $(SRCDIR)/$(BOOT_TOOLS)/memtest/memtest           \
+            $(SRCDIR)/$(BOOT_TOOLS)/memtest/memtest+          \
+            $(SRCDIR)/$(BOOT_TOOLS)/memtest/memtest.smp       \
+            $(SRCDIR)/$(BOOT_TOOLS)/seatools/isolinux.cfg     \
+            $(SRCDIR)/$(BOOT_TOOLS)/seatools/seatools.gz      \
+            $(SRCDIR)/$(BOOT_TOOLS)/seatools/seatools-text.gz \
+            $(SRCDIR)/$(BOOT_TOOLS)/windiag/isolinux.cfg      \
+            $(SRCDIR)/$(BOOT_TOOLS)/windiag/windiag.gz
+
+################################################################################
+################################ BUILD  TARGETS ################################
+################################################################################
+
+#
+# Top-Level Targets (TLTs)
+#
+.PHONY: repos all dev freebsd tools
+repos:   depend
+all:     depend $(ALL_ISO)
+dev:     depend dev_promote $(DEV_ISO) dev_restore
+freebsd: depend $(FREEBSD_ISO)
+tools:   depend $(TOOLS_ISO)
+
+#
+# Repos Target
+#
+
+repos: override VERSION = $(VERSION_REPOS)
+repos: GNUmakefile $(DRUID_REPOS_DEP)
+	$(warning Building $(DRUID_REPOS_DIR) from local source-tree...)
+	$(if $(shell [ "$(VERSION)" ] || echo 1), \
+	     $(error No version specified))
+	[ -d "$(DRUID_REPOS_DIR)" ] || mkdir -p "$(DRUID_REPOS_DIR)"
+	@for depfile in $(DRUID_REPOS_DEP); do \
+	 	case "$$depfile" in \
+	 	$(DEPDIR)/.freebsd_package_symlinks) continue;; \
+	 	$(DEPDIR)/.freebsd_menu_druid_dist) continue;; \
+	 	$(DEPDIR)/.freebsd_repos_druid_dist) continue;; \
+	 	..|../*|*/..|*/../*) continue;; \
+	 	$(SRCDIR)/*) repfile="$(DRUID_REPOS_DIR)/$${depfile#$(SRCDIR)/}";; \
+	 	$(DEPDIR)/*) repfile="$(DRUID_REPOS_DIR)/$${depfile#$(DEPDIR)/}";; \
+	 	$(MDROOT)/*) repfile="$(DRUID_REPOS_DIR)/$${depfile#$(MDROOT)/}";; \
+	 	./*) repfile="$(DRUID_REPOS_DIR)/$${depfile#./}";; \
+	 	/*) repfile="$(DRUID_REPOS_DIR)/$${depfile#/}";; \
+	 	*) repfile="$(DRUID_REPOS_DIR)/$$depfile";; \
+	 	esac; \
+	 	if [ "$$depfile" -nt "$$repfile" -o ! -e "$$repfile" ]; then \
+	 		case "$$repfile" in \
+	 		*/*) \
+	 			repdir="$${repfile%/*}"; \
+	 			[ -d "$$repdir" ] || mkdir -p "$$repdir"; \
+	 		esac; \
+	 		if [ -f "$$depfile" ]; then \
+	 			cp -fv "$$depfile" "$$repfile"; \
+	 		elif [ -L "$$depfile" ]; then \
+	 			cp -RPfv "$$depfile" "$$repfile"; \
+	 		elif [ -d "$$depfile" ]; then \
+	 			echo 'Skipping directory `'"$$depfile'"; \
+	 		else \
+	 			echo 'Skipping iregular file `'"$$depfile'"; \
+	 		fi; \
+	 	fi; \
+	 done
+	@echo Done.
+
+#
+# ISO Targets
+#
+
+$(ALL_ISO): override VERSION = $(VERSION_ALL)
+$(ALL_ISO): GNUmakefile $(ISO_DEP) $(TOOLS_DEP) $(LINUX_DEP) $(FREEBSD_DEP)
+
+$(DEV_ISO): override VERSION = $(VERSION_DEV)
+$(DEV_ISO): GNUmakefile $(ISO_DEP) $(TOOLS_DEP) $(LINUX_DEP) $(FREEBSD_DEP)
+
+$(FREEBSD_ISO): override VERSION = $(VERSION_FREEBSD)
+$(FREEBSD_ISO): GNUmakefile $(ISO_DEP) $(TOOLS_DEP) $(FREEBSD_DEP)
+
+$(TOOLS_ISO): override VERSION = $(VERSION_TOOLS)
+$(TOOLS_ISO): GNUmakefile $(ISO_DEP) $(TOOLS_DEP)
+
+#
+# Implicit Pattern Rule for creating our completed ISO files
+#
+%.iso: override APPID = $(call appid,$@)
+%.iso:
+	$(warning Building '$(APPID)' ISO9660 image...)
+	$(if $(shell [ "$(VERSION)" ] || echo 1), \
+	     $(error No version specified))
+	( cd $(SRCDIR) && \
+	  $(MKISOFS) \
+	  	-A "$(APPID)" \
+	  	$(MKISOFS_OPTS) \
+	  	$(ISO9660_OPTS) \
+	  	$(ISOBOOT_OPTS) \
+	  	-o "../$@" $(OBJECTS) \
+	)
+ifeq "$(ISOHYBRID)" "1"
+	$(ISOHYBRID_PATH) $(ISOHYBRID_OPTS) "$@"
+endif
+
+#
+# Individual Targets
+#
+
+GNUmakefile: $(MAKEFILE_DEP)
+	$(warning Package configuration updated. Cleaning and reconfiguring)
+	./config.status --recheck
+	./config.status
+	$(MAKE) $(MFLAGS) clean
+
+$(SRCDIR)/$(BOOTFILE): $(DEPDIR)/isolinux.bin
+	$(warning Copying ISO9660 boot-loader template to source tree)
+	$(CP) -pfv $(DEPDIR)/isolinux.bin $@
+
+$(SRCDIR)/$(VERSION_INF):
+	$(warning Generating $@...)
+	$(if $(shell [ "$(VERSION)" ] || echo 1), \
+	     $(error No version specified))
+	echo "VERSION = $(strip $(VERSION))-RELEASE" > $@
+
+$(DRUID_REPOS_DIR)/$(VERSION_INF):
+	$(warning Generating $@...)
+	$(if $(shell [ "$(VERSION)" ] || echo 1), \
+	     $(error No version specified))
+	echo "VERSION = $(strip $(VERSION))-RELEASE" > $@
+
+$(MDROOT)/$(MDROOT_LOADER): $(DEPDIR)/cdboot
+	$(warning Copying FreeBSD boot-loader template to source tree)
+	$(CP) -pfv $(DEPDIR)/cdboot $@
+
+$(SRCDIR)/$(MDROOT_ISO): $(MDROOT_DEP)
+	$(warning Building 'mdroot' ISO9660 image for FreeBSD boot-sequence...)
+	( cd $(MDROOT) && \
+	  $(MKISOFS) \
+	  	-V "mdroot" -A "FreeBSD" \
+	  	$(MKISOFS_OPTS) \
+	  	$(ISO9660_OPTS) \
+	  	-b $(MDROOT_LOADER) -no-emul-boot -c boot.catalog \
+	  	-boot-load-size 4 \
+	  	-o "../$@" . \
+	)
+
+$(DEPDIR)/.freebsd_package_symlinks:
+	$(warning Checking FreeBSD package symlinks...)
+	$(if $(shell [ "$(VERSION)" ] || echo 1), \
+	     $(error No version specified))
+	@( cd $(SRCDIR)/$(FREEBSD_ROOT)/repos && \
+	   $(FIND) */packages/All -name '*.t[bg]z' | \
+	   ( while read -r pkgpath; do \
+	     	release="$${pkgpath%%/*}"; \
+	     	pkgfile="$${pkgpath##*/}"; \
+	     	pkgname="$${pkgfile%.t[bg]z}"; \
+	     	for dir in ` \
+	     		( while read LINE; do \
+	     		  	[ "$${LINE%%|*}" = "$$pkgname" ] && \
+	     		  		echo "$$LINE" | $(AWK) -F'|' \
+	     		  			'{print $$7}'; \
+	     		  done \
+	     		) < "$$release/packages/INDEX" \
+	     	`; do \
+	     		pkgdir="$$release/packages/$$dir"; \
+	     		$(MKDIR) -pv "$$pkgdir"; \
+	     		echo '-> Entering directory `'"$$pkgdir'"; \
+	     		( cd "$$pkgdir" && \
+	     		  	$(LN) -sfv "../All/$$pkgfile" "$$pkgfile"; \
+	     		  echo '<- Leaving directory `'"$$pkgdir'"; \
+	     		); \
+	     	done; \
+	     done; \
+	   ); \
+	)
+	@echo > "$@"
+
+$(DEPDIR)/.freebsd_rescue_symlinks:
+	$(warning Making FreeBSD rescue symlinks...)
+	$(if $(shell [ "$(VERSION)" ] || echo 1), \
+	     $(error No version specified))
+	@( for link in $(FREEBSD_RESCUE_LINKS);do \
+	   	$(LN) -sfv rescue $(SRCDIR)/$(FREEBSD_ROOT)/rescue/$$link; \
+	   done )
+	@echo > "$@"
+
+$(DEPDIR)/.freebsd_menu_druid_dist: $(FREEBSD_DRUID_MENU_DEP)
+	$(warning Copying FreeBSD Druid menu dependencies...)
+	$(if $(shell [ "$(VERSION)" ] || echo 1), \
+	     $(error No version specified))
+	@$(CP) -pfv $(DEPDIR)/freebsd/druid/etc/sh.subr \
+	            $(SRCDIR)/freebsd/menu/etc/sh.subr
+
+$(DEPDIR)/.freebsd_repos_druid_dist: $(FREEBSD_DRUID_REPOS_DEP)
+	$(warning Distributing Druid scripts to FreeBSD repositories...)
+	$(if $(shell [ "$(VERSION)" ] || echo 1), \
+	     $(error No version specified))
+	@$(FIND) $(SRCDIR)/$(FREEBSD_ROOT)/repos -maxdepth 1 -type d \
+	   	-name '*RELEASE*' -o -name '*STABLE*' -o -name '*CURRENT*' | \
+	 ( while read -r repos; do \
+	    	$(CP) -Rpfv $(DEPDIR)/freebsd/druid "$$repos/"; \
+	   done )
+	@echo > "$@"
+
+$(FREEBSD_REPOS)/8.3-RELEASE/$(HOST_SETUP) \
+$(FREEBSD_REPOS)/8.3-RELEASE-amd64/$(HOST_SETUP): $(DEPDIR)/host-setup
+	$(warning Copying host-setup to FreeBSD sys_custom repository...)
+	@( DEST=$(@); \
+	   $(MKDIR) -pv $${DEST%/*}; \
+	   $(CP) -pfv $(^) $(@); \
+	 )
+
+#
+# [Phony] Service Targets
+#
+
+.PHONY: dev_promote dev_restore
+dev_promote:
+	$(warning Removing .dev suffixes (moving existing copies to .nodev))
+	$(if $(shell [ "$(VERSION_DEV)" ] || echo 1), \
+	     $(error No version specified))
+	@[ ! -f "$(DEPDIR)/.dev_promotions" ] || \
+		"$(DEPDIR)/.dev_promotions" < /dev/null
+	@$(FIND) * -name '*.dev' | \
+	( while read -r devpath; do \
+	  	echo "--> Moving: $$devpath"; \
+	  	newpath="$${devpath%.dev}"; \
+	  	[ ! -e "$$newpath" ] || \
+	  		$(MV) -iv "$$newpath" "$$newpath.nodev"; \
+	  	$(MV) -fv "$$devpath" "$$newpath"; \
+	  	echo "$$newpath" >> "$(DEPDIR)/.dev_promotions"; \
+	  done \
+	)
+dev_restore:
+	$(warning Restoring .dev suffixes (moving .nodev copies back))
+	@[ -e "$(DEPDIR)/.dev_promotions" ] || \
+		$(TOUCH) "$(DEPDIR)/.dev_promotions"
+	@( while read -r path; do \
+	   	echo "--> Restoring: $$path"; \
+	   	$(MV) -fv "$$path" "$$path.dev"; \
+	   	[ ! -e "$$path.nodev" ] || \
+	   		$(MV) -iv "$$path.nodev" "$$path"; \
+	   done \
+	) < "$(DEPDIR)/.dev_promotions"
+	@$(RM) -f "$(DEPDIR)/.dev_promotions"
+
+.PHONY: rm_freebsd_package_symlinks
+rm_freebsd_package_symlinks:
+	$(warning Removing FreeBSD package symlinks...)
+	@( cd $(SRCDIR)/$(FREEBSD_ROOT)/repos && \
+	   $(FIND) */packages/All -name '*.t[bg]z' | \
+	   ( while read -r pkgpath; do \
+	     	release="$${pkgpath%%/*}"; \
+	     	pkgfile="$${pkgpath##*/}"; \
+	     	pkgname="$${pkgfile%.t[bg]z}"; \
+	     	for dir in ` \
+	     		( while read LINE; do \
+	     		  	[ "$${LINE%%|*}" = "$$pkgname" ] && \
+	     		  		echo "$$LINE" | $(AWK) -F'|' \
+	     		  			'{print $$7}'; \
+	     		  done \
+	     		) < "$$release/packages/INDEX" \
+	     	`; do \
+	     		$(RM) -Rfv "$$release/packages/$$dir"; \
+	     	done; \
+	     done; \
+	   ); \
+	)
+	@$(RM) -f $(DEPDIR)/.freebsd_package_symlinks
+
+.PHONY: rm_freebsd_rescue_symlinks
+rm_freebsd_rescue_symlinks:
+	$(warning Removing FreeBSD rescue symlinks...)
+	@( for link in $(FREEBSD_RESCUE_LINKS);do \
+	   	$(RM) -fv $(SRCDIR)/$(FREEBSD_ROOT)/rescue/$$link; \
+	   done )
+	@$(RM) -f $(DEPDIR)/.freebsd_rescue_symlinks
+
+.PHONY: rm_freebsd_druid_dist
+rm_freebsd_repos_druid_dist:
+	$(warning Removing Druid scripts from FreeBSD repositories...)
+	@$(RM) -f $(SRCDIR)/$(FREEBSD_ROOT)/menu/etc/sh.subr
+	@$(FIND) $(SRCDIR)/$(FREEBSD_ROOT)/repos -maxdepth 1 -type d \
+	   	-name '*RELEASE*' -o -name '*STABLE*' -o -name '*CURRENT*' | \
+	 ( while read -r repos; do $(RM) -Rfv "$$repos/druid"; done )
+	@$(RM) -f $(DEPDIR)/.freebsd_repos_druid_dist
+
+.PHONY: clean clean_src clean_mdroot
+clean: rm_freebsd_package_symlinks
+clean: rm_freebsd_rescue_symlinks
+clean: rm_freebsd_repos_druid_dist
+clean: dev_restore clean_src clean_mdroot clean_host_setup
+clean_src:
+	$(warning Cleaning $(SRCDIR)...)
+	$(RM) -f $(SRCDIR)/$(VERSION_INF)
+	$(RM) -f $(SRCDIR)/$(BOOTFILE)
+	$(RM) -f $(SRCDIR)/$(BCATALOG)
+	$(RM) -f $(SRCDIR)/$(MDROOT_ISO)
+clean_mdroot:
+	$(warning Cleaning $(MDROOT)...)
+	$(RM) -f $(MDROOT)/$(MDROOT_LOADER)
+clean_host_setup:
+	$(warning Cleaning host-setup dependencies...)
+	$(RM) -f $(FREEBSD_REPOS)/8.3-RELEASE/$(HOST_SETUP)
+	$(RM) -f $(FREEBSD_REPOS)/8.3-RELEASE-amd64/$(HOST_SETUP)
+
+.PHONY: distclean
+distclean: clean
+	$(warning Scrubbing distribution...)
+	$(RM) -Rf autom4te.cache
+	$(RM) -f config.log config.status GNUmakefile
+	$(RM) -f *.iso
+
+################################################################################
+############################ EXTERNAL  DEPENDENCIES ############################
+################################################################################
+
+.PHONY: depend
+depend: $(DEPEND_DEP)
+
+################################################################################
+# END
+################################################################################
+#
+# $Header: /cvsroot/druidbsd/druidbsd/druid83/GNUmakefile.in,v 1.4 2012/10/31 18:41:53 devinteske Exp $
+#
+# $Copyright: 2006-2012 Devin Teske. All rights reserved. $
+#
+# $Log: GNUmakefile.in,v $
+# Revision 1.4  2012/10/31 18:41:53  devinteske
+# Fix re-initialization of DHCP via repair script.
+#
+# Revision 1.3  2012/10/31 00:07:57  devinteske
+# Bump version to 1.0b59 for fixes to the repair functionality:
+# + Add `-f' flag to ln(1) in the sshd_bootstrap() subroutine.
+# + Add bootstrap routines for setting up /var/empty for sshd(8).
+# + Fix a resource contention bug
+# + Make life easier in chroot by configuring local loopback interface (lo0)
+# + Move sanity check (to after die() declaration -- oops!)
+# + Add newline to die() to fix an issue where "panic: Going nowhere without
+#   my init!" would overwrite our final message.
+# + Re-mount the root filesystem as read/write on init of rescue_mfsroot
+#
+# Revision 1.2  2012/10/30 22:32:57  devinteske
+# Bump FreeBSD version to 1.0b58 for:
+# + host_rebuild: don't overwrite /etc/hosts
+# + host_rebuild: backup /usr/local/etc
+# + druid post-install: don't remove sshd_config.bak
+#
+# Revision 1.1  2012/10/10 23:29:55  devinteske
+# Commit initial public beta release of 8.3 series (beta 57; on-par with
+# the 9.0 series released recently, also beta 57).
+#
+#
+################################################################################

@@ -1,0 +1,21 @@
+--- release/Makefile.orig	2012-03-19 06:48:05.000000000 -0700
++++ release/Makefile	2012-05-31 10:03:26.000000000 -0700
+@@ -232,7 +232,7 @@ FLOPPYSPLITSIZE=	1392
+ FLOPPYINODE=		40000
+ FLOPPYLABEL=		fd1440
+ BOOTINODE=		80000
+-MFSSIZE=		4320
++MFSSIZE=		6000
+ MFSINODE=		8000
+ MFSLABEL=		minimum3
+ .elif ${TARGET_ARCH} == "sparc64"
+@@ -409,7 +409,8 @@ release rerelease:
+ 	mkdir -p ${CHROOTDIR}
+ 	@echo ">>> make release for ${TARGET} started on `LC_ALL=C TZ=GMT date`"
+ 	cd ${WORLDDIR} && ${NATIVEMAKE} -DWITHOUT_GAMES -DWITHOUT_HTML -DWITHOUT_LIB32 \
+-	    -DWITHOUT_MAN -DWITHOUT_NLS -DWITHOUT_PROFILE installworld DESTDIR=${CHROOTDIR}
++	    -DWITHOUT_MAN -DWITHOUT_NLS -DWITHOUT_PROFILE ${WORLD_FLAGS} installworld \
++	    DESTDIR=${CHROOTDIR}
+ 	cd ${WORLDDIR} && ${NATIVEMAKE} distribution DESTDIR=${CHROOTDIR}
+ 	if [ -f /etc/resolv.conf ]; then \
+ 		cp -p /etc/resolv.conf ${CHROOTDIR}/etc; \

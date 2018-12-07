@@ -1,0 +1,2197 @@
+#!/bin/sh
+# -*- tab-width:  4 -*- ;; Emacs
+# vi: set tabstop=4     :: Vi/ViM
+#
+# Revision: 1.3
+# Last Modified: October 22nd, 2012
+#
+############################################################ COPYRIGHT
+#
+# Devin Teske (c)2009-2012. All Rights Reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+#
+############################################################ MESSAGES
+# This is a rather intense shell-script that may take time to load into memory,
+# include additional source files and bootstrap ELF executable support. Inform
+# the user that we have began execution. After initial loading, if we are on a
+# system-console (i.e., when TERM equals `cons25') we will end up clearing the
+# console with a form-feed, so this message will be cleared once we are loaded.
+#
+printf "Initializing..."
+
+############################################################ INFORMATION
+#
+# XXX pending
+#
+############################################################ ASCII ART
+init_msg='
+                        Interactive disk repair utility                         
+'
+############################################################ CONFIGURATION
+
+#
+# Debugging
+#
+export DEV_NULL=/dev/null
+#
+# Uncomment below to enable "/tmp/appname.debug"
+#
+#export DEV_NULL=/tmp/${0##*/}.debug
+
+# Whether to use ANSI color or not
+case "$TERM" in
+	# Prefer a setting in the user's environment
+	cons25|linux|xterm-color)
+		ANSI_COLOR="${ANSI_COLOR-YES}";;
+	*)  ANSI_COLOR="${ANSI_COLOR-NO}";;
+esac
+
+# disk types to probe for
+disk_types="da ad ada ar wd fla mlxd amrd idad twed aacd ipsd mfid"
+
+############################################################ GLOBALS
+
+# Mount options to be used when mounting local disks
+MNT=/mnt
+mount_opts="noatime"
+
+# Reserved for internal use
+_mounted=
+_depend=
+
+# Message formats
+FMT_READ="$ANSI_BLD%s$ANSI_BLD_OFF [$ANSI_CYN%s$ANSI_NRM]: "
+
+# Temporary file(s) for sub-shell operations
+case "$0" in
+*/*) TMPFILE="/tmp/${0##*/}.$$";;
+  *) TMPFILE="/tmp/$0.$$";;
+esac
+
+############################################################ SETUP
+
+# Path to our rescue directory
+rescue="/cdrom/freebsd/rescue"
+[ -d "$rescue" ] \
+	|| rescue="/cdrom/rescue"
+
+# Modify LD_LIBRARY_PATH to include rescue lib directory
+unset de
+while [ "${de=${LD_LIBRARY_PATH}:}" ]; do
+	[ "${de%%:*}" = "$rescue/lib" ] && break
+	de="${de#*:}"
+done
+[ "$de" ] || export \
+	LD_LIBRARY_PATH="$LD_LIBRARY_PATH${LD_LIBRARY_PATH:+:}$rescue/lib"
+unset de
+
+# Initialize ELF binary support
+[ -d /libexec ] || /stand/mkdir -p /libexec
+[ -L /libexec/ld-elf.so.1 ] || \
+	/stand/ln -sf "$rescue/libexec/ld-elf.so.1" /libexec/
+
+# Generate library hints
+/stand/ldconfig "$rescue/lib"
+
+# Include rescue profile
+export rescue
+. "$rescue/etc/profile"
+
+# Send stderr to stdout
+exec 2>&1
+
+# Create fstab(5) if missing (required by fsck)
+[ -e /etc/fstab ] || :> /etc/fstab
+
+# Create /var/db if missing (required by dhclient)
+[ -e /var/db ] || mkdir /var/db >> "$DEV_NULL" 2>&1
+
+############################################################ CORE FUNCTIONS
+# These functions are required prior to ancillary includes and other functions
+
+# Abruptly terminate due to an error
+#
+# This will get overridden by a more complex
+# die routine at include-time directly below
+#
+die() # ( [error ...] )
+{
+	local error="$1"
+	[ $# -gt 0 ] \
+		&& printf "$@" \
+		&& printf "${*:+\n\n}"
+	eval $ERR_CMD
+	exit ${FAILURE:-1}
+}
+
+# Include ancillary functions
+menu="${rescue%/*}/menu"
+. "$menu/etc/sh.subr" \
+	|| die "Unable to include '$menu/etc/sh.subr'"
+
+# NOTE: The above include file declares a die() function
+# (which overrides our local definition directly above).
+
+############################################################ FUNCTIONS
+
+# die()-wrapper triggered when we catch SIGINT (Ctrl-C)
+#
+interrupt() # ( )
+{
+	# Prevent menu from displaying an error
+	FAILURE=255
+
+	# allow die to fall-through to exit
+	ERR_CMD="" && contact="" && die
+}
+
+# Redefine the type function to not output any results
+#
+have() # ( name [...] )
+{
+	type "$@" >> "${DEV_NULL:-/dev/null}" 2>&1
+}
+
+# Return true if a variable by a given name has a value assigned to it.
+has_value() # ( varname )
+{
+	( eval ": \${$1:?}" ) >> "${DEV_NULL:-/dev/null}" 2>&1;
+}
+
+# Add a dependency. Die with error if dependency is not met
+#
+depend() # ( name )
+{
+	local by="$1" arg
+	shift 1
+
+	for arg in "$@"; do
+		local d
+		for d in $_depend ""; do
+			[ "$d" = "$arg" ] && break
+		done
+		if [ ! "$d" ]; then
+			have "$arg" || die \
+				"%s Missing dependency '%s' required by '%s" \
+				"$FATAL_ERROR" "$arg" "$by"
+			_depend="$_depend${_depend:+ }$arg"
+		fi
+	done
+}
+depend depend have die # pedantic
+
+# Print a note
+#
+note() # ( text [...] )
+{
+	[ "$__task_running" ] && printf "\n"
+	printf "${ANSI_MAG}NOTE:$ANSI_NRM "
+	printf "$@"
+	printf "\n"
+	[ "$__task_running" ] && printf "%${FMT_COLS}s"
+}
+
+# Show a list of strings. Similar to pd_list but does not prompt the user
+# to make a choice.
+#
+# Arguments
+#   -n          Optional. Do not number list items
+#   title       Title to display regarding meaning of list
+#   list        List of options (delimited by a newline character)
+#
+depend print_list print_bold ifs_clear ifs_append ifs_restore
+print_list() # ( [-n] title list )
+{
+	local number_items=1
+	[ "x$1" = "x-n" ] \
+		&& number_items= \
+		&& shift 1
+
+	local title="$1" list="$2"
+	local n=0 item
+
+	# Check arguments
+	[ "$title" -a "$list" ] || return ${FAILURE-1}
+
+	# Print the list title
+	print_bold "$title\n"
+
+	# Print the list
+	ifs_clear; ifs_append '\n'
+	for item in `printf "$list"`; do
+		[ "$item" ] || continue
+		if [ "$number_items" ]; then
+			n=$(($n + 1))
+			printf "   %2s. $item\n" $n
+		else
+			printf "   - $item\n"
+		fi
+	done
+	ifs_restore; printf "\n"
+
+	return ${SUCCESS-0}
+}
+
+# Add a string to the existing contents of a variable (prefixed by newline)
+#
+addto() # ( variable [string ...] )
+{
+	local var="$1"
+
+	# Check variables
+	[ "$var" ] || return ${FAILURE-1}
+
+	shift 1 # Don't include the variable name
+	eval $var="\${$var}'\n$*'"
+	return ${SUCCESS-0}
+}
+
+# Print form-feed, header, and new-line (if on console)
+#
+depend print_head note
+print_head() # ( )
+{
+	case "$TERM" in
+	cons25)
+		# only output the header on the console
+		printf "\f"
+		printf "$ANSI_RED_BG$ANSI_BLK%s$ANSI_NRM$ANSI_NRM_BG" \
+		       "$init_msg"
+
+		if [ ! "$head_final" ]; then
+			note "Press %sCtrl-C%s at any time to Abort" \
+			     "$ANSI_BLD" "$ANSI_BLD_OFF"
+			note "Pressing %s accepts the %s value (shown in %s)" \
+			     "${ANSI_BLD}ENTER$ANSI_BLD_OFF" \
+			     "${ANSI_CYN}default$ANSI_NRM" "[brackets]"
+
+			printf "\n"
+		fi
+		;;
+	esac
+}
+
+# Show the user what has been completed thus far
+#
+depend recap print_head addto print_list
+recap() # ( )
+{
+	local list=""
+
+	print_head
+
+	: ${MNT:=/mnt}
+
+	[ "$task_mount1" ] \
+		&& addto list "Mounted /dev/$bootdisk on $MNT"
+
+	if [ "$task_mount3" ]; then
+		local p
+		for p in $points; do
+			[ "${p%%:*}" = "$bootdisk" ] && continue
+			addto list "Mounted /dev/${p%%:*} on $MNT${p#*:}"
+		done
+	fi
+
+	[ "$task_chroot_devfs" ] \
+		&& addto list "Mounted devfs on $MNT/dev"
+
+	if [ "$task_do_task_mount4" ]; then
+		local em
+		for em in $extra_mounts; do
+			local device="${em%%|*}" && em="${em#*|}"
+			local mntdir="${em%%|*}"
+
+			local m="${_mounted}:"
+			while [ "$m" ]; do
+				[ "${m%%:*}" = "$MNT$mntdir" ] && break
+				m="${m#*:}"
+			done
+			[ "$m" ] && \
+				addto list "Mounted $device on $MNT$mntdir"
+		done
+	fi
+
+	[ "$task_do_task_network" ] \
+		&& addto list "Configured network interface(s)"
+
+	if [ "$task_do_task_nfs" ]; then
+		local ent
+		for ent in $nfs_mounts; do
+			local device="${ent%%|*}" && ent="${ent#*|}"
+			local mntdir="${ent%%|*}"
+
+			local m="${_mounted}:"
+			while [ "$m" ]; do
+				[ "${m%%:*}" = "$MNT$mntdir" ] && break
+				m="${m#*:}"
+			done
+			[ "$m" ] && \
+				addto list "Mounted NFS share $device on $MNT$mntdir"
+		done
+	fi
+
+	if [ "$task_do_task_sshd" ]; then
+		if [ "$do_task_chroot" ]; then
+			addto list "Launched sshd (in chroot)"
+		else
+			addto list "Launched sshd (from boot media)"
+		fi
+	fi
+
+	[ "$list" ] \
+		&& print_list -n "Tasks completed thus far:" "$list"
+}
+
+depend final_stage recap note print_bold
+final_stage()
+{
+	local m
+
+	head_final=1 # kills 'Ctrl-C' and 'Default' message in print_head()
+	recap
+
+	m="When finished, type ${ANSI_BLD}exit$ANSI_BLD_OFF (or press"
+	m="$m $ANSI_BLD^D$ANSI_BLD_OFF)."
+	note "$m"
+
+	m="Disks will be cleanly un-mounted when you exit your shell session"
+	note "$m"
+
+	m="SSH sessions will be terminated when you exit your shell session"
+	[ "$task_do_task_sshd" ] && note "$m"
+
+	# Some cleanup
+	rm -f "$TMPFILE" >> "$DEV_NULL" 2>&1
+
+	print_bold "\nLaunching shell...\n\n"
+
+	tag=task_launch_shell
+
+	# If we dont use `rescript' (defined above under FUNCTIONS), you'll
+	# either get an ioctl error (tcsh) or output will be redirected to
+	# Alt-F2 while reading input from Alt-F1 (bash). `rescript' directly
+	# addresses this issue.
+
+	if [ ${do_task_chroot:-0} -eq 1 ]; then
+		# XXX need to develop invocation rules for each shell type
+		depend $tag rescript chroot
+
+		case "$preferred_shell" in
+		*/bash) args='--noprofile -i';;
+		*/tcsh) args='-i';;
+		 */zsh) args='-i';;
+		 */csh) args='-i';;
+		 */ksh) args='-i';;
+		     *) args='';;
+		esac
+
+		rescript chroot "$MNT" "$preferred_shell" $args
+	else
+		depend $tag rescript
+		rescript $rescue/bash \
+			--noprofile --rcfile "$rescue/etc/profile" -i
+	fi
+
+	eval $tag=1
+}
+
+# Read user input (display prompt, and provide default value)
+#
+pd_read() # ( variable_name [prompt [default_value]] )
+{
+	local var="$1" prompt="$2" default="$3" INPUT
+
+	# Check variables
+	[ "$var" ] || die \
+		"%s: pd_read: Invalid variable name (null) for arg 1" \
+		"$FATAL_ERROR"
+
+	printf "$FMT_READ" "$prompt" "$default"
+	read INPUT
+
+	INPUT="${INPUT:-$default}"
+	eval $var='$INPUT'
+
+	# return error status if the default value was used
+	[ "$INPUT" != "$default" ]
+}
+
+# Clean up environment (automatically called by die() when defined)
+#
+depend die_cleanup umount sed killall pd_read final_stage sleep
+die_cleanup() # ( )
+{
+	: ${DEV_NULL:=/dev/null}
+
+	if [ ! "$task_launch_shell" ]; then
+		local offer_shell=1
+
+		# die_cleanup is called in one of three ways:
+		# 	1. When the user presses Ctrl-C, interrupt() is invoked
+		# 	   which then invokes die() *
+		# 	2. When an error occurs, die() is invoked *
+		# 	3. At the end of this file when the user exits the shell.
+		#
+		# * die() invokes die_cleanup() if defined
+		#
+		# We do not want to offer a shell if either the user has
+		# pressed Ctrl-C (to abort the script) or if we have reached
+		# the end of the script (we have already tested for this by
+		# checking for the task_launch_shell "tag").
+
+		# When Ctrl-C is pressed, interrupt() is invoked, which
+		# sets $contact and $ERR_CMD to NULL (this is how we will
+		# test for Ctrl-C).
+		#
+		[ -z "$contact" -a -z "$ERR_CMD" ] && offer_shell=0
+
+		if [ $offer_shell -eq 1 ]; then
+			printf "\n\n"
+
+			# Here, since we are decidedly being called from die()
+			# already, we simply ask if they want a shell (and
+			# invoke final_stage() if so).
+
+			local answer
+			pd_read answer "Launch shell anyway?" "NO"
+			case "$answer" in
+				[Yy]|[Yy][Ee][Ss]) final_stage;;
+			esac
+
+			# If we just continue, $ERR_CMD will wait until they
+			# press Ctrl-C to continue. Let's set $ERR_CMD to NULL
+			# so they can fall back to the install menu.
+			#
+			ERR_CMD=""
+
+			FAILURE=255 # tell menu to not display an error
+		fi
+	fi
+
+	# Stop all SSH daemons/sessions (otherwise they
+	# could prevent us from cleaning up our mounts)
+	#
+	killall -9 sshd >> "$DEV_NULL" 2>&1
+	sleep 0.5 # Yield time to allow resources to be reclaimed
+
+	# Stop all dhclient(8) sessions
+	#
+	killall -9 dhclient >> "$DEV_NULL" 2>&1
+
+	# Un-mount any mounted file-systems
+	local mounts=":$_mounted"
+	while [ "$mounts" ]; do
+		local mount="${mounts##*:}"
+		mounts="${mounts%:*}"
+		[ "$mount" ] || continue
+		umount $mount >> "$DEV_NULL" 2>&1
+	done
+
+	# Clean-up temporary files
+	rm -f "$TMPFILE" >> "$DEV_NULL" 2>&1
+}
+
+# Print a warning
+#
+depend warn print_bold
+warn() # ( text ... )
+{
+	[ "$__task_running" ] && printf "\n"
+	print_bold "${ANSI_YEL}WARNING!$ANSI_NRM "
+	printf "$@"
+
+	if [ "$__task_running" ]; then
+		if [ ${#@} -lt $FMT_COLS ]; then
+			printf "%-$(($FMT_COLS - ${#@} - 1))s"
+			export __cp=$FMT_COLS
+		else
+			export __cp=${#@}
+		fi
+	fi
+}
+
+# Probe for disks detected at boot time
+#
+depend probe_disks sysctl
+probe_disks() # ( type [...] )
+{
+	[ $# -gt 0 ] || return
+
+	local disk_type found="" disk disks="$(sysctl -n kern.disks)"
+	for disk_type in "$@"; do
+		for disk in $disks; do
+			[ "${disk%%[0-9]*}" = "$disk_type" ] \
+				&& found="$found${found:+ }$disk"
+		done
+	done
+	printf "%s${found:+\n}" "$found"
+}
+
+# Probe disks for BSD slices
+#
+depend get_slices fdisk
+get_slices() # ( disk [...] )
+{
+	local disk slices=
+	for disk in "$@"; do
+		slices="$slices${slices:+ }$( fdisk "$disk" | \
+		(
+			found=
+			while read LINE; do
+				case "$LINE" in
+				The\ data\ for\ partition\ [1-9]\ is:)
+					slice="${LINE% *}"
+					slice="${slice##* }"
+					continue;;
+				sysid\ 165\ *)
+					found="$found${found:+ }${disk}s$slice"
+				esac
+			done
+			printf "%s${found:+\n}" "$found"
+		) )"
+	done
+	printf "%s${slices:+\n}" "$slices"
+}
+
+# Probe slices for BSD partitions
+#
+depend get_partitions disklabel
+get_partitions() # ( slice [...] )
+{
+	local slice parts=
+	for slice in "$@"; do
+		parts="$parts${parts:+ }$( disklabel -r "$slice" | \
+		(
+			found=
+			while read LINE; do
+				case "$LINE" in
+				[a-z]:*4.2BSD*)
+					part="$slice${LINE%%:*}"
+					found="$found${found:+ }$part"
+				esac
+			done
+			printf "$found"
+		) )"
+	done
+	printf "%s${parts:+\n}" "$parts"
+}
+
+# Display progress while executing fsck in a wrapper.
+#
+depend qfsck sh script fsck_ufs
+qfsck() # ( device_name|device_path fstype )
+{
+	local device="$1"
+	local fstype="${2:-ufs}"
+	: ${SUCCESS:=0}
+	: ${FAILURE:=1}
+	: ${DEV_NULL:=/dev/null}
+
+	# Check arguments
+	[ "$device" ] || return $FAILURE
+
+	#
+	# Make sure /proc is mounted
+	#
+	local type on mount rest procfs_mounted=
+	mount | while read -r type on mount rest; do
+		if [ "$mount" = "/proc" ]; then
+			procfs_mounted=1
+			break
+		fi
+	done
+	[ "$procfs_mounted" ] ||
+		mount -t procfs procfs /proc > "$DEV_NULL" 2>&1 ||
+		return $FAILURE
+
+	local pfmt="Current Phase %2u : Progress %3u%%"
+	local p="$(printf "$pfmt" 0 0)" erase=
+	while [ "$p" ]; do
+		p="${p#?}"
+		erase="$erase$(printf '\b')"
+	done
+
+	printf "${ANSI_BLD}Performing fsck_ufs on $device:$ANSI_BLD_OFF "
+	printf "%-${#erase}s" "Initializing..."
+
+	# NOTE: 'script' is used here only because it allows us to get around
+	# the problem that the shell doesn't immediately flush the output
+	# buffer into our pipe. 'script', when passwed `-t 0', flushes the
+	# output after every character. Otherwise, our pipe would not update.
+
+	:| script -aqt0 "$DEV_NULL" \
+	sh -c '
+		: ${DEV_NULL:=/dev/null}
+
+		cd /dev # so we can use EITHER device name OR path
+
+		# Run fsck in the background
+		fsck_ufs -y '"$device"' 2>&1 &
+		pid=$!
+
+		# While waiting for fsck to complete, continually send SIGINFO
+		while [ -e /proc/$pid ]; do
+			kill -INFO $pid >> "$DEV_NULL" 2>&1 || break
+		done
+		printf "fsck_done\n"
+	' | (
+		phase=0
+		percent=0
+
+		while true; do
+			read LINE || continue
+
+			# Remove trailing null character
+			LINE="${LINE%?}"
+
+			case "$LINE" in
+			fsck_done) break;;
+			*Phase\ [0-9]*)
+				phase="${LINE#*Phase }"
+				phase="${phase%% *}"
+				percent=0;;
+			*\(?%\)|*\(??%\)|*\(100%\))
+				percent="${LINE##*(}"
+				percent="${percent%%%*}";;
+			esac
+
+			[ $phase -gt 0 ] && \
+				printf "%s$pfmt" "$erase" $phase $percent
+		done
+	)
+	printf "%s%-${#erase}s\n" "$erase" "Done."
+
+	return $SUCCESS
+}
+
+# Prompt the user to choose from a list of options
+# Arguments
+#   prompt      Title to display regarding meaning of options
+#   default     Default value (must be a number) to use when no text
+#               or a non-numeric string is entered by the user
+#   variable    Variable name to assign the value to (only the first
+#               word of the value is assigned to the variable)
+#   list        List of options (delimited by a newline character)
+#   note        Optional. Printed before the "Choice" prompt
+#
+# The return value is the numeric value of the chosen option
+#
+depend pd_list ispid print_bold note pd_read strip_ansi \
+               ifs_clear ifs_append ifs_restore
+pd_list() # ( prompt default variable list [note] )
+{
+	local prompt="$1" default="$2" var="$3" list="$4" note="$5"
+	local n=0 item choice
+
+	# Check arguments
+	[ "$prompt" -a "$default" -a "$var" -a "$list" ] \
+		|| return 0
+
+	# Use ispid to validate a string as a positive whole integer.
+	ispid "$default" \
+		|| die "%s pd_list: 3rd argument is not a valid number" \
+		       "$FATAL_ERROR"
+
+	# Print the list prompt
+	print_bold "$prompt\n"
+
+	# Print the list of options
+	ifs_clear; ifs_append '\n'
+	for item in `printf "$list"`; do
+		[ "$item" ] || continue
+		n=$(($n + 1))
+		printf "   %2s. $item\n" $n
+	done
+	ifs_restore; printf "\n"
+
+	# Print optional note-argument before prompt
+	[ "$note" ] && note "$note"
+
+	# Prompt the user for their choice
+	pd_read choice "Choice" $default
+
+	# Validate that the user entered a positive number that was in range
+	( ispid "$choice" && [ $choice -gt 0 -a $choice -le $n ] ) \
+		|| choice=$default
+
+	# Find the user's selection based on number
+	n=0; ifs_clear; ifs_append '\n'
+	for item in `printf "$(strip_ansi $list)"`; do
+		[ "$item" ] || continue
+		n=$(($n + 1))
+		[ $n -eq $choice ] && break
+	done
+	ifs_restore
+
+	# Export the user-selected value
+	eval $var='${item%% *}'
+
+	printf '\n'
+	return $choice
+}
+
+# In the event that we can't mount disks with normal options, prompt the user
+# with a list of alternative methods that may allow the user to proceed. We
+# don't want to keep prompting the user for each time that we have a problem
+# mounting a disk, so this function caches the user's response, returning the
+# original response on subsequent calls.
+#
+depend cache_mount_try2 warn addto pd_list
+ac_mount_try2_choice=
+cache_mount_try2() # ( device_name )
+{
+	# Check current mount options
+	local opts="$mount_opts," rdonly= force=
+	while [ "$opts" ]; do
+		case "${opts%%,*}" in
+		rdonly|ro) rdonly=1;;
+		force) force=1;;
+		esac
+		opts="${opts#*,}"
+	done
+
+	local msg="Unable to mount device /dev/$1"
+	[ "$rdonly" ] || msg="$msg in R/W mode"
+	[ "$force"  ] || msg="$msg
+         Probably because the disk is not marked clean"
+	warn "$msg\n"
+	printf "\n" # give the warning some space
+
+	# Only prompt the user once for multiple calls
+	[ "$ac_mount_try2_choice" ] && return $ac_mount_try2_choice
+
+	local list=""
+	addto list "Check the disk with 'fsck_ufs' and retry"
+	[ "$rdonly" ] || addto list "Mount the disk in Read-Only mode"
+	[ "$force"  ] || addto list "Force the disk in R/W mode"
+
+	local prompt="What would you like to do?" answer
+	pd_list "$prompt" 1 answer "$list"
+	case "$answer" in
+	Check) ac_mount_try2_choice=1;;
+	Mount) mount_opts="$mount_opts,rdonly"
+	       ac_mount_try2_choice=2;;
+	Force) mount_opts="$mount_opts,force"
+	       ac_mount_try2_choice=3;;
+	esac
+
+	return $ac_mount_try2_choice
+}
+
+# Get a setting from a source file. Return value is zero if the setting
+# was in the source file, otherwise the return value is 1.
+#
+source_val() # ( file setting )
+{
+	local file="$1" var="$2"
+	: ${DEV_NULL:=/dev/null}
+
+	( . "$file" >> "$DEV_NULL" 2>&1 \
+	  && eval "( : \${$var?} )" >> "$DEV_NULL" 2>&1 \
+	  && eval "printf '%s\n' \"\${$var}\""
+	) || return ${FAILURE:-1}
+}
+
+# Get a setting from `rc.conf' (and rc_conf_files)
+#
+depend rcconf_val source_val
+rcconf_val() # ( setting )
+{
+	local defaults="${RC_DEFAULTS-/etc/defaults/rc.conf}"
+	local setting="$1"
+
+	# Check arguments
+	[ -f "$defaults" ] || return
+	[ -n "$setting"  ] || return
+
+	# Get list of files
+	local files="$rc_conf_files"
+	[ "$files" ] \
+		|| files=`source_val "$defaults" rc_conf_files`
+
+	# Obtain the value (as expected, each file has the ability to
+	# overwrite the value from the previous source file)
+	local file sourced=
+	local val value=
+	for file in $defaults $files; do
+		[ -e "$file" ] || continue
+
+		# Make sure that this file hasn't already been sourced
+		local s="$sourced:"
+		while [ "$s" ]; do
+			[ "$s" = "$file" ] && break
+			s="${s#*:}"
+		done
+		[ "$s" ] && continue
+
+		# Get the value and assign/overwrite if non-null
+		val=`source_val "$file" "$setting"`
+		[ "$val" ] && value="$val"
+
+		# Mark the file as sourced
+		sourced="$sourced${sourced:+:}$file"
+	done
+
+	printf "%s\n" "$value"
+}
+
+# Parse an fstab(5) file. Takes a single argument, the path to the fstab(5)
+# file and returns error status if the path does not exist or is not a file.
+# Upon successful completion, the following environment variables are created:
+#
+#   $fstab_all      All mount-points; Except those carrying the `xx' option
+#   $fstab_xx       Mount-points carrying the `xx' option
+#
+# When populating the above variables, the format that is used is:
+#
+# 		TYPE|SPECIAL_FILE|MOUNT_POINT|OPTIONS ...
+#
+# Where each field in the pipe-delimited word is as follows:
+#
+#   TYPE           Type of filesystem (see below for common types)
+#   SPECIAL_FILE   Block special device or remote filesystem to be mounted
+#   MOUNT_POINT    Directory pathname of where to mount the filesystem
+#   OPTIONS        Mount options associated with the filesystem
+#
+# Each pipe-delimited entry is separated by a space when multiple entries are
+# classified similarly. The order in which each entry should be mounted is
+# retained as the order in which each entry is added to its respective
+# classified variable(s).
+#
+# In addition to the above variables (which, together, provide access to all
+# mount-points in the fstab(5) file), the following environment variables are
+# made available for accessing entries of a specific type:
+#
+#   $fstab_TYPE          All mount-points of type TYPE; Except those carrying
+#                        the `noauto' option
+#   $fstab_TYPE_noauto   Mount-points of type TYPE which also carry the
+#                        `noauto' option
+#
+# For example, entries of type `ufs' (without the `noauto' option specified)
+# are added to the variable `$fstab_ufs'.
+#
+# Since all entries added to a particular $fstab_TYPE (or $fstab_TYPE_noauto)
+# variable are of one homogenous type, the following format is used instead:
+#
+# 		SPECIAL_FILE|MOUNT_POINT|OPTIONS ...
+#
+# Common types are as follows (see fstab(5)):
+#
+#   ufs      Local UNIX filesystems
+#   mfs      Local memory-based UNIX filesystems
+#   nfs      Sun Microsystems compatible ``Network File System''
+#   swap     Disk partitions to be used for swapping
+#   msdos    DOS compatible filesystems
+#   cd9660   CD-ROM filesystem (as per ISO 9660)
+#   procfs   Filesystem for accessing process data
+#
+# Other types may exist depending on kernel revision and modules-loaded.
+#
+# This function has no external dependencies (100% shell built-ins).
+#
+read_fstab() # ( path )
+{
+	local fstab="$1"
+
+	[ -f "$fstab" ] || return ${FAILURE-1}
+
+	local word
+	local prepro="$(
+	(
+		ents=
+		while read LINE; do
+			col=spec,mntp,type,opts,freq,pass,
+			for word in $LINE; do
+				[ "$col" ] || break
+				eval "${col%%,*}"='"$word"'
+				col=${col#*,}
+			done
+
+			case "$spec" in
+			\#*) continue;;
+			esac
+
+			ents="$ents${ents:+ }$type|$spec|$mntp|$opts"
+		done
+		printf "%s\n" "$ents"
+	) \
+	< "$fstab" )"
+
+	# Unset global variables that may have been created by prior runs
+	local var
+	for var in $( set | (
+		while read LINE; do
+			name="${LINE%%=*}"
+			case "$name" in
+			fstab_*) printf " $name";;
+			esac
+		done
+	) ); do
+		unset $var
+	done
+
+	local entry
+	for entry in $prepro; do
+		local ent="$entry" col=type,spec,mntp,opts,
+		while [ "$col" ]; do
+			local ${col%%,*}="${ent%%|*}"
+			col="${col#*,}"
+			ent="${ent#*|}"
+		done
+
+		# Parse mount options. For each of the `wanted' options below,
+		# set local variable $opt_NAME to the option-name if specified
+		# or NULL if absent (for example, if noauto is given
+		# $opt_noauto will equal "noauto", otherwise NULL).
+		#
+		local \
+		$(
+			wanted=noauto,xx
+
+			IFS=,
+			for w in $wanted; do
+				for opt in $opts ''; do
+					[ "$opt" = "$w" ] && break
+				done
+				printf " opt_$w=$opt"
+			done
+		)
+
+		# Skip/ignore entry if `xx' is specified in the mount options
+		if [ "$opt_xx" ]; then
+			fstab_xx="$fstab_xx${fstab_xx:+ }$entry"
+			continue
+		fi
+
+		# Add entry to $fstab_all
+		fstab_all="$fstab_all${fstab_all:+ }$entry"
+
+		# If `noauto' is specified in the mount options, add the entry
+		# to $fstab_TYPE_noauto, otherwise to $fstab_TYPE where TYPE is
+		# one of ufs,swap,cd9660,nfs,procfs,mfs, etc. (see fstab(5)).
+		#
+		# Also, remove the TYPE field since we are adding to a specific
+		# $fstab_TYPE (or $fstab_TYPE_noauto) variable.
+		#
+		local var=fstab_$type${opt_noauto:+_}$opt_noauto
+		eval $var=\"\${$var}\${$var:+ }"${entry#*|}"\"
+	done
+}
+
+# Perform initialization steps required to run sshd(8). This routine makes sure
+# that all the core requirements to launching sshd are met. Since failure to
+# set up any one of these requirements results in a failure to launch sshd,
+# the function does not exit on error. All errors are tallied and the return
+# value is the number of failed procedures. Upon success, zero is returned.
+#
+depend sshd_bootstrap mkdir sed ssh-keygen ln chmod chown
+sshd_bootstrap()
+{
+	: ${DEV_NULL:=/dev/null}
+	: ${SUCCESS:=0}
+	: ${FAILURE:=1}
+
+	local ssh="/etc/ssh"
+	local err=$SUCCESS
+
+	# Create default `sshd_config' if one does not already exist
+	#
+	if ! [ -e "$ssh/sshd_config" ]; then
+		if mkdir -p "$ssh" >> "$DEV_NULL" 2>&1; then
+			( sed > "$ssh/sshd_config" <<-EOF
+				Protocol 2,1
+				PermitRootLogin yes
+				PermitEmptyPasswords yes
+				X11Forwarding yes
+			EOF
+			) || err=$(( $err + 1 ))
+		else
+			err=$(( $err + 1 ))
+		fi
+	fi
+
+	# Generate Protocol-1 private/public host key pair
+	local key1="$ssh/ssh_host_key"
+	[ -e "$key1" ] \
+		|| ssh-keygen -t rsa -f "$key1" -N "" >> "$DEV_NULL" 2>&1 \
+		|| err=$(( $err + 1 ))
+
+	# Generate Protocol-2 private/public host key pair
+	local key2="$ssh/ssh_host_dsa_key"
+	[ -e "$key2" ] \
+		|| ssh-keygen -t dsa -f "$key2" -N "" >> "$DEV_NULL" 2>&1 \
+		|| err=$(( $err + 1 ))
+
+	# Create privilege-separation directory
+	[ -e "/var/empty" ] \
+		|| mkdir -p "/var/empty" >> "$DEV_NULL" 2>&1 \
+		|| err=$(( $err + 1 ))
+
+	# Configure PAM
+	local pamd="/etc/pam.d"
+	if ! [ -e "/etc/pam.conf" -o -e "$pamd" ]; then
+		if mkdir -p "$pamd" >> "$DEV_NULL" 2>&1; then
+			( sed > "$pamd/sshd" <<-EOF
+				# PAM configuration for the "sshd" service
+				auth     required pam_unix.so no_warn try_first_pass
+				account  required pam_nologin.so
+				account  required pam_login_access.so
+				account  required pam_unix.so
+				session  required pam_permit.so
+				password required pam_unix.so no_warn try_first_pass
+			EOF
+			) || err=$(( $err + 1 ))
+		else
+			err=$(( $err + 1 ))
+		fi
+	fi
+
+	# Link required shared objects (listed above in PAM configuration)
+	if ! [ -e "/usr/lib" ]; then
+		mkdir -p "/usr/lib" >> "$DEV_NULL" 2>&1 || err=$(( $err + 1 ))
+	fi
+	if [ -e "/usr/lib" ]; then	
+		local lib rescue="${rescue:-/cdrom/freebsd/rescue}"
+		for lib in login_access nologin permit unix; do
+			[ -e "/usr/lib/pam_$lib.so" ] \
+				|| ln -sf "$rescue/lib/pam_$lib.so" "/usr/lib/" \
+				|| err=$(( $err + 1 ))
+		done
+	fi
+
+	# Create /var/empty with proper ownership/permissions
+	if ! [ -e "/var/empty" ]; then
+		mkdir -p "/var/empty" >> "$DEV_NULL" 2>&1 || err=$(( $err + 1 ))
+	fi
+	if [ -d "/var/empty" ]; then
+		chown root /var/empty >> "$DEV_NULL" 2>&1 || err=$(( $err + 1 ))
+		chmod go-w /var/empty >> "$DEV_NULL" 2>&1 || err=$(( $err + 1 ))
+	fi
+
+	return $err
+}
+
+# Perform additional steps needed to make sshd(8) usable
+#
+depend sshd_tune mkdir ln chsh chpass
+sshd_tune()
+{
+	local rescue="${rescue:-/cdrom/freebsd/rescue}"
+
+	: ${DEV_NULL:=/dev/null}
+	: ${SUCCESS:=0}
+
+	# Create root's home directory
+	[ -e "/root" ] \
+		|| mkdir -p /root >> "$DEV_NULL" 2>&1
+
+	# Validate the shell we are going to set (quells warnings about
+	# running an invalid shell)
+	#
+	if [ -e "/etc/shells" ]; then
+		# verify contents
+		if ! ( while read LINE; do
+		           [ "$LINE" = "$rescue/bash" ] && break
+		       done
+		     ) < /etc/shells
+		then
+			# shell not validated (add to file)
+			printf "$rescue/bash\n" >> /etc/shells 2> "$DEV_NULL"
+		fi
+	else
+		printf "$rescue/bash\n" >> /etc/shells 2> "$DEV_NULL"
+	fi
+
+	# `chsh' and `chpass' both require /usr/sbin/pwd_mkdb to exist
+	[ -e "/usr/sbin" ] \
+		|| mkdir -p /usr/sbin >> "$DEV_NULL" 2>&1
+	[ -e "/usr/sbin/pwd_mkdb" ] \
+		|| ln -sf "$rescue/pwd_mkdb" /usr/sbin/ \
+		>> "$DEV_NULL" 2>&1
+
+	# Use chsh to change root's login shell to rescue-bash
+	chsh -s "$rescue/bash" root >> "$DEV_NULL" 2>&1
+
+	# Use chpass to change root's password
+	chpass -p '$1$aMVwi3I8$XfeUcx5xKVEVN0SKHzTXv/' root \
+		>> "$DEV_NULL" 2>&1
+
+	# Symlink rescue-bash's bootstrap-profile into root's home-dir
+	[ -e "/root/.bash_profile" ] \
+		|| ln -sf "$rescue/etc/profile" /root/.bash_profile \
+		>> "$DEV_NULL" 2>&1
+
+	# Setup 127.0.0.1 and localhost
+	ifconfig lo0 inet 127.0.0.1 >> "$DEV_NULL" 2>&1
+	if [ -e "/etc/hosts" ]; then
+		# verify contents
+		if ! ( while read LINE; do
+		           case "$LINE" in
+		           \#*) : ;;
+		           *localhost*) true; break;;
+		           esac
+		           false
+		       done
+		     ) < /etc/hosts
+		then
+			# localhost not validated (add to file)
+			printf "127.0.0.1\tlocalhost\n" \
+				>> /etc/hosts 2>> "$DEV_NULL"
+		fi
+	else
+		printf "127.0.0.1\tlocalhost\n" \
+			>> /etc/hosts 2>> "$DEV_NULL"
+	fi
+
+	return $SUCCESS
+}
+
+# Perform miscellaneous setup routines
+#
+depend misc_tune mkdir ln rcconf_val hostname
+misc_tune() # ( )
+{
+	: ${DEV_NULL:=/dev/null}
+
+	# scp requires ssh to live in /usr/bin
+	[ -e "/usr/bin" ] \
+		|| mkdir -p "/usr/bin" >> "$DEV_NULL" 2>&1
+	[ -e "/usr/bin/ssh" ] \
+		|| ln -sf "$rescue/ssh" /usr/bin/ \
+		>> "$DEV_NULL" 2>&1
+
+	# Set the hostname (makes for a nicer shell prompt)
+	local hn="$(rcconf_val hostname)"
+	[ "$hn" ]  && hostname -s "$hn"
+}
+
+# Execute shell command using `script' (fixes ioctl problems associated with
+# executing an interactive login shell)
+#
+depend rescript sh script
+rescript() # ( [ command [args ...] ] )
+{
+	script -aqt0 /dev/null "$@"
+}
+
+###############################################################################
+################################# MAIN SOURCE #################################
+###############################################################################
+depend task_init die print_head have
+
+############################## Trap signals so we can recover gracefully
+trap 'interrupt' SIGINT # Ctrl-C
+trap 'die' SIGTERM SIGPIPE SIGXCPU SIGXFSZ SIGFPE SIGTRAP SIGABRT SIGSEGV
+trap '' SIGALRM SIGPROF SIGUSR1 SIGUSR2 SIGHUP SIGVTALRM
+
+############################## Perform sanity check(s)
+:> "$TMPFILE" || die "Unable to create temporary file \`$TMPFILE'"
+
+############################## Initialize layout (ASCII art, notes, etc.)
+print_head
+
+###############################################################################
+#                           Phase 1 of 3: Bootstrap                           #
+###############################################################################
+print_head
+print_bold "Phase 1 of 3: Probe/Bootstrap Hardware\n\n"
+
+############################## Probe disk information
+tag=task_probe
+depend $tag task_begin probe_disks get_slices get_partitions eval_spin task_end
+
+# Probe (in order) disks -> slices -> partitions
+task_begin "Probing for FreeBSD hard disks..."
+_(){
+	_die() { die "%s $1" "$DISK_ERROR"; }
+	:> "$TMPFILE"
+	disks="$( probe_disks $disk_types )";
+	[ "$disks" ] || _die "No hard disks or missing/problematic driver"
+	echo "disks='$disks'" >> "$TMPFILE"
+	slices="$( get_slices $disks )";
+	[ "$slices" ] || _die "Unformatted disk(s)"
+	echo "slices='$slices'" >> "$TMPFILE"
+	partitions="$( get_partitions $slices )" || _die "No partitions found"
+	echo "partitions='$partitions'" >> "$TMPFILE"
+}
+eval_spin _
+retval=$?
+task_end $retval
+[ $retval -eq $SUCCESS ] && . "$TMPFILE"
+
+eval $tag=1
+############################## Find partitions containing FreeBSD distros
+tag=task_find_boot
+depend $tag task_begin mount umount eval_spin task_end
+
+task_begin "Searching for primary boot volume..."
+bootdisks=
+_(){
+	# We're just looking at the file-systems (not making changes),
+	# so let's use a pedantically-safe set of mount options
+	local mount_opts="noatime,noexec,nosuid,rdonly"
+
+	local p
+	for p in $partitions; do
+		mount -f -o "$mount_opts" /dev/$p "$MNT" >> "$DEV_NULL" 2>&1 \
+			|| continue
+		[ -x "$MNT/bin/sh" -a -f "$MNT/etc/rc" ] \
+			&& bootdisks="$bootdisks${bootdisks:+ }$p"
+		umount "$MNT" >> "$DEV_NULL" 2>&1
+	done
+	[ "$bootdisks" ] && echo "bootdisks='$bootdisks'" > "$TMPFILE"
+}
+eval_spin _
+retval=$?
+task_end $retval
+[ $retval -eq $SUCCESS ] && . "$TMPFILE"
+
+numdisks=`print_word NF $bootdisks`
+if [ $numdisks -eq 0 ]; then
+	warn "Though disks were found ($disks), none contain FreeBSD\n"
+	die "%s Could not find primary boot volume" "$FILE_ERROR"
+elif [ $numdisks -gt 1 ]; then
+	# XXX Error! More than one BSD system disk found
+
+	# We should list the disks with a note about using the rescue
+	# console to determine which disk is which
+
+	# Also note that it would be nice that, when listing the
+	# discovered devices, that we show their approximate size
+
+	# Also note that the best solution is to physically remove
+	# the second boot-device from the system and start over
+
+	# Current workaround is to use the first disk
+	bootdisk=`print_word 1 $bootdisks`
+else
+	# Only one FreeBSD boot-device found
+	bootdisk="$bootdisks"
+fi
+
+eval $tag=1
+############################## Mount FreeBSD distribution
+tag=task_mount1
+depend $tag task_begin cache_mount_try2 mount eval_spin task_end
+
+task_title="Mounting primary boot volume ($bootdisk)"
+task_begin "$task_title [rw]..."
+_(){
+	mount -o "$mount_opts" "/dev/$bootdisk" "$MNT" \
+		>> "${DEV_NULL:-/dev/null}" 2>&1
+}
+eval_spin _
+retval=$?
+task_end $retval
+
+if [ $retval -ne $SUCCESS ]; then
+	# Ask the user how they would like to proceed
+	cache_mount_try2 "$bootdisk"
+	case "$?" in
+	1) qfsck $bootdisk
+	   sleep 1
+	   printf "\n" # Give the next task some breathing room
+	   task_begin "$task_title [rw]...";;
+	2) task_begin "$task_title [ro]...";;
+	3) task_begin "$task_title [rw,force]...";;
+	esac
+
+	# Attempt to repeat the above task
+	eval_spin _ || die \
+		"%s Unable to mount primary boot volume ($bootdisk)" \
+		"$DISK_ERROR"
+	task_end $SUCCESS
+fi
+
+_mounted="$_mounted${_mounted:+:}$MNT"
+
+eval $tag=1
+############################## Parse fstab
+tag=task_fstab
+depend $tag task_begin task_end
+
+task_begin "Parsing ($bootdisk)/etc/fstab..."
+read_fstab "$MNT/etc/fstab" \
+	|| die "%s Unable to read $MNT/etc/fstab" "$FILE_ERROR"
+task_end $SUCCESS
+
+eval $tag=1
+############################## Probe mount points
+tag=task_mount2
+depend $tag task_begin get_partitions warn eval_spin task_end
+
+task_begin "Determining mount-points for remaining slices..."
+
+points=
+for part in $( get_partitions ${bootdisk%?} ); do
+	[ "$part" != "$bootdisk" ] || continue
+
+	_(){
+		local ent
+		for ent in $fstab_ufs ""; do
+			[ "${ent%%|*}" = "/dev/$part" ] || continue
+			ent="${ent%|*}" # remove OPTIONS field
+			points="$points${points:+ }$part:${ent#*|}"
+			break
+		done
+		[ "$points" ] && echo "points='$points'" > "$TMPFILE"
+		[ "$ent" ] && return
+
+		# We may miss the mount point if it is marked `noauto'
+		# Iterate over the `noauto' devices, suppressing the
+		# warning if we find a match
+		for ent in $fstab_ufs_noauto ""; do
+			[ "${ent%%|*}" = "/dev/$part" ] && break
+		done
+
+		[ "$ent" ]
+	}
+	eval_spin _
+	retval=$?
+	if [ $retval -eq $SUCCESS ]; then
+		. "$TMPFILE"
+	else
+		warn "Unable to determine mount-point for $part (ignoring)"
+	fi
+done
+
+[ "$points" ] || die \
+	"%s Unable to determine mount-points for remaining slices" \
+	"$FILE_ERROR"
+
+task_end $SUCCESS
+
+eval $tag=1
+############################## Mount remaining partitions
+tag=task_mount3
+depend $tag task_begin mount cache_mount_try2 qfsck eval_spin task_end
+
+for point in $points; do
+
+	# Skip already-mounted file-systems
+	m="${_mounted}:"
+	while [ "$m" ]; do
+		[ "${m%%:*}" = "$MNT${point%%:*}" ] && break
+		m="${m#*:}"
+	done
+	[ "$m" ] && continue
+
+	task_title="Mounting secondary volume ($point)"
+
+	# Check current mount options
+	opts="$mount_opts," rdonly= force=
+	while [ "$opts" ]; do
+		case "${opts%%,*}" in
+		rdonly|ro) rdonly=1;;
+		force) force=1;;
+		esac
+		opts="${opts#*,}"
+	done
+
+	# Start task with accurate title (indicating access method)
+	if [ "$rdonly" ]; then
+		task_begin "$task_title [ro]..."
+	elif [ "$force" ]; then
+		task_begin "$task_title [rw,force]..."
+	else
+		task_begin "$task_title [rw]..."
+	fi
+
+	_(){
+		mount -o "$mount_opts"           \
+		      "/dev/${point%%:*}"        \
+		      "$MNT${point#*:}"          \
+		2>&1 >> "${DEV_NULL:-/dev/null}"
+	}
+	eval_spin _
+	retval=$?
+	task_end $retval
+
+	if [ $retval -ne $SUCCESS ]; then
+		# Ask the user how they would like to proceed
+		cache_mount_try2 "${point%%:*}"
+		case "$?" in
+		1) qfsck "${point%%:*}"
+		   sleep 1
+		   printf "\n" # Give the next task some breathing room
+		   task_begin "$task_title [rw]...";;
+		2) task_begin "$task_title [ro]...";;
+		3) task_begin "$task_title [rw,force]...";;
+		esac
+
+		# Attempt to repeat the above task
+		eval_spin _ || die \
+			"%s Unable to mount secondary volume (%s)" \
+			"$DISK_ERROR" "$point"
+		task_end $SUCCESS
+	fi
+
+	_mounted="$_mounted${_mounted:+:}$MNT${point#*:}"
+done
+
+eval $tag=1
+############################## Probe networking
+tag=task_network
+depend $tag source_val task_begin ifconfig rcconf_val eval_spin note task_end \
+            sleep
+
+# rcconf_val will, by default, read settings on the root partition.
+# The following settings will cause rcconf_val to instead read $MNT
+RC_DEFAULTS=$MNT/etc/defaults/rc.conf
+rc_conf_files=
+for file in `source_val "$RC_DEFAULTS" rc_conf_files`; do
+	rc_conf_files="$rc_conf_files${rc_conf_files:+ }$MNT$file"
+done
+[ "$rc_conf_files" ] \
+	|| rc_conf_files="$MNT/etc/rc.conf $MNT/etc/rc.conf.local"
+
+active_ifaces=
+task_begin "Probing for active network interfaces/configurations..."
+_(){
+	# List kernel network interfaces and prune out unusable devices
+	local iface usable=
+	for iface in `ifconfig -l`; do
+		case "$iface" in
+		lo[0-9]|ppp[0-9]|sl[0-9]|lp[0-9]|fwe[0-9]|faith[0-9])
+			continue;;
+		esac
+		usable="$usable${usable:+ }$iface"
+	done
+
+	# Prune out interfaces that are not configured in rc_conf_files
+	local ifaces=
+	for iface in $usable; do
+		local ifconfig="`rcconf_val ifconfig_$iface`"
+		[ "$ifconfig" ] \
+			&& ifaces="$ifaces${ifaces:+ }$iface"
+	done
+
+	# Prune out interfaces that are not physically connected
+	for iface in $ifaces; do
+		local status=$(
+		ifconfig $iface | \
+		(
+			while read LINE; do
+				got_status=
+				for word in $LINE; do
+					[ "$got_status" ] && break
+					[ "$word" = "status:" ] && got_status=1
+				done
+
+				[ "$got_status" ] && break
+			done
+
+			# For interfaces that do not report a status (ie.
+			# lnc(4)), assume the interface is active.
+			[ "$got_status" ] || word=active
+
+			printf "%s\n" "$word"
+		))
+
+		[ "$status" = "active" ] && \
+			active_ifaces="$active_ifaces${active_ifaces:+ }$iface"
+	done
+
+	[ "$active_ifaces" ] && echo "active_ifaces='$active_ifaces'" > "$TMPFILE"
+}
+eval_spin _
+retval=$?
+task_end $retval
+[ $retval -eq $SUCCESS ] && . "$TMPFILE"
+[ "$active_ifaces" ] \
+	|| note "No active interfaces available for automatic configuration\n"
+
+eval $tag=1
+
+sleep 1
+###############################################################################
+#                            Phase 2 of 3: Options                            #
+###############################################################################
+depend task_options recap print_bold pd_read
+
+# To allow pre-configured answers, before asking each question we test the
+# shell environment for a static variable name. If the user has assigned a
+# value to the variable (via set/export depending on which shell is being used)
+# prior to execution, inherit the user-configured setting and do not prompt the
+# user with the question for which we already know the answer.
+
+recap
+
+print_bold "Phase 2 of 3: Options\n\n"
+
+############################## Mount more?
+tag=do_task_mount4
+depend $tag eval_spin has_value addto print_list pd_read
+
+_(){
+	local ent
+
+	extra_mounts=
+	for ent in $fstab_ufs; do
+
+		local device="${ent%%|*}" && ent="${ent#*|}"
+		local mntdir="${ent%%|*}" && ent="${ent#*|}"
+		local fsopts="$ent"
+
+		[ "$device" -a "$mntdir" -a "$fsopts" ] || continue
+		[ "$mntdir" != "none" ] || continue
+
+		# Only consider devices that are not already mounted
+		local m=":$_mounted"
+		while [ "$m" ]; do
+			dir="${m##*:}"
+			if [ "$mntdir" = "/" ]; then
+				[ "$dir" = "$MNT" ] && break
+			else
+				[ "$dir" = "$MNT$mntdir" ] && break
+			fi
+			m="${m%:*}"
+		done
+
+		if [ ! "$m" ]; then
+			local item="$device|$mntdir|$fsopts"
+			extra_mounts="$extra_mounts${extra_mounts:+ }$item"
+		fi
+	done
+
+	echo "extra_mounts='$extra_mounts'" > "$TMPFILE"
+}
+eval_spin _ && . "$TMPFILE"
+
+if ! has_value $tag && [ "$extra_mounts" ]; then
+	# Show the user what we found
+	list=
+	for ent in $extra_mounts; do
+		device="${ent%%|*}" && ent="${ent#*|}"
+		mntdir="${ent%%|*}" && ent="${ent#*|}"
+		fsopts="$ent"
+
+		#addto list "$device:$mntdir\t\t($fsopts)"
+		addto list "$(
+			printf "%-29s (%s)" "$device:$mntdir" "$fsopts"
+		)"
+	done
+	print_list -n "The following additional devices were found" "$list"
+
+	pd_read answer "Mount remaining volumes?" "NO"
+	case "$answer" in
+		[Yy]|[Yy][Ee][Ss]) eval $tag=1;;
+	esac
+fi
+
+############################## Setup networking?
+tag=do_task_network
+depend $tag has_value rcconf_val addto print_list pd_read
+
+if ! has_value $tag && [ "$active_ifaces" ]; then
+	list=
+	netfaces=
+	for iface in $active_ifaces; do
+		ifconfig="`rcconf_val ifconfig_$iface`"
+		if [ ${#ifconfig} -gt 50 ]; then
+			while [ ${#ifconfig} -gt 50 ]; do
+				ifconfig="${ifconfig%?}"
+			done
+			ifconfig="$ifconfig..."
+		fi
+		addto list "$iface\t$ifconfig"
+
+		# Used later to do the deed (colon delimited list)
+		netfaces="$netfaces${netfaces:+:}$iface=$ifconfig"
+	done
+
+	prompt="The following saved network configurations"
+	prompt="$prompt apply to active interfaces"
+	print_list -n "$prompt" "$list"
+
+	pd_read answer "Activate saved network configuration(s)?" "NO"
+	case "$answer" in
+		[Yy]|[Yy][Ee][Ss]) eval $tag=1;;
+	esac
+fi
+
+############################## Setup NFS shares? (requires networking)
+tag=do_task_nfs
+
+_(){
+	local ent
+
+	nfs_mounts=
+	for ent in $fstab_nfs; do
+
+		local device="${ent%%|*}" && ent="${ent#*|}"
+		local mntdir="${ent%%|*}" && ent="${ent#*|}"
+		local fsopts="$ent"
+
+		[ "$device" -a "$mntdir" -a "$fsopts" ] || continue
+		[ "$mntdir" != "none" ] || continue
+
+		# Only consider devices that are not already mounted
+		local m=":$_mounted"
+		while [ "$m" ]; do
+			dir="${m##*:}"
+			if [ "$mntdir" = "/" ]; then
+				[ "$dir" = "$MNT" ] && break
+			else
+				[ "$dir" = "$MNT$mntdir" ] && break
+			fi
+			m="${m%:*}"
+		done
+
+		if [ ! "$m" ]; then
+			local item="$device|$mntdir|$fsopts"
+			nfs_mounts="$nfs_mounts${nfs_mounts:+ }$item"
+		fi
+	done
+
+	echo "nfs_mounts='$nfs_mounts'" > "$TMPFILE"
+}
+
+if [ "$do_task_network" ]; then
+	depend $tag eval_spin has_value addto print_list pd_read
+
+	eval_spin _ && . "$TMPFILE"
+
+	if ! has_value $tag && [ "$nfs_mounts" ]; then
+		# Show the user what we found
+		list=
+		for nm in $nfs_mounts; do
+			device="${nm%%|*}" && nm="${nm#*|}"
+			mntdir="${nm%%|*}" && nm="${nm#*|}"
+			fsopts="$nm"
+
+			# Make it pretty
+			if [ ${#device} -gt 28 ]; then
+				item=$device
+				if [ ${#item} -gt 63 ]; then
+					while [ ${#item} -gt 60 ]; do
+						item="${item%?}"
+					done
+					item="$item..."
+				fi
+				item="$item\\\n%33s"
+			else
+				item="`printf '%-28s' "$device"`"
+			fi
+			info="$mntdir ($fsopts)"
+			if [ ${#info} -gt 38 ]; then
+				while [ ${#info} -gt 35 ]; do
+					info="${info%?}"
+				done
+				info="$info..."
+			fi
+			addto list "$item $info"
+		done
+		print_list -n "The following NFS mounts were found" "$list"
+
+		pd_read answer "Mount NFS?" "NO"
+		case "$answer" in
+			[Yy]|[Yy][Ee][Ss]) eval $tag=1;;
+		esac
+	fi
+fi
+
+############################## Perform chroot?
+tag=do_task_chroot
+depend $tag has_value pd_read
+
+# We tested earlier for the existence of /bin/sh (while probing for the
+# primary boot volume) which is all we need to perform a chroot. No need
+# to perform any additional tests as a conditional to offering chroot as
+# an option.
+
+if ! has_value $tag; then
+	pd_read answer "Chroot into mounted file-system?" "YES"
+	case "$answer" in
+		[Yy]|[Yy][Ee][Ss]) eval $tag=1;;
+	esac
+fi
+
+############################## Preferred shell?
+tag=preferred_shell
+depend $tag has_value
+
+if ! has_value $tag && [ "$do_task_chroot" = "1" ]; then
+	depend $tag addto pd_list
+	list=
+
+	# Find installed shells (search in order of preference)
+	for shell_path in \
+		/usr/local/bin/bash   \
+		/bin/tcsh             \
+		/usr/local/bin/zsh    \
+		/bin/csh              \
+		/usr/local/bin/ksh    \
+	; do
+		[ -f "$MNT$shell_path" ] && addto list $shell_path
+	done
+	
+	if [ "$list" ]; then
+		# We already know /bin/sh exists (we tested for it's existence
+		# when qualifying the partition as a boot-volume), so let's add
+		# it to the end of the list to allow the user to select it as
+		# a preferred shell.
+		addto list /bin/sh
+
+		prompt="Select your desired shell"
+		prompt="$prompt from the list of installed shells below"
+
+		# Prompt the user to select their preferred shell (always
+		# default to 1; since shells are probed in preferential order
+		# the top-most item, number 1, will be the "best" all-around
+		# shell among the ones found to be installed)
+
+		pd_list "$prompt" 1 preferred_shell "$list"
+	else
+		# No other shells installed?!
+		# Fall back to what we know is available
+		preferred_shell=/bin/sh
+	fi
+fi
+
+############################## Setup SSH? (requires networking)
+tag=do_task_sshd
+depend $tag has_value
+
+if ! has_value $tag && [ "$do_task_network" = "1" ]; then
+	depend $tag note pd_read
+
+	printf '\n\n'
+	if [ "$do_task_chroot" = "1" ]; then
+note "You chose to chroot into the mounted file-system. If you choose (below)
+      to allow remote trouble-shooting, we will chroot into the mounted file-
+      system prior to running sshd. This will allow you to log into the system
+      remotely as any currently-installed user on the system. Login sessions
+      will be jailed inside the mounted file-system (unable to access any
+      resources on the boot media).\n"
+	else
+		m="You chose to ${ANSI_BLD}NOT$ANSI_BLD_OFF chroot into the"
+		m="$m mounted file-system. If you choose\n"
+		m="$m      (below) to allow remote trouble-shooting, we will"
+		m="$m run a local copy of\n"
+		m="$m      sshd from the boot media. You will only be able to"
+		m="$m log in as $ANSI_BLD${ANSI_RED}root$ANSI_NRM$ANSI_BLD_OFF"
+		m="$m.\n"
+		m="$m      Login sessions will have access to the boot media"
+		m="$m and the local file-\n"
+		m="$m      system will be mounted on \`$ANSI_BLD$ANSI_BLU/mnt"
+		m="$m$ANSI_NRM$ANSI_BLD_OFF'.\n"
+
+		note "$m"
+	fi
+
+	pd_read answer "Launch sshd (to allow remote trouble-shooting)?" "NO"
+	case "$answer" in
+		[Yy]|[Yy][Ee][Ss]) eval $tag=1;;
+	esac
+fi
+
+
+###############################################################################
+#                        Phase 3 of 3:  Apply Settings                        #
+###############################################################################
+depend task_do_options print_head print_bold
+
+print_head
+print_bold "Phase 3 of 3: Apply Options\n\n"
+
+warned=0 # Track warnings. If the user has been warned about something,
+         # before we go on to the next phase, pause allowing the user
+         # to enable Scroll-Lock and page through the output before
+         # pressing ENTER to continue.
+
+############################## Mount devfs in chroot?
+tag=task_chroot_devfs
+depend $tag has_value
+
+if ! has_value $tag && [ "$do_task_chroot" = "1" ]; then
+	depend $tag task_begin eval_spin task_end mount warn
+
+	task_begin "Mounting devfs in chroot environment ($MNT/dev)..."
+	_(){
+		mount -t devfs devfs "$MNT/dev" \
+			>> "${DEV_NULL:-/dev/null}" 2>&1
+	}
+	eval_spin _
+	retval=$?
+	task_end $retval
+
+	_mounted="$_mounted${_mounted:+:}$MNT/dev"
+	eval $tag=1
+fi
+
+############################## Mount more?
+tag=task_do_task_mount4
+
+if [ "$do_task_mount4" = "1" ]; then
+	depend $tag task_begin eval_spin task_end \
+		mount cache_mount_try2 qfsck warn
+
+	for ent in $extra_mounts; do
+
+		device="${ent%%|*}" && ent="${ent#*|}"
+		mntdir="${ent%%|*}" && ent="${ent#*|}"
+		fsopts="$ent"
+
+		# Convert device_path to device_name for convenience
+		device="${device##*/}"
+
+		# Skip already-mounted file-systems
+		m="${_mounted}:"
+		while [ "$m" ]; do
+			[ "${m%%:*}" = "$MNT$mntdir" ] && break
+			m="${m#*:}"
+		done
+		[ "$m" ] && continue
+
+		task_title="Mounting tertiary volume ($mntdir)"
+
+		# Check current mount options
+		opts="$fsopts," rdonly= force=
+		while [ "$opts" ]; do
+			case "${opts%%,*}" in
+			rdonly|ro) rdonly=1;;
+			force) force=1;;
+			esac
+			opts="${opts#*,}"
+		done
+
+		# Start task with accurate title (indicating access method)
+		if [ "$rdonly" ]; then
+			task_begin "$task_title [ro]..."
+		elif [ "$force" ]; then
+			task_begin "$task_title [rw,force]..."
+		else
+			task_begin "$task_title [rw]..."
+		fi
+
+		_(){
+			:> "$TMPFILE"
+			err="$( mount -o "$fsopts"               \
+			              "/dev/$device"             \
+			              "$MNT$mntdir"              \
+			        2>&1 >> "${DEV_NULL:-/dev/null}" \
+			     )" \
+			&& _mounted="$_mounted${_mounted:+:}$MNT$mntdir"
+			echo "err='$err'" >> "$TMPFILE"
+			echo "_mounted='$_mounted'" >> "$TMPFILE"
+		}
+		eval_spin _
+		retval=$?
+		task_end $retval
+		. "$TMPFILE"
+
+		if [ $retval -ne $SUCCESS ]; then
+			err="${err##*: }"
+			case "$err" in
+			"Operation not permitted")
+				# Ask the user how they would like to proceed
+				cache_mount_try2 "$device"
+				case "$?" in
+				1) qfsck "$device"
+				   sleep 1
+				   printf "\n" # Give next task breathing room
+				   task_begin "$task_title [rw]...";;
+				2) task_begin "$task_title [ro]...";;
+				3) task_begin "$task_title [rw,force]...";;
+				esac
+
+				# Attempt to repeat the above task
+				eval_spin _ || die \
+					"%s Unable to mount tertiary volume (%s)" \
+					"$DISK_ERROR" "$device:$mntdir"
+				task_end $SUCCESS
+				. "$TMPFILE"
+				;;
+			*)
+				warn "Skipping device $device ($err)\n\n"
+				warned=1 # stop @ end of phase before continuing
+				;;
+			esac
+		fi
+
+	done
+
+	eval $tag=1
+fi
+
+############################## Setup networking?
+tag=task_do_task_network
+
+if [ "$do_task_network" = "1" ]; then
+	depend $tag eval_spin rcconf_val dhclient ifconfig route
+
+	task_begin "Activating saved network configuration(s)..."
+	_(){
+		local ifaces="$netfaces:"
+		local dhcp=
+
+		while [ "$ifaces" ]; do
+			local iface="${ifaces%%:*}"
+			local dev="${iface%%=*}"
+			local args="${iface#*=}"
+
+			case "$args" in
+			[Dd][Hh][Cc][Pp])
+				# Add interface to the list of DHCP interfaces
+				# (we'll configure these later with a single
+				# call to dhclient, since it accepts multiple
+				# interfaces for arguments)
+				dhcp="$dhcp${dhcp:+ }$dev";;
+			*)
+				ifconfig $dev $args >> "$DEV_NULL" 2>&1
+				[ $? -eq $SUCCESS ] || return $FAILURE
+			esac
+
+			ifaces="${ifaces#*:}"
+		done
+
+		# Execute dhclient with a list of all DHCP interfaces
+		if [ "$dhcp" ]; then
+			local dhcp_flags=$(rcconf_val dhcp_flags)
+			ifconfig $dhcp delete >> "$DEV_NULL" 2>&1
+			dhclient $dhcp_flags $dhcp >> "$DEV_NULL" 2>&1
+			[ $? -eq $SUCCESS ] || return $FAILURE
+		fi
+
+		# If set, apply the default router configuration
+		local gateway=$(rcconf_val defaultrouter)
+		case "$gateway" in
+		[Nn][Oo]) : ;;
+		*?*)
+			route delete default >> "$DEV_NULL" 2>&1
+			route add default $gateway >> "$DEV_NULL" 2>&1
+			[ $? -eq $SUCCESS ] || return $FAILURE
+		esac
+
+		# Setup DNS for non-chroot environment
+		if [ ${do_task_chroot:-0} -ne 1 ]; then
+			[ -e /etc/resolv.conf ] ||
+				cp "$MNT/etc/resolv.conf" "/etc/"
+		fi
+
+		# Setup lo0 for chroot environment
+		if [ ${do_task_chroot:-0} -eq 1 ]; then
+			ifconfig lo0 inet 127.0.0.1 >> "$DEV_NULL" 2>&1
+		fi
+
+		return $SUCCESS
+	}
+	eval_spin _
+	retval=$?
+	task_end $retval
+
+	[ $retval -eq $SUCCESS ] && eval $tag=1
+fi
+
+############################## Setup NFS shares? (requires networking)
+tag=task_do_task_nfs
+if [ "$task_do_task_network" = "1" -a "$do_task_nfs" = "1" ]; then
+	depend $tag mkdir task_begin mount_nfs eval_spin task_end warn
+
+	# mount_nfs records NFS mounts in `/var/db/mounttab'. Create the
+	# `/var/db' directory if it doesn't already exist (though, we don't
+	# care if the command passes or fails since failure to log the mount
+	# in `/var/db/mounttab' merely produces a warning).
+	#
+	[ -e "/var/db" ] \
+		|| mkdir -p /var/db >> "${DEV_NULL:-/dev/null}" 2>&1
+
+	for ent in $nfs_mounts; do
+
+		device="${ent%%|*}" && ent="${ent#*|}"
+		mntdir="${ent%%|*}" && ent="${ent#*|}"
+		fsopts="$ent"
+
+		# Skip already-mounted file-systems
+		m="${_mounted}:"
+		while [ "$m" ]; do
+			[ "${m%%:*}" = "$MNT$mntdir" ] && break
+			m="${m#*:}"
+		done
+		[ "$m" ] && continue
+
+		task_title="Mounting NFS volume ($mntdir)"
+
+		# Check current mount options
+		opts="$fsopts," rdonly= force=
+		while [ "$opts" ]; do
+			case "${opts%%,*}" in
+			rdonly|ro) rdonly=1;;
+			force) force=1;;
+			esac
+			opts="${opts#*,}"
+		done
+
+		# Start task with accurate title (indicating access method)
+		if [ "$rdonly" ]; then
+			task_begin "$task_title [ro]..."
+		elif [ "$force" ]; then
+			task_begin "$task_title [rw,force]..."
+		else
+			task_begin "$task_title [rw]..."
+		fi
+
+		_(){
+			:> "$TMPFILE"
+			err="$( mount_nfs -o "$fsopts"             \
+			                  "$device"                \
+			                  "$MNT$mntdir"            \
+			        2>&1 >> "${DEV_NULL:-/dev/null}"   \
+			        3>&1 4>&1 5>&1 6>&1 7>&1 8>&1 9>&1 \
+			     )" \
+			&& _mounted="$_mounted${_mounted:+:}$MNT$mntdir"
+			echo "err='$err'" >> "$TMPFILE"
+			echo "_mounted='$_mounted'" >> "$TMPFILE"
+		}
+		eval_spin _
+		retval=$?
+		task_end $retval
+		. "$TMPFILE"
+
+		if [ $retval -ne $SUCCESS ]; then
+			err="${err##*: }"
+			warn "Unable to mount \`$device' ($err)\n\n"
+			warned=1 # stop @ end of phase before continuing
+		else
+			eval $tag=1
+		fi
+	done
+fi
+
+############################## Setup SSH? (requires networking)
+tag=task_do_task_sshd
+if [ "$task_do_task_network" = "1" -a "$do_task_sshd" = "1" ]; then
+	depend $tag task_begin sshd_bootstrap sshd_tune sshd eval_spin task_end
+
+	task_begin "Starting sshd..."
+	_(){
+		local retval
+		: ${DEV_NULL:=/dev/null}
+
+		if [ "$do_task_chroot" = "1" ]; then
+			chroot "$MNT" /usr/sbin/sshd >> "$DEV_NULL" 2>&1
+			retval=$?
+		else
+			if sshd_bootstrap; then
+				sshd_tune
+				$rescue/sshd >> "$DEV_NULL" 2>&1
+				retval=$?
+			else
+				retval=$FAILURE
+			fi
+		fi
+
+		return $retval
+	}
+	eval_spin _
+	retval=$?
+	task_end $retval
+
+	eval $tag=1
+fi
+
+############################## Miscellaneous
+tag=task_misc
+depend $tag task_begin misc_tune eval_spin task_end
+
+task_begin "Performing miscellaneous setup routines..."
+_(){
+	misc_tune
+}
+eval_spin _
+task_end $?
+
+eval $tag=1
+############################## Warnings?
+tag=task_show_warnings
+depend $tag note print_bold
+
+if [ ${warned:-0} -ne 0 ]; then
+
+	printf "\n\n\n"
+
+	m="Some minor errors have occurred. Press ${ANSI_BLD}Scroll-lock"
+	m="$m$ANSI_BLD_OFF on the keyboard and\n"
+	m="$m      use the ${ANSI_BLD}UP$ANSI_BLD_OFF/${ANSI_BLD}DOWN"
+	m="$m$ANSI_BLD_OFF cursor keys to page through the screen output. When"
+	m="$m\n"
+	m="$m      ready to continue, disable Scroll-Lock and press $ANSI_BLD"
+	m="${m}ENTER$ANSI_BLD_OFF to continue.\n"
+
+	note "$m"
+
+	# centered (almost) for aesthetics
+	print_bold "                       < Press ENTER to continue >"
+
+	read -p "" IGN
+fi
+
+sleep 2
+
+###############################################################################
+#                                 Final Stage                                 #
+###############################################################################
+
+final_stage
+# Does not return until the user exits the shell that was launched
+
+############################## END OF SCRIPT
+#
+#
+#
+die_cleanup
+exit 255 # tells the menu to not display an error
+
+################################################################################
+# END
+################################################################################
+#
+# $Header: /cvsroot/druidbsd/druidbsd/druid83/src/freebsd/menu/scripts/repair,v 1.5 2012/10/31 18:41:54 devinteske Exp $
+#
+# $Copyright: 2006-2012 Devin Teske. All rights reserved. $
+#
+# $Log: repair,v $
+# Revision 1.5  2012/10/31 18:41:54  devinteske
+# Fix re-initialization of DHCP via repair script.
+#
+# Revision 1.4  2012/10/30 23:50:57  devinteske
+# Move sanity check (to after die() declaration -- oops!) and add newline to
+# die() fix an issue where "panic: Going nowhere without my init!" would
+# overwrite our final message.
+#
+# Revision 1.3  2012/10/30 23:46:47  devinteske
+# Fix a resource contention bug and make life easier in chroot by
+# configuring the local loopback interface (lo0).
+#
+# Revision 1.2  2012/10/30 23:39:45  devinteske
+# + Add `-f' flag to ln(1) in sshd_bootstrap(1) subroutine.
+# + Add bootstrap routines for setting up /var/empty for sshd(8).
+#
+# Revision 1.1  2012/10/10 23:30:22  devinteske
+# Commit initial public beta release of 8.3 series (beta 57; on-par with
+# the 9.0 series released recently, also beta 57).
+#
+#
+################################################################################

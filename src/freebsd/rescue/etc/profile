@@ -1,0 +1,115 @@
+# -*- tab-width:  4 -*- ;; Emacs
+# vi: set tabstop=4     :: Vi/ViM
+
+###############################################################################
+
+# Rescue-shell profile
+
+case "$0" in
+-*) # Login shell was invoked (use static pathname to rescue libraries)
+    rescue="/cdrom/freebsd/rescue"
+    login=1
+    ;;
+*)  # Invoked from holo-shell
+    [ "$rescue" ] || rescue="${0%/*}"
+    login=0
+    ;;
+esac
+
+quiet()
+{
+	case "$login" in
+	0) eval "$@";;
+	1) eval "$@" > /dev/null 2>&1;;
+	esac
+}
+
+###############################################################################
+
+# Modify PATH to include rescue directory (if not already included)
+unset de
+while [ "${de=${PATH}:}" ]; do
+	[ "${de%%:*}" = "${rescue}" ] && break
+	de="${de#*:}"
+done
+[ "${de}" ] || export PATH="${PATH}${PATH:+:}${rescue}"
+unset de
+
+# Modify PATH to remove "/mnt/*" entries
+__IFS="${IFS}" && IFS=: && unset __PATH1 __PATH2
+for de in ${PATH}; do
+	case "${de}" in
+	/mnt/*) continue;;
+	     *) __PATH1="${__PATH1}${__PATH1:+:}${de}";;
+	esac
+done
+IFS="${__IFS}" && unset __IFS
+export PATH="${__PATH1}"
+unset __PATH1
+
+# Modify PATH to include 'sbin' and 'local/bin' directories
+for de in /usr/local/bin /sbin /usr/sbin /usr/local/sbin; do
+	unset p
+	while [ "${p=${PATH}:}" ]; do
+		[ "${p%%:*}" = "${de}" ] && break
+		p="${p#*:}"
+	done
+	[ "${p}" ] || export PATH="${PATH}${PATH:+:}${de}"
+done
+unset p de
+
+###############################################################################
+
+# ViM works better than vi in MFS
+if type vim > /dev/null 2>&1; then
+	alias vi='vim -i NONE -N -n "+set bs=2"'
+	alias view='vim -R'
+
+	# Set vipw to use vim
+	export EDITOR="${rescue}/vim"
+fi
+
+# Don't save command history when we exit
+export HISTFILE=
+
+# Install termcap file
+quiet mkdir -p /usr/share/misc
+quiet ln -sf "${rescue}/etc/termcap" /usr/share/misc/
+quiet ln -sf "${rescue}/etc/termcap" /etc/
+
+# Install `units' and `magic' libraries
+quiet mkdir -p /usr/share/misc
+quiet ln -sf "${rescue}/etc/units.lib" /usr/share/misc/
+quiet ln -sf "${rescue}/etc/magic" /usr/share/misc/
+
+# Set up tip to allow RAID access
+quiet ln -sf "${rescue}/etc/remote" /etc/
+quiet mkdir -p -m 775 /var/spool/lock
+quiet chown uucp:dialer /var/spool/lock
+
+# Save a copy of the boot messages if not already done elsewhere
+[ -e /var/run/dmesg.boot ] \
+	|| dmesg > /var/run/dmesg.boot
+
+# Initialize wtmp log for `last' and `sshd'
+[ -e /var/log ] \
+	|| quiet mkdir -p /var/log
+[ -e /var/log/wtmp ] \
+	|| ( : > /var/log/wtmp ) > /dev/null 2>&1
+
+
+################################################################################
+# END
+################################################################################
+#
+# $Header: /cvsroot/druidbsd/druidbsd/druid83/src/freebsd/rescue/etc/profile,v 1.1 2012/10/10 23:31:32 devinteske Exp $
+#
+# $Copyright: 2006-2012 Devin Teske. All rights reserved. $
+#
+# $Log: profile,v $
+# Revision 1.1  2012/10/10 23:31:32  devinteske
+# Commit initial public beta release of 8.3 series (beta 57; on-par with
+# the 9.0 series released recently, also beta 57).
+#
+#
+################################################################################

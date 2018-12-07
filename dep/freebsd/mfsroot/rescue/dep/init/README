@@ -1,0 +1,14 @@
+$Header: /cvsroot/druidbsd/druidbsd/druid83/dep/freebsd/mfsroot/rescue/dep/init/README,v 1.1 2012/10/10 23:29:57 devinteske Exp $
+
+This small program replaces the default init(8) on the boot-floppy image simply
+to introduce a 3-second delay before launching the rescue shell, allowing the
+end-user time to press Scroll-Lock and review the kernel messages prior to
+screen-refresh (which may result in loss of output-data on the screen which may
+be important for toubleshooting diagnostics).
+
+The compiled `init' binary gets placed at:
+
+	druid/dep/freebsd/mfsroot/rescue/src/stand/init
+
+And must be in-place before compiling the final `rescue_mfsroot8.gz'
+dependancy.

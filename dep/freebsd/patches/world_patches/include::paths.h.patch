@@ -1,0 +1,34 @@
+--- include/paths.h.orig	2012-03-02 22:15:13.000000000 -0800
++++ include/paths.h	2012-05-18 15:50:20.000000000 -0700
+@@ -135,4 +135,31 @@ __END_DECLS
+ #define	_PATH_WALL	"/rescue/wall"
+ #endif /* RESCUE */
+ 
++#ifdef DRUID
++#undef	_PATH_DEFPATH
++#define	_PATH_DEFPATH	"/stand"
++#undef	_PATH_STDPATH
++#define	_PATH_STDPATH	"/stand"
++#undef	_PATH_SYSPATH
++#define	_PATH_SYSPATH	"/stand"
++#undef	_PATH_BSHELL
++#define	_PATH_BSHELL	"/stand/sh"
++#undef	_PATH_CP
++#define	_PATH_CP	"/stand/cp"
++#undef	_PATH_HALT
++#define	_PATH_HALT	"/stand/halt"
++#undef	_PATH_IFCONFIG
++#define	_PATH_IFCONFIG	"/stand/ifconfig"
++#undef	_PATH_MOUNT
++#define	_PATH_MOUNT	"/stand/mount"
++#undef	_PATH_NEWFS
++#define	_PATH_NEWFS	"/stand/newfs"
++#undef	_PATH_REBOOT
++#define	_PATH_REBOOT	"/stand/reboot"
++#undef	_PATH_RM
++#define	_PATH_RM	"/stand/rm"
++#undef	_PATH_SENDMAIL
++#define	_PATH_SENDMAIL	"/stand/sendmail"
++#endif /* DRUID */
++
+ #endif /* !_PATHS_H_ */

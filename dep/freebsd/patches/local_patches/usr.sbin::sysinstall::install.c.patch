@@ -1,0 +1,513 @@
+--- usr.sbin/sysinstall/install.c.orig	2012-05-21 09:52:28.000000000 -0700
++++ usr.sbin/sysinstall/install.c	2012-05-21 11:26:54.000000000 -0700
+@@ -55,6 +55,8 @@
+ #include <limits.h>
+ #include <unistd.h>
+ #include <termios.h>
++#include <pwd.h>
++#include <grp.h>
+ 
+ /* Hack for rsaref package add, which displays interactive license.
+  * Used by package.c
+@@ -295,20 +297,38 @@ installInitial(void)
+ 	return DITEM_FAILURE;
+     }
+ 
+-    if (!Restarting && chroot("/mnt") == -1) {
++    /*
++     * For DEVICE_TYPE_NULLFS, we must let the DEVICE_INIT routine perform
++     * chroot(2) because the mount(2) call would otherwise fail.
++     */
++    if (!Restarting
++        && mediaDevice->type != DEVICE_TYPE_NULLFS
++        && chroot("/mnt") == -1)
++    {
+ 	msgConfirm("installInitial: Unable to chroot to %s - this is bad!",
+ 		   "/mnt");
+ 	return DITEM_FAILURE;
+     }
+ 
+     chdir("/");
+-    variable_set2(RUNNING_ON_ROOT, "yes", 0);
+-
+-    /* Configure various files in /etc */
+-    if (DITEM_STATUS(configResolv(NULL)) == DITEM_FAILURE)
+-	status = DITEM_FAILURE;
+-    if (DITEM_STATUS(configFstab(NULL)) == DITEM_FAILURE)
+-	status = DITEM_FAILURE;
++    /*
++     * The below routines are agnostic to effective root and therefore need
++     * to be protracted until chroot(2) can be performed.
++     *
++     * When mediaDevice is DEVICE_TYPE_NULLFS, we will not have performed
++     * chroot(2) until DEVICE_INIT later. At the DEVICE_INIT stage is where
++     * we will re-call these after performing chroot(2).
++     */
++    if (mediaDevice->type != DEVICE_TYPE_NULLFS)
++    {
++	variable_set2(RUNNING_ON_ROOT, "yes", 0);
++
++	/* Configure various files in /etc */
++	if (DITEM_STATUS(configResolv(NULL)) == DITEM_FAILURE)
++	    status = DITEM_FAILURE;
++	if (DITEM_STATUS(configFstab(NULL)) == DITEM_FAILURE)
++	    status = DITEM_FAILURE;
++    }
+ 
+     /* stick a helpful shell over on the 4th VTY */
+     if (!variable_get(VAR_NO_HOLOSHELL))
+@@ -511,7 +531,7 @@ fixit_common(void)
+ 	/* use the .profile from the fixit medium */
+ 	setenv("HOME", "/mnt2", 1);
+ 	chdir("/mnt2");
+-	execlp("sh", "-sh", (char *)0);
++	execlp(xarchInstall() ? "/stand/sh" : "sh", "-sh", (char *)0);
+ 	msgDebug("fixit shell: Failed to execute shell!\n");
+ 	_exit(1);;
+     }
+@@ -731,7 +751,7 @@ nodisks:
+ 
+     dialog_clear_norefresh();
+     if (!msgYesNo("Would you like to set this machine's time zone now?"))
+-	systemExecute("tzsetup");
++	systemExecute(xarchInstall() ? "/stand/tzsetup" : "tzsetup");
+ 
+ #ifdef WITH_MICE
+     dialog_clear_norefresh();
+@@ -767,7 +787,7 @@ nodisks:
+ 
+     msgConfirm("Now you must set the system manager's password.\n"
+ 	       "This is the password you'll use to log in as \"root\".");
+-    if (!systemExecute("passwd root"))
++    if (!systemExecute(xarchInstall() ? "/stand/passwd root" : "passwd root"))
+ 	variable_set2("root_password", "YES", 0);
+ 
+     /* XXX Put whatever other nice configuration questions you'd like to ask the user here XXX */
+@@ -849,6 +869,12 @@ try_media:
+ 	    return DITEM_FAILURE;
+     }
+ 
++    /* Check for optional `pre_install.cfg' in configured install-media */
++    if (file_readable("/dist/pre_install.cfg")) {
++	variable_set2(VAR_CONFIG_FILE, "/dist/pre_install.cfg", 0);
++	dispatch_load_file_int(FALSE);
++    }
++
+     /* Now go get it all */
+     i = distExtractAll(self);
+ 
+@@ -858,7 +884,20 @@ try_media:
+     /* When running as init, *now* it's safe to grab the rc.foo vars */
+     installEnvironment();
+ 
+-    variable_set2(SYSTEM_STATE, DITEM_STATUS(i) == DITEM_FAILURE ? "error-install" : "full-install", 0);
++    if (DITEM_STATUS(i) == DITEM_SUCCESS) {
++	variable_set2(SYSTEM_STATE, "full-install", 0);
++
++	/* Write out rc.conf */
++	configRC_conf();
++
++	/* Check for optional `post_install.cfg' in configured install-media */
++	if (file_readable("/dist/post_install.cfg")) {
++	    variable_set2(VAR_CONFIG_FILE, "/dist/post_install.cfg", 0);
++	    dispatch_load_file_int(FALSE);
++	}
++    }
++    else
++	variable_set2(SYSTEM_STATE, "error-install", 0);
+ 
+     return i;
+ }
+@@ -932,25 +971,22 @@ installFixupBase(dialogMenuItem *self)
+ 	
+ 	/* BOGON #4: /compat created by default in root fs */
+ 	Mkdir("/usr/compat");
+-	vsystem("ln -s usr/compat /compat");
++	vsystem("%sln -s usr/compat /compat", xarchInstall() ? "/stand/" : "");
+ 
+ 	/* BOGON #5: aliases database not built for bin */
+-	vsystem("newaliases");
+-
+-	/* BOGON #6: Remove /stand (finally) */
+-	vsystem("rm -rf /stand");
++	vsystem("%snewaliases", xarchInstall() ? "/stand/" : "");
+ 
+ 	/* Now run all the mtree stuff to fix things up */
+-        vsystem("mtree -deU -f /etc/mtree/BSD.root.dist -p /");
+-        vsystem("mtree -deU -f /etc/mtree/BSD.var.dist -p /var");
+-        vsystem("mtree -deU -f /etc/mtree/BSD.usr.dist -p /usr");
++        vsystem("%smtree -deU -f /etc/mtree/BSD.root.dist -p /", xarchInstall() ? "/stand/" : "");
++        vsystem("%smtree -deU -f /etc/mtree/BSD.var.dist -p /var", xarchInstall() ? "/stand/" : "");
++        vsystem("%smtree -deU -f /etc/mtree/BSD.usr.dist -p /usr", xarchInstall() ? "/stand/" : "");
+ 
+ #ifdef __ia64__
+ 	/* Move /boot to the EFI partition and make /boot a link to it. */
+ 	efi_mntpt = (EfiChunk != NULL) ? ((PartInfo *)EfiChunk->private_data)->mountpoint : NULL;
+ 	if (efi_mntpt != NULL) {
+-		vsystem("if [ ! -L /boot ]; then mv /boot %s; fi", efi_mntpt);
+-		vsystem("if [ ! -e /boot ]; then ln -sf %s/boot /boot; fi",
++		vsystem("if [ ! -L /boot ]; then %smv /boot %s; fi", xarchInstall() ? "/stand/" : "", efi_mntpt);
++		vsystem("if [ ! -e /boot ]; then %sln -sf %s/boot /boot; fi", xarchInstall() ? "/stand/" : "",
+ 		    efi_mntpt + 1);	/* Skip leading '/' */
+ 		/* Make sure the kernel knows which partition is the root file system. */
+ 		vsystem("echo 'vfs.root.mountfrom=\"ufs:/dev/%s\"' >> /boot/loader.conf", RootChunk->name);
+@@ -977,13 +1013,13 @@ installFixupKernel(dialogMenuItem *self,
+ 	 * NB: we assume any existing kernel has been saved
+ 	 *     already and the /boot/kernel we remove is empty.
+ 	 */
+-	vsystem("rm -rf /boot/kernel");
++	vsystem("%srm -rf /boot/kernel", xarchInstall() ? "/stand/" : "");
+ #if WITH_SMP
+ 	if (dists & DIST_KERNEL_SMP)
+-		vsystem("mv /boot/SMP /boot/kernel");
++		vsystem("%smv /boot/SMP /boot/kernel", xarchInstall() ? "/stand/" : "");
+ 	else
+ #endif
+-		vsystem("mv /boot/GENERIC /boot/kernel");
++		vsystem("%smv /boot/GENERIC /boot/kernel", xarchInstall() ? "/stand/" : "");
+     }
+     return DITEM_SUCCESS | DITEM_RESTORE;
+ }
+@@ -998,7 +1034,8 @@ performNewfs(PartInfo *pi, char *dname, 
+ 	if (pi->do_newfs) {
+ 		switch(pi->newfs_type) {
+ 		case NEWFS_UFS:
+-			snprintf(buffer, LINE_MAX, "%s %s %s %s %s",
++			snprintf(buffer, LINE_MAX, "%s%s %s %s %s %s",
++			    xarchInstall() ? "/stand/" : "",
+ 			    NEWFS_UFS_CMD,
+ 			    pi->newfs_data.newfs_ufs.softupdates ?  "-U" : "",
+ 			    pi->newfs_data.newfs_ufs.ufs1 ? "-O1" : "-O2",
+@@ -1026,6 +1063,181 @@ performNewfs(PartInfo *pi, char *dname, 
+ 	return (0);
+ }
+ 
++int
++MakeDev(const struct chunk *c1, const char *path)
++{
++    char *p = c1->name;
++    u_long cmaj, min, unit, part, slice;
++    char buf[BUFSIZ], buf2[BUFSIZ];
++    struct group *grp;
++    struct passwd *pwd;
++    uid_t owner;
++    gid_t group;
++
++    *buf2 = '\0';
++    if (isDebug())
++	msgDebug("MakeDev: Called with %s on path %s\n", p, path);
++    if (!strcmp(p, "X"))
++	return 0;
++
++    if (!strncmp(p, "ad", 2))
++	cmaj = 116, p += 2;
++#ifdef PC98
++    else if (!strncmp(p, "wd", 2))
++	cmaj = 3, p += 2;
++#endif
++    else if (!strncmp(p, "wfd", 3))
++	cmaj = 87, p+= 3;
++    else if (!strncmp(p, "afd", 3))
++	cmaj = 118, p += 3;
++    else if (!strncmp(p, "fla", 3))
++	cmaj = 102, p += 3;
++    else if (!strncmp(p, "idad", 4))
++	cmaj = 109, p += 4;
++    else if (!strncmp(p, "ipsd", 4))
++	cmaj = 176, p += 4;
++    else if (!strncmp(p, "mlxd", 4))
++	cmaj = 131, p += 4;
++    else if (!strncmp(p, "amrd", 4))
++	cmaj = 133, p += 4;
++    else if (!strncmp(p, "twed", 4))
++	cmaj = 147, p += 4;
++    else if (!strncmp(p, "aacd", 4))
++	cmaj = 151, p += 4;
++    else if (!strncmp(p, "ar", 2))	/* ATA RAID */
++	cmaj = 157, p += 2;
++    else if (!strncmp(p, "da", 2))	/* CAM support */
++	cmaj = 13, p += 2;
++    else if (!strncmp(p, "mfid", 4))
++	cmaj = 178, p += 4;
++    else {
++	msgDebug("MakeDev: Unknown major/minor for devtype %s\n", p);
++	return 0;
++    }
++    if (!isdigit(*p)) {
++	msgDebug("MakeDev: Invalid disk unit passed: %s\n", p);
++	return 0;
++    }
++    unit = *p - '0';
++    p++;
++    if (!*p) {
++	slice = 1;
++	part = 2;
++	goto done;
++    }
++    else if (isdigit(*p)) {
++	unit *= 10;
++	unit += (*p - '0');
++	p++;
++    }
++#ifndef __alpha__
++    if (*p != 's') {
++	msgDebug("MakeDev: `%s' is not a valid slice delimiter\n", p);
++	return 0;
++    }
++    p++;
++    if (!isdigit(*p)) {
++	msgDebug("MakeDev: `%s' is an invalid slice number\n", p);
++	return 0;
++    }
++    slice = *p - '0';
++    p++;
++    if (isdigit(*p)) {
++	slice *= 10;
++	slice += (*p - '0');
++	p++;
++    }
++    slice = slice + 1;
++#else
++    slice = 0;
++#endif
++    if (!*p) {
++	part = 2;
++	if (c1->type == freebsd)
++	    sprintf(buf2, "%sc", c1->name);
++	goto done;
++    }
++    if (*p < 'a' || *p > 'h') {
++	msgDebug("MakeDev: `%s' is not a valid partition name.\n", p);
++	return 0;
++    }
++    part = *p - 'a';
++done:
++    if (isDebug())
++	msgDebug("MakeDev: Unit %d, Slice %d, Part %d\n", unit, slice, part);
++    if (unit > 32)
++	return 0;
++    if (slice > 32)
++	return 0;
++    if ((pwd = getpwnam("root")) == NULL) {
++	if (isDebug())
++	    msgDebug("MakeDev: Unable to lookup user \"root\", using 0.\n");
++	owner = 0;
++    } else {
++	owner = pwd->pw_uid;
++    }
++    if ((grp = getgrnam("operator")) == NULL) {
++	if (isDebug())
++	    msgDebug("MakeDev: Unable to lookup group \"operator\", using 5.\n");
++	group = 5;
++    } else {
++	group = grp->gr_gid;
++    }
++    min = unit * 8 + 65536 * slice + part;
++    sprintf(buf, "%s/r%s", path, c1->name);
++    unlink(buf);
++    if (mknod(buf, S_IFCHR|0640, makedev(cmaj,min)) == -1) {
++	msgDebug("mknod of %s returned failure status!\n", buf);
++	return 0;
++    }
++    if (chown(buf, owner, group) == -1) {
++	msgDebug("chown of %s returned failure status!\n", buf);
++	return 0;
++    }
++    if (*buf2) {
++	sprintf(buf, "%s/r%s", path, buf2);
++	unlink(buf);
++	if (mknod(buf, S_IFCHR|0640, makedev(cmaj,min)) == -1) {
++	    msgDebug("mknod of %s returned failure status!\n", buf);
++	    return 0;
++	}
++	if (chown(buf, owner, group) == -1) {
++	    msgDebug("chown of %s returned failure status!\n", buf);
++	    return 0;
++	}
++    }
++    sprintf(buf, "%s/%s", path, c1->name);
++    unlink(buf);
++    if (mknod(buf, S_IFCHR|0640, makedev(cmaj,min)) == -1) {
++	msgDebug("mknod of %s returned failure status!\n", buf);
++	return 0;
++    }
++    if (chown(buf, owner, group) == -1) {
++	msgDebug("chown of %s returned failure status!\n", buf);
++	return 0;
++    }
++    return 1;
++}
++
++int
++MakeDevChunk(const struct chunk *c1, const char *path)
++{
++    int i;
++
++    i = MakeDev(c1, path);
++    if (c1->next)
++	MakeDevChunk(c1->next, path);
++    if (c1->part)
++	MakeDevChunk(c1->part, path);
++    return i;
++}
++
++int
++MakeDevDisk(struct disk *d, const char *path)
++{
++    return MakeDevChunk(d->chunks, path);
++}
++
+ /* Go newfs and/or mount all the filesystems we've been asked to */
+ int
+ installFilesystems(dialogMenuItem *self)
+@@ -1102,7 +1314,7 @@ installFilesystems(dialogMenuItem *self)
+ 	    }
+ 	    dialog_clear_norefresh();
+ 	    msgNotify("Checking integrity of existing %s filesystem.", dname);
+-	    i = vsystem("fsck_ffs -y %s", dname);
++	    i = vsystem("%sfsck_ffs -y %s", xarchInstall() ? "/stand/" : "", dname);
+ 	    if (i)
+ 		msgConfirm("Warning: fsck returned status of %d for %s.\n"
+ 			   "This partition may be unsafe to use.", i, dname);
+@@ -1114,7 +1326,7 @@ installFilesystems(dialogMenuItem *self)
+ 	 */
+ 	if (!root->do_newfs && root->newfs_type == NEWFS_UFS &&
+ 	    root->newfs_data.newfs_ufs.softupdates) {
+-		i = vsystem("tunefs -n enable %s", dname);
++		i = vsystem("%stunefs -n enable %s", xarchInstall() ? "/stand/" : "", dname);
+ 		if (i)
+ 			msgConfirm("Warning: Unable to enable soft updates"
+ 			    " for root file system on %s", dname);
+@@ -1129,6 +1341,43 @@ installFilesystems(dialogMenuItem *self)
+ 
+ 	/* Mount devfs for other partitions to mount */
+ 	Mkdir("/mnt/dev");
++	/* When noDevfs is set to something other than "no", we should
++	 * treat the installation as a legacy release. This involves:
++	 * 1. Mounting devfs(5) not on `/mnt/dev' but on `/mnt/devfs',
++	 *    allowing the base distribution to unpack contents to the
++	 *    `/dev' directory.
++	 * 2. Write the disk-nodes with legacy libdisk code to match
++	 *    what the legacy kernel expects (currently we're using
++	 *    legacy RELENG_4 compatible code because RELENG_4 is the
++	 *    only legacy/non-devfs release we need to support -- mods
++	 *    may be required to support other non-devfs releases).
++	 * 3. Mount devfs on `/devfs' so we can complete newfs(8) and
++	 *    the rest of installation.
++	 */
++	if (noDevfs()) {
++	    devs = deviceFind(NULL, DEVICE_TYPE_DISK);
++	    for (i = 0; devs[i]; i++) {
++		if (!devs[i]->enabled)
++		continue;
++
++		disk = (Disk *)devs[i]->private;
++		if (!disk->chunks) {
++		    msgConfirm("No chunk list found for %s!", disk->name);
++		    return DITEM_FAILURE | DITEM_RESTORE;
++		}
++
++		if (RunningAsInit && root && (root->do_newfs || upgrade)) {
++		    Mkdir("/mnt/dev");
++		    if (!Fake)
++			MakeDevDisk(disk, "/mnt/dev");
++		}
++		else if (!RunningAsInit && !Fake)
++		    MakeDevDisk(disk, "/dev");
++	    }
++
++	    /* Create `/mnt/devfs' for next step */
++	    Mkdir("/mnt/devfs");
++	}
+ 	if (!Fake) {
+ 	    struct iovec iov[4];
+ 
+@@ -1138,7 +1387,7 @@ installFilesystems(dialogMenuItem *self)
+ 	    iov[1].iov_len = strlen(iov[1].iov_base) + 1;
+ 	    iov[2].iov_base = "fspath";
+ 	    iov[2].iov_len = strlen(iov[2].iov_base) + 1;
+-	    iov[3].iov_base = "/mnt/dev";
++	    iov[3].iov_base = noDevfs() ? "/mnt/devfs" : "/mnt/dev";
+ 	    iov[3].iov_len = strlen(iov[3].iov_base) + 1;
+ 	    i = nmount(iov, 4, 0);
+ 
+@@ -1180,22 +1429,25 @@ installFilesystems(dialogMenuItem *self)
+ 			if (c2 == RootChunk)
+ 			    continue;
+ 
+-			sprintf(dname, "%s/dev/%s",
+-			    RunningAsInit ? "/mnt" : "", c2->name);
++			sprintf(dname, "%s/dev%s/%s",
++			    RunningAsInit ? "/mnt" : "",
++			    noDevfs() ? "fs" : "",
++			    c2->name);
+ 
+ 			if (tmp->do_newfs && (!upgrade ||
+ 			    !msgNoYes("You are upgrading - are you SURE you"
+-			    " want to newfs /dev/%s?", c2->name)))
++			    " want to newfs /dev%s/%s?",
++			    noDevfs() ? "fs" : "", c2->name)))
+ 				performNewfs(tmp, dname, QUEUE_YES);
+ 			else
+ 			    command_shell_add(tmp->mountpoint,
+-				"fsck_ffs -y %s/dev/%s", RunningAsInit ?
+-				"/mnt" : "", c2->name);
++				"fsck_ffs -y %s/dev%s/%s", RunningAsInit ?
++				"/mnt" : "", noDevfs() ? "fs" : "", c2->name);
+ #if 0
+ 			if (tmp->soft)
+ 			    command_shell_add(tmp->mountpoint,
+-			    "tunefs -n enable %s/dev/%s", RunningAsInit ?
+-			    "/mnt" : "", c2->name);
++			    "tunefs -n enable %s/dev%s/%s", RunningAsInit ?
++			    "/mnt" : "", noDevfs() ? "fs" : "", c2->name);
+ #endif
+ 			command_func_add(tmp->mountpoint, Mount, c2->name);
+ 		    }
+@@ -1205,7 +1457,9 @@ installFilesystems(dialogMenuItem *self)
+ 
+ 			if (c2 == SwapChunk)
+ 			    continue;
+-			sprintf(fname, "%s/dev/%s", RunningAsInit ? "/mnt" : "", c2->name);
++			sprintf(fname, "%s/dev%s/%s",
++			        RunningAsInit ? "/mnt" : "",
++			        noDevfs() ? "fs" : "", c2->name);
+ 			i = (Fake || swapon(fname));
+ 			if (!i) {
+ 			    dialog_clear_norefresh();
+@@ -1230,12 +1484,12 @@ installFilesystems(dialogMenuItem *self)
+ 		PartInfo *pi = (PartInfo *)c1->private_data;
+ 		char *p;
+ 
+-		sprintf(dname, "%s/dev/%s", RunningAsInit ? "/mnt" : "",
+-		    c1->name);
++		sprintf(dname, "%s/dev%s/%s", RunningAsInit ? "/mnt" : "",
++		    noDevfs() ? "fs" : "", c1->name);
+ 
+ 		if (pi->do_newfs && (!upgrade ||
+ 		    !msgNoYes("You are upgrading - are you SURE you want to "
+-		    "newfs /dev/%s?", c1->name)))
++		    "newfs /dev%s/%s?", noDevfs() ? "fs" : "", c1->name)))
+ 			performNewfs(pi, dname, QUEUE_YES);
+ 
+ 		command_func_add(pi->mountpoint, Mount_msdosfs, c1->name);
+@@ -1314,16 +1568,16 @@ copySelf(void)
+     int i;
+ 
+     if (file_readable("/boot.help"))
+-	vsystem("cp /boot.help /mnt");
++	vsystem("%scp /boot.help /mnt", xarchInstall() ? "/stand/" : "");
+     msgWeHaveOutput("Copying the boot floppy to /stand on root filesystem");
+-    i = vsystem("find -x /stand | cpio %s -pdum /mnt", cpioVerbosity());
++    i = vsystem("%sfind -x /stand | %scpio %s -pdum /mnt", xarchInstall() ? "/stand/" : "", xarchInstall() ? "/stand/" : "", cpioVerbosity());
+     if (i) {
+ 	msgConfirm("Copy returned error status of %d!", i);
+ 	return FALSE;
+     }
+ 
+     /* Copy the /etc files into their rightful place */
+-    if (vsystem("cd /mnt/stand; find etc | cpio %s -pdum /mnt", cpioVerbosity())) {
++    if (vsystem("cd /mnt/stand; %sfind etc | %scpio %s -pdum /mnt", xarchInstall() ? "/stand/" : "", xarchInstall() ? "/stand/" : "", cpioVerbosity())) {
+ 	msgConfirm("Couldn't copy up the /etc files!");
+ 	return TRUE;
+     }

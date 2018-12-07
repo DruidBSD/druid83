@@ -1,0 +1,239 @@
+#	   user: dteske
+#	machine: 
+#	   tree: /usr/opshome/dteske/src/rids/druid83/src/freebsd/repos/8.3-RELEASE-amd64/local/root
+#	   date: Sat Jun  2 06:53:28 2012
+
+# .
+/set type=file uname=root gname=wheel mode=0755 nlink=1
+.               type=dir nlink=5 size=512
+
+# ./etc
+    etc             type=dir nlink=3 size=512
+
+# ./etc/rc.conf.d
+/set type=file uname=root gname=wheel mode=0644 nlink=1
+        rc.conf.d       type=dir mode=0755 nlink=2 size=512
+            netwait         size=422 \
+                            md5digest=56c137a3f85f8732fdfa252b7ad966e6
+        # ./etc/rc.conf.d
+        ..
+
+    # ./etc
+    ..
+
+
+# ./usr
+/set type=file uname=root gname=wheel mode=0755 nlink=1
+    usr             type=dir nlink=3 size=512
+
+# ./usr/local
+        local           type=dir nlink=6 size=512
+
+# ./usr/local/bin
+/set type=file uname=root gname=wheel mode=0555 nlink=1
+            bin             type=dir mode=0755 nlink=2 size=512
+                bonnie          size=13784 \
+                                md5digest=66e1d658d955ff8d3ae4a047b61f8e0c
+                rsync           mode=0755 size=397976 \
+                                md5digest=849a62a1288995c9b8ee1e313cc453d9
+                sup             size=66584 \
+                                md5digest=c43f93c8d55453c1ee403a23c9aefd3b
+                supfilesrv      size=64048 \
+                                md5digest=f762bf3a7ff8b26311d7ae266e992455
+                supscan         size=26696 \
+                                md5digest=3121f78646855f6bf7ee3873cf6cb564
+            # ./usr/local/bin
+            ..
+
+
+# ./usr/local/etc
+/set type=file uname=root gname=wheel mode=0444 nlink=1
+            etc             type=dir mode=0755 nlink=3 size=512
+                rsyncd.conf.sample \
+                                size=766 \
+                                md5digest=04b2d0c2366351bf1ea4ff9c10f9b8f3
+
+# ./usr/local/etc/rc.d
+/set type=file uname=root gname=wheel mode=0555 nlink=1
+                rc.d            type=dir mode=0755 nlink=2 size=512
+                    rsyncd          size=620 \
+                                    md5digest=9a6bd6dd14468a06719eefcb400fa850
+                # ./usr/local/etc/rc.d
+                ..
+
+            # ./usr/local/etc
+            ..
+
+
+# ./usr/local/man
+/set type=file uname=root gname=wheel mode=0755 nlink=1
+            man             type=dir nlink=5 size=512
+
+# ./usr/local/man/man1
+/set type=file uname=root gname=wheel mode=0444 nlink=1
+                man1            type=dir mode=0755 nlink=2 size=512
+                    bonnie.1.gz     size=1271 \
+                                    md5digest=533b5c79172aeae9eb925dd56082e72e
+                    rsync.1.gz      mode=0644 size=50322 \
+                                    md5digest=ecc3587726c9a008eb4a58f27afea488
+                    sup.1.gz        size=8144 \
+                                    md5digest=9febf325cdbf22cea5463b4ca4b4910b
+                # ./usr/local/man/man1
+                ..
+
+
+# ./usr/local/man/man5
+/set type=file uname=root gname=wheel mode=0644 nlink=1
+                man5            type=dir mode=0755 nlink=2 size=512
+                    rsyncd.conf.5.gz \
+                                    size=12313 \
+                                    md5digest=96a172bca0cf80eda1a81fa43c29c128
+                # ./usr/local/man/man5
+                ..
+
+
+# ./usr/local/man/man8
+/set type=file uname=root gname=wheel mode=0777 nlink=1
+                man8            type=dir mode=0755 nlink=2 size=512
+                    supfilesrv.8.gz type=link size=15 link=supservers.8.gz
+                    supscan.8.gz    type=link size=15 link=supservers.8.gz
+                    supservers.8.gz mode=0444 size=2954 \
+                                    md5digest=102706cd6ca7000bb30a7b9e8e025b34
+                # ./usr/local/man/man8
+                ..
+
+            # ./usr/local/man
+            ..
+
+
+# ./usr/local/share
+/set type=file uname=root gname=wheel mode=0755 nlink=1
+            share           type=dir nlink=4 size=512
+
+# ./usr/local/share/doc
+                doc             type=dir nlink=3 size=512
+
+# ./usr/local/share/doc/rsync
+/set type=file uname=root gname=wheel mode=0444 nlink=1
+                    rsync           type=dir mode=0755 nlink=2 size=512
+                        NEWS            size=1859 \
+                                        md5digest=0c4aea1683da8e2bac94ec4f679c112f
+                        README          size=4170 \
+                                        md5digest=43c5583be00f8aaed32345776ff6241f
+                        csprotocol.txt  size=3193 \
+                                        md5digest=4841289dbf4740a64d0fb8d27de3bbc6
+                        tech_report.tex size=14675 \
+                                        md5digest=ec8cd120dfa29912f9a9c55d3bd6e70d
+                    # ./usr/local/share/doc/rsync
+                    ..
+
+                # ./usr/local/share/doc
+                ..
+
+
+# ./usr/local/share/licenses
+/set type=file uname=root gname=wheel mode=0755 nlink=1
+                licenses        type=dir nlink=3 size=512
+
+# ./usr/local/share/licenses/rsync-3.0.9
+/set type=file uname=root gname=wheel mode=0444 nlink=1
+                    rsync-3.0.9     type=dir mode=0755 nlink=2 size=512
+                        GPLv3           size=35147 \
+                                        md5digest=d32239bcb673463ab874e80d47fae504
+                        LICENSE         size=81 \
+                                        md5digest=e160023fdb2b727977c76c61b261a5e5
+                        catalog.mk      size=201 \
+                                        md5digest=52a867da5a103924d49bbc8d752f9b8e
+                    # ./usr/local/share/licenses/rsync-3.0.9
+                    ..
+
+                # ./usr/local/share/licenses
+                ..
+
+            # ./usr/local/share
+            ..
+
+        # ./usr/local
+        ..
+
+    # ./usr
+    ..
+
+
+# ./var
+/set type=file uname=root gname=wheel mode=0755 nlink=1
+    var             type=dir nlink=3 size=512
+
+# ./var/db
+        db              type=dir nlink=3 size=512
+
+# ./var/db/pkg
+            pkg             type=dir nlink=6 size=512
+
+# ./var/db/pkg/bonnie-2.0.6_1
+/set type=file uname=root gname=wheel mode=0644 nlink=1
+                bonnie-2.0.6_1  type=dir mode=0755 nlink=2 size=512
+                    +COMMENT        size=35 \
+                                    md5digest=37d3e78ac375f7d7fde48c37e4882101
+                    +CONTENTS       size=366 \
+                                    md5digest=16cf2bc2b8ed4ac4dba8b289467d91d3
+                    +DESC           size=1051 \
+                                    md5digest=b7c8ae2309cd504a96b2e8d3cc20b0ca
+                    +MTREE_DIRS     size=17550 \
+                                    md5digest=ce836ef3197d724169553c4abda4b9cf
+                # ./var/db/pkg/bonnie-2.0.6_1
+                ..
+
+
+# ./var/db/pkg/netwait_defaults-1.0
+                netwait_defaults-1.0 \
+                                type=dir mode=0755 nlink=2 size=512
+                    +COMMENT        size=47 \
+                                    md5digest=5d3bc0baab49f5ad7b2235e03d71cdda
+                    +CONTENTS       size=345 \
+                                    md5digest=664c803cf1c2aec0f9e53d8e60133acc
+                    +DESC           size=90 \
+                                    md5digest=88fc938a82b149cbf48122b329f139e0
+                # ./var/db/pkg/netwait_defaults-1.0
+                ..
+
+
+# ./var/db/pkg/rsync-3.0.9
+                rsync-3.0.9     type=dir mode=0755 nlink=2 size=512
+                    +COMMENT        size=52 \
+                                    md5digest=b373b9bf1ea1b074e89dca764a2a7481
+                    +CONTENTS       size=1615 \
+                                    md5digest=889411801d60b87dbf73c3aa2990eda4
+                    +DESC           size=695 \
+                                    md5digest=8ecbdba15489e29f9638c64af1e6d502
+                    +MTREE_DIRS     size=17550 \
+                                    md5digest=ce836ef3197d724169553c4abda4b9cf
+                # ./var/db/pkg/rsync-3.0.9
+                ..
+
+
+# ./var/db/pkg/sup-2.0.20060802
+                sup-2.0.20060802 \
+                                type=dir mode=0755 nlink=2 size=512
+                    +COMMENT        size=39 \
+                                    md5digest=e2c0368eadb757f66e8f84e490000719
+                    +CONTENTS       size=1125 \
+                                    md5digest=c2b794970c3f84cb3d130720a56c8269
+                    +DESC           size=325 \
+                                    md5digest=630f24a0e1c722f87736efa35a7f2bb4
+                    +MTREE_DIRS     size=17550 \
+                                    md5digest=ce836ef3197d724169553c4abda4b9cf
+                # ./var/db/pkg/sup-2.0.20060802
+                ..
+
+            # ./var/db/pkg
+            ..
+
+        # ./var/db
+        ..
+
+    # ./var
+    ..
+
+..
+

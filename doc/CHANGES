@@ -1,0 +1,206 @@
+$Header: /cvsroot/druidbsd/druidbsd/druid83/doc/CHANGES,v 1.1 2012/10/10 23:30:07 devinteske Exp $
+
+Changes effecting only:
+FreeBSD_Druid-1.0 [TBD]:
+
+- Updated `find' routine in `src/freebsd/menu/etc/all_install' which searches
+  `/dev' (DEVFS) to deprecate support for `wd#' (ST-506, ESDI, and IDE; read
+  pre-ATA) and `fla#' (Disk-on-Chip) devices; while adding support for ada(4)
+  (SATA disk) devices.
+- Updated `src/freebsd/menu/etc/all_install' to enable Soft-Updates feature
+  for the `/var', `/tmp', and `/usr' partitions.
+  NOTE: Soft-Updates is a performance-enhancing feature required by RIDS that
+  should be enabled for those partitions (though should NEVER be enabled for
+  either the root [/] partition nor for external RAID storage arrays).
+- The FreeBSD chain-loading process has been fixed to allow hybrid booting
+  from either USB media or CD/DVD (with zero-modification to the ISO).
+  NOTE: Simply `dd' the ISO onto your USB flash media
+  DETAILS: Files modified include `fis_mfsroot8:fis/load_menu',
+  `rescue_mfsroot8:fis/load_rescue', and `GNUmakefile.in'.
+  MOTE DETAILS: FreeBSD-8.x kernel allows us to mount `/dev/iso9660/VOLID'
+  as a cd9660 device (where `VOLID' is the internal IS9660 Volume ID/Label),
+  even when booted from USB flash media.
+- Patched/updated `src/freebsd/menu/menu' to remove `VBU' language
+  NOTE: recompiled/linked on FreeBSD-8.0
+- Removed additional `VBU' and `VICOR' language.
+  DETAILS: Files modified include
+  `src/freebsd/repos/4.8-RELEASE/util/etc/functions',
+  `src/freebsd/repos/4.11-RELEASE/util/etc/functions',
+  `src/freebsd/repos/8.0-RELEASE/util/etc/functions',
+  `src/freebsd/menu/etc/functions',
+  `src/frerebsd/menu/scripts/repair',
+  `mdroot/boot/menu.rc',
+  `src/freebsd/menu/etc/all_install',
+  `src/freebsd/menu/scripts/standard411',
+  `src/freebsd/menu/scripts/standard800',
+  `src/freebsd/menu/scripts/standard480',
+  `mdroot/boot/fis_mfsroot8.gz',
+  `mdroot/boot/rescue_mfsroot8.gz',
+  `fis_mfsroot8:install.cfg',
+  `fis_mfsroot8:fis/functions',
+  `fis_mfsroot8:fis/load_menu',
+  `rescue_mfsroot8:fis/functions',
+  `rescue_mfsroot8:fis/load_repair'.
+  and `rescue_mfsroot8:stand/init',
+- Created `src/freebsd/menu/scripts/standard800' bootstrap script. This script
+  is called by `src/freebsd/menu/menu' in response to the user selecting the
+  "Install FreeBSD-8.0" menu option.
+- Created `src/freebsd/menu/etc/install800.conf' which is read by the bootstrap
+  script `src/freebsd/menu/scripts/standard800'.
+- Added `freebsd/repos/8.0-RELEASE' installation resources from the Walnut
+  Creek FreeBSD-8.0 ("green disc") install CD-ROM.
+- Deprecate `boot/freebsd/mdroot*.gz'. This compressed FreeBSD Memory File-
+  System (MFS) was difficult to modify and even more difficult to maintain.
+  Further, when booting from USB flash media, SYSLINUX had difficulty on some
+  hardware in performing floppy-disk emulation with this image. This has been
+  replaced with ISO chain-loading (NEW).
+- NEW! ISO chain-loading. In updating SYSLINUX from version 3.82 to 3.84, we
+  are now able to perform CD-ROM emulation via MEMDISK's new ISO driver. This
+  makes our emulated boot-media (previously `boot/freebsd/mdroot*.gz' in MFS
+  format) easier to modify and maintain.
+  DETAILS: Our original emulated boot-media was a monolithic binary disk-image
+  that could only be edited on FreeBSD systems. Everytime a change had to be
+  made to the boot-loader code, the developer had to (a) upload the image to a
+  FreeBSD system, (b) un-pack the image, (c) make the necessary modification,
+  (d) re-pack the image, and finally (e) transfer the image back to the source
+  directory where it needs to be. Meanwhile, our new emulated boot-media is
+  compiled at build-time with the rest of the `make' process. When a change is
+  needed to the boot-loader code, the developer can easily modify the code in
+  `mdroot/' and simply re-`make' (modifying any file in the `mdroot' sources
+  will cause the dependency-chain to be dirtied, causing subsequent rebuilding
+  of the constituent ISO upon the next `make').
+  NOTE: There is still a monolithic MFS image within the emulated boot-media.
+  This has not changed, and may likely never change due to certain constructs
+  (such as the ability to dynamically determine whether we booted from CD/DVD
+  versus USB flash media and act appropriately) still being required even in
+  the latest FreeBSD boot-code. What's worth noting here is that there are no-
+  longer TWO of these images (the emulated boot-media used to be one of these,
+  which in-turn contained another; this is, thankfully, no longer the case).
+- New FreeBSD loader(8). `boot/loader' has been updated to the latest version.
+  Previously we were using loader(8) from FreeBSD-4.11. We are now using
+  loader(8) from FreeBSD-8.0. This change was necessary to fix booting from
+  USB flash media AND from the new CD-ROM emulation (using new ISO driver).
+  NOTE: This change brought in its own set of challenges (see below).
+- Update various ANS/FICL Forth (`*.4th') modules to work with new loader(8).
+  NOTE: ANSI color-code definitions changed in loader(8) from RELENG_4 to
+  RELENG_8 in that the later code (RELENG_8) properly understands all Standard
+  codes whereas the older code-line foisted its own (non-Standard) definitions.
+  In addition, `number?' is no longer a valid Forth word and has been
+  deprecated in favor of `?number'.
+  DETAILS: The following files needed updating with respect to ANSI color-
+  codes: `boot/include/beastie.4th', `boot/include/brand.4th',
+  `boot/include/menu-commands.4th', and `boot/include/version.4th'.
+  Meanwhile, the following files needed updating with respect to `?number'
+  (new) versus `number?' (old) usage: `boot/include/beastie.4th',
+  `boot/include/brand.4th', `boot/include/dc_execute.4th',
+  `boot/include/menu.4th', and `boot/include/version.4th'.
+  MORE DETAILS: The `?number' (new) and `number?' (old) words are different
+  in that the old word returned `-1' to the stack if the C-Addr string did NOT
+  represent a signed integer, meanwhile the new word returns 1. This had a
+  negative impact on code in both `boot/include/beastie.4th' and
+  `boot/include/brand.4th', where actual functionality had to be patched (not
+  just the word-name).
+- Added `mdroot/boot/loader.help' to support loader(8)'s `help' feature (new
+  to FreeBSD-8.0).
+- Added `mdroot/boot/cdboot' as our El Torito boot image.
+  DETAILS: With our new SYSLINUX ISO chain-loading, we need to use FreeBSD's
+  `cdboot' image whereas with our old MEMDISK Floppy emulation, we executed
+  `boot/loader' directly.
+- Modified `boot/menu.rc' (now within `mdroot' sources). Changed the menu
+  text for "Boot" to "Boot [ENTER]". Changed "Kernel Type:" to "Kernel:".
+  Changed kernel paths (4.8/4.11 kernels are deprecated and will no longer
+  be used; going forward we are locked into using 8.0+). Changed kernel-
+  selection menu handling. Updated ANSI color codes for new loader(8).
+- Renamed boot/mfsroot.gz (formerly in mdroot.gz; now in `mdroot/boot') from
+  `mfsroot.gz' to `fis_mfsroot8.gz'.
+  NOTE: This was necessary to help identify "at a glance" that the binary MFS
+  disk image is both (a) of our design (indicated by the `fis_' prefix) and
+  (b) of FreeBSD-8.x origin (indicated by the `8' suffix).
+- Renamed/moved the kernels. The new location for the kernels is a directory
+  at `/kernels' (within the new `mdroot' sources). The new naming convention is
+  "CONFIGNAME-RELpN[.kgz]" (where CONFIGNAME should be the same as the kernel's
+  `ident' configuration name). For example, we're starting off with
+  `FIS-8.0p1.kgz', `FIS-PAE-8.0p1.kgz', and `GENERIC-8.0p1.kgz'.
+  DETAILS: Traditionally stored at the root as either "kernel-x.y.kgz" and
+  "kernel-1.9.smp.kgz", I've decided that we need a better naming convention
+  (and new location). The traditional names do nothing for indicating what
+  FreeBSD release the kernel came from. Similarly, there will be a push to
+  continue this naming convention in the production environment (not just the
+  install platform). Further, within the production environment, the package
+  that will be used to install our kernels will also be renamed. Currently,
+  custom kernels for a particular FreeBSD release are installed via a package
+  named similar to "FreeBSD???-Kernel-Vicor-X.Y" and this needs to change
+  because (a) we modify the kernel rarely and cannot perceive a 2.0 release
+  (not without all that a "2.0" release implies when using MAJOR.MINOR version
+  strings) and (b) packages beginning with "FreeBSD???-" in their name should
+  be classified as "one-off" packages (for example, a security update for a
+  particular FreeBSD release). With regard to the latter, every release of
+  FreeBSD since 4.8 has had a custom kernel, and it is therefore prudent that
+  we move the kernel package to a more forward-looking package name
+  (`fis_kernel-*') which we can expect to exist for all releases.
+  NOTE: For argument-sake, if we were to retroactively apply this change in
+  our older production environments, we'd see the files `kernels/VICOR-4.11p1'
+  and `kernels/VICOR-SMP-4.11p1', followed by the older `kernels/VICOR-4.8p8'
+  and `kernels/VICOR-SMP-4.8p8'. Simply-put, if one were to slam all the
+  kernels into the same directory, you should still be able to (at-a-glance)
+  tell which kernel pertains to which FreeBSD release and what the FIS
+  patch-level of that kernel is.
+- Updated `mdroot/boot/include/menu-commands.4th' to set proper mount root
+  device name (this changed from "ufs:md1" to "ufs:/dev/md0" when we pulled-in
+  the new loader(8) from FreeBSD-8.0, replacing our old FreeBSD-4.11 loader).
+- Deprecated `boot/freebsd/mdroot-rescue-1.1.gz' in favor of a unified
+  `boot/freebsd/mdroot.iso' which contains new boot-loader code (detailed
+  below) that allows the user to select which mfsroot image to boot from.
+  NOTE: The deprecated image (`mdroot-rescue-1.1.gz') was, except for one line
+  of code, exactly the same as the normal boot image.
+  DETAILS: The addition of the `cycle_menuitem' ANS/Forth word in the module
+  `mdroot/boot/include/menu-commands.4th' (for the purpose of allowing multiple
+  kernel choice in the boot-loader) facilitated the ability to consolidate
+  these two (very similar) images into one.
+- Modified `mdroot/boot/include/menu-commands.4th', adding the `cycle_menuitem'
+  word to the ANS/Forth dictionary. Similar to the `toggle_menuitem' word, the
+  `cycle_menuitem' word is an abstract routine that handles the heavy-lifting
+  involved in tracking the current state of any given menuitem. Further, the
+  `toggle_kernel' routine has been replaced by a new `cycle_kernel' routine
+  which relies on the new `cycle_menuitem' word. See `mdroot/boot/menu.rc' for
+  more information.
+
+Changes effecting both:
+FreeBSD_Druid-1.0 [TBD]:
+Druid_Tools-1.0 [TBD]:
+
+- New build architecture. The `make' process has been completely rewritten.
+  NOTE: The new process allows for better dependency handling. Namely, the
+  developer can now rebuild without recompiling everything in the tree (only
+  modified components are rebuilt). Developers are now required to execute
+  "./configure" (without quotes) prior to `make' (see the README file).
+  DETAILS: `GNUmakefile' has been replaced with a suite of files containing
+  `GNUmakefile.in', `configure.in', `configure', `cfgaux/config.guess',
+  `cfgaux/config.sub', and `cfgaux/install-sh'.
+- Updated SYSLINUX from version 3.82 to 3.84 (bug fixes, newer HDT, new ISO
+  driver, etc.).
+- Updated Hardware Detection Tool (HDT) from version 0.3.3 to 0.3.6
+  DETAILS: Files modified include `src/boot/isolinux/hdt.c32' and
+  `src/boot/other/isolinux.cfg'
+- Added `TODO' file for tracking things that need to be done.
+- Updated color-scheme of isolinux boot menu (FIS Branding Guide 2.23.10)
+  DETAILS: Files modified include `src/boot/include/fis.jpg' and
+  `src/boot/include/isolinux-menu.cfg'
+- Removed additional `VBU' and `VICOR' language.
+  DETAILS: Files modified include `src/boot/isolinux/menu.cfg',
+  `src/boot/isolinux/menu.cfg.freebsd', `src/boot/isolinux/menu.cfg.linux',
+  and `src/boot/isolinux/menu.cfg.tools'.
+- Updated documentation.
+  NOTE: Changed document name from to `FreeBSD_Druid_User_Guide' in accordance
+  with new CRM guidelines.
+  DETAILS: Updated graphics, language, copyright notice, layout, and version
+  information in accordance with new CRM guidelines.
+- Designed new ASCII art approximation of FIS logo for FreeBSD mid-boot menu
+  (removing old "VBU" portion of the header).
+  DETAILS: Files modified include `mdroot/boot/include/brand.4th' and
+  `mdroot/boot/menu.rc'
+
+
+
+Changes above are in relation to Universal Installer version 1.9 (FreeBSD),
+released on October 7th, 2009.

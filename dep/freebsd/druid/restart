@@ -1,0 +1,81 @@
+#!/stand/sh
+# -*- tab-width:  4 -*- ;; Emacs
+# vi: set tabstop=4     :: Vi/ViM
+
+# If running as xarchInstall, only use binaries in `/stand'
+[ "$xarchInstall" ] && export PATH=/stand
+############################################################ STRINGS
+exec 7<< "EOF"
+          ____            _                   _           _        _ _
+         / ___| _   _ ___| |_ ___ _ __ ___   (_)_ __  ___| |_ __ _| | |
+         \___ \| | | / __| __/ _ \ '_ ` _ \  | | '_ \/ __| __/ _` | | |
+          ___) | |_| \__ \ ||  __/ | | | | | | | | | \__ \ || (_| | | |
+         |____/ \__, |___/\__\___|_| |_| |_| |_|_| |_|___/\__\__,_|_|_|
+                |___/
+                                           _      _           _
+                  ___ ___  _ __ ___  _ __ | | ___| |_ ___  __| |
+                 / __/ _ \| '_ ` _ \| '_ \| |/ _ \ __/ _ \/ _` |
+                | (_| (_) | | | | | | |_) | |  __/ ||  __/ (_| |
+                 \___\___/|_| |_| |_| .__/|_|\___|\__\___|\__,_|
+                                    |_|
+EOF
+msg="System restarting"
+############################################################ CONFIGURATION
+
+# Whether to use ANSI color or not
+ANSI_COLOR=YES
+
+# How long to wait before restarting automatically (zero
+# means don't automatically restart, wait for user input)
+delay=15
+
+############################################################ FUNCTIONS
+
+# Include standard functions
+. /dist/druid/etc/sh.subr
+
+############################################################ MAIN SOURCE
+
+print_green "\n%s\n\n" "$( exec <&7; cat )"
+if [ $delay -gt 0 ]; then # Count-down until taking action
+	n=$delay; grammar=s
+	while [ $n -gt 0 ]; do
+		[ $n -eq 1 ] && grammar= # maintain proper grammar
+
+		# print the message and sleep for 1 second (break on ENTER)
+		print_bold '[A\n%s in %u second%s... [K' "$msg" $n $grammar
+		read -t 1 IGNORED && break
+
+		n=$(( $n - 1 ))
+	done
+
+	# erase the countdown timer and move to the next line
+	print_bold "[A\n%s...[K\n" "$msg"
+	echo
+else
+	# Wait for user-interaction before continuing
+	print_bold " < press ENTER to restart this machine >"
+	read IGNORED
+fi
+
+# Our custom sysinstall doesn't need to call `shutdown'
+# So this way we can do it ourselves (in a friendlier way)
+# (this also prevents improper shutdown and unclean disks)
+
+reboot -l -q # don't kill init (-q)
+
+################################################################################
+# END
+################################################################################
+#
+# $Header: /cvsroot/druidbsd/druidbsd/druid83/dep/freebsd/druid/restart,v 1.1 2012/10/10 23:29:56 devinteske Exp $
+#
+# $Copyright: 2006-2012 Devin Teske. All rights reserved. $
+#
+# $Log: restart,v $
+# Revision 1.1  2012/10/10 23:29:56  devinteske
+# Commit initial public beta release of 8.3 series (beta 57; on-par with
+# the 9.0 series released recently, also beta 57).
+#
+#
+################################################################################
